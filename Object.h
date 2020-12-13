@@ -1,0 +1,108 @@
+#pragma once
+
+#include <vector>
+#include <glm/vec3.hpp>
+#include <glm/vec4.hpp>
+#include <glm/mat4x4.hpp>
+#include <glm/ext/quaternion_common.hpp>
+#include <LightingProperties.h>
+#include <Shader.h>
+
+class Camera;
+
+class GameObject {
+public:
+
+	const inline glm::vec3& scale()		const { return m_scale; }
+	const inline glm::vec3& location()	const { return m_location; }
+	const inline glm::vec4& rotation()	const { return m_rotation; }
+
+	const inline bool should_recalculate_model_matrix() const { return m_should_recalculate_model_matrix; }
+	void set_should_recalculate_model_matrix(bool should) { m_should_recalculate_model_matrix = should; }
+	
+	const glm::mat4& model();
+
+	void set_scale(const glm::vec3&);
+	void set_location(const glm::vec3&);
+	void set_rotation(const glm::vec4&);
+
+	const bool constant_model() const { return m_constant_model; }
+	void set_constant_model(const bool b) { m_constant_model = b; }
+
+	const glm::mat4 constant_model_matrix() const { return m_constant_model_matrix; }
+	void set_constant_model_matrix(const glm::mat4 b) { m_constant_model_matrix = b; }
+
+	void move(const glm::vec3&);
+
+private:
+
+	friend class WorldObject;
+
+	GameObject();
+
+	bool m_should_recalculate_model_matrix{ true };
+
+	bool m_constant_model{ false };
+	glm::mat4 m_constant_model_matrix{ glm::mat4(1.0f) };
+	glm::vec3 m_scale{1.0f};
+	glm::vec3 m_location{0.0f};
+	glm::vec4 m_rotation{0.0f};
+	glm::mat4 m_model{1.0f};
+
+};
+
+class WorldObject {
+public:
+
+	WorldObject() {}
+	virtual ~WorldObject() = default;
+
+	GameObject& game_object() { return m_game_object; };
+
+private:
+
+	GameObject m_game_object;
+};
+
+class RenderedWorldObject : public WorldObject {
+
+public:
+	RenderedWorldObject() {}
+	virtual ~RenderedWorldObject() override = default;
+	virtual void render(Camera& camera, glm::mat4& proj) = 0;
+
+private:
+
+};
+
+class SingleColoredWorldObject : public RenderedWorldObject {
+
+public:
+	SingleColoredWorldObject();
+	SingleColoredWorldObject(glm::vec3 color);
+	virtual ~SingleColoredWorldObject() override = default;
+
+	static inline Shader& shader() { return m_shader; }
+	virtual void render(Camera& camera, glm::mat4& proj) override;
+
+	void set_color(glm::vec3);
+	const inline glm::vec3 color() const { return m_color; };
+
+private:
+	glm::vec4 m_color{ 1.0f };
+
+	static Shader m_shader;
+};
+
+
+class LightedWorldObject : public RenderedWorldObject {
+public:
+
+	virtual ~LightedWorldObject() override = default;
+	virtual void render(Camera& camera, glm::mat4& proj) override = 0;
+
+	const inline LightingProperties lighting_properties() const { return m_lighting_properties; };
+
+private:
+	LightingProperties m_lighting_properties;
+};
