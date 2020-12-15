@@ -113,7 +113,6 @@ int main(int argc, char* argv[]) {
 		auto last = last_time;
 		g_delta_time = ((last_time = std::chrono::high_resolution_clock::now()) - last).count()/1000000.0f;
 
-
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glClearColor(0.2f, 0.4f, 0.6f, 1.0f);
 		handle_input();

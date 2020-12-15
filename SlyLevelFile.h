@@ -83,10 +83,6 @@ public:
 	BitmapCreator()
 	{}
 
-	struct RGBA {
-		unsigned char r, g, b, a;
-	};
-
 private:
 	RGBA* m_bitmap;
 	size_t m_bitmap_len;

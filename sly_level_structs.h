@@ -7,7 +7,11 @@
 #include <glm/vec3.hpp>
 #include <glm/vec4.hpp>
 
-#pragma pack(push, 1)
+//#pragma pack(push, 1)
+
+struct RGBA {
+    unsigned char r, g, b, a;
+};
 
 struct texcoord_t {
     float u, v;
@@ -242,7 +246,7 @@ struct szme_vertex_data_t {
         for (int i = 0; i < unk_count4; i++)
             texcoords[i] = stream.read<vector2_t>();
         for (int i = 0; i < unk_count5; i++)
-            lighting[i] = stream.read<uint32_t>();
+            lighting[i] = stream.read<RGBA>();
 
         //stream.seek(stream.tell() + unk_count1 * sizeof(vector3_t));
         //stream.seek(stream.tell() + unk_count2 * sizeof(vector3_t));
@@ -269,7 +273,7 @@ struct szme_vertex_data_t {
     std::vector<vector3_t> rotations;
     std::vector<uint32_t> unk_color;
     std::vector<vector2_t> texcoords;
-    std::vector<uint32_t> lighting;
+    std::vector<RGBA> lighting;
 
     uint16_t texture_id;
 
@@ -298,15 +302,6 @@ struct mesh_data_t
                 not_flags_and_1.szme_data.resize(not_flags_and_1.szme_hdr.m.mesh_count);
                 for (int i = 0; i < not_flags_and_1.szme_hdr.m.mesh_count; i++) {
                     not_flags_and_1.szme_data[i] = std::move(szme_vertex_data_t(stream));
-                    //if (not_flags_and_1.szme_data[i].positions.size() > 0)
-                    //    for (int j = 0; j < not_flags_and_1.vertex_data[i].vertices.size(); j++) {
-                    //        float* x_ptr = (float*)((uint32_t)not_flags_and_1.vertex_data[i].vertices.data() + j*sizeof(vertex_t));
-                    //        float* y_ptr = x_ptr + 1;
-                    //        float* z_ptr = y_ptr + 1;
-                    //        *x_ptr = *x_ptr + not_flags_and_1.szme_data[i].positions[0].x;
-                    //        *y_ptr = *y_ptr + not_flags_and_1.szme_data[i].positions[0].y;
-                    //        *z_ptr = *z_ptr + not_flags_and_1.szme_data[i].positions[0].z;
-                    //    }
                 }
             }
         }
@@ -329,4 +324,4 @@ struct mesh_data_t
     uint16_t flags;
 };
 
-#pragma pack(pop)
+//#pragma pack(pop)
