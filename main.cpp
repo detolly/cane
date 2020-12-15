@@ -91,10 +91,11 @@ int main(int argc, char* argv[]) {
 	//cube3.game_object().set_location({ 0.0f, -1.0f, 0.0f });
 	//
 	//cube3.game_object().set_scale({ 10.0f, 0.1f, 10.0f });
-	g_camera.set_location({ 0.0f, 2.0f, 0.0f });
 
-	//obj.game_object().set_location({ 10.0f, -10.0f, 0.0f });
+	//obj.game_object().set_location({ 10.0f, 10.0f, 10.0f });
 	//obj.game_object().set_scale({5.0f, 5.0f, 5.0f});
+
+	g_camera.set_location({ 0.0f, 2.0f, 0.0f });
 
 	SlyLevelFile mesh_container("level.bin");
 
@@ -158,7 +159,8 @@ static int current_cursor_mode{ GLFW_CURSOR_DISABLED };
 
 static void scroll_callback(GLFWwindow* window, double xoff, double yoff)
 {
-	move_speed += ((float)yoff)/100.0f;
+	move_speed += (((float)yoff)-(yoff < 0.0f ? -0.995f : 0.995f));
+	move_speed = std::min(std::max(move_speed, 0.0f), .5f);
 }
 
 static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {

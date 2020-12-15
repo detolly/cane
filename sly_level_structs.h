@@ -223,22 +223,36 @@ struct szme_vertex_data_t {
         unk_count3 = stream.read<unsigned char>();
         unk_count4 = stream.read<unsigned char>();
         unk_count5 = stream.read<unsigned char>();
-        pad = stream.read<uint32_t>();
-        //for (int i = 0; i < unk_count1; i++)
-        //    positions.push_back(stream.read<vector3_t>());
-        //for (int i = 0; i < unk_count2; i++)
-        //    rotations.push_back(stream.read<vector3_t>());
-        //for (int i = 0; i < unk_count3; i++)
-        //    unk_color.push_back(stream.read<uint32_t>());
-        //for (int i = 0; i < unk_count4; i++)
-        //    texcoords.push_back(stream.read<vector2_t>());
-        //for (int i = 0; i < unk_count5; i++)
-        //    lighting.push_back(stream.read<uint32_t>());
-        stream.seek(stream.tell() + unk_count1 * sizeof(vector3_t));
-        stream.seek(stream.tell() + unk_count2 * sizeof(vector3_t));
-        stream.seek(stream.tell() + unk_count3 * sizeof(uint32_t));
-        stream.seek(stream.tell() + unk_count4 * sizeof(vector2_t));
-        stream.seek(stream.tell() + unk_count5 * sizeof(uint32_t));
+        
+        int v = stream.tell();
+        int pad_size = -v & (3);
+        stream.seek(v + pad_size);
+
+        positions.resize(unk_count1);
+        rotations.resize(unk_count2);
+        unk_color.resize(unk_count3);
+        texcoords.resize(unk_count4);
+        lighting.resize(unk_count5);
+        for (int i = 0; i < unk_count1; i++)
+            positions[i] = stream.read<vector3_t>();
+        for (int i = 0; i < unk_count2; i++)
+            rotations[i] = stream.read<vector3_t>();
+        for (int i = 0; i < unk_count3; i++)
+            unk_color[i] = stream.read<uint32_t>();
+        for (int i = 0; i < unk_count4; i++)
+            texcoords[i] = stream.read<vector2_t>();
+        for (int i = 0; i < unk_count5; i++)
+            lighting[i] = stream.read<uint32_t>();
+
+        //stream.seek(stream.tell() + unk_count1 * sizeof(vector3_t));
+        //stream.seek(stream.tell() + unk_count2 * sizeof(vector3_t));
+        //stream.seek(stream.tell() + unk_count3 * sizeof(uint32_t));
+        //stream.seek(stream.tell() + unk_count4 * sizeof(vector2_t));
+        //stream.seek(stream.tell() + unk_count5 * sizeof(uint32_t));
+
+        texture_id = stream.read<uint16_t>();
+        unk_u8_1 = stream.read<byte>();
+        unk_u8_2 = stream.read<byte>();
     }
 
     vector3_t unk_vec;
@@ -284,6 +298,15 @@ struct mesh_data_t
                 not_flags_and_1.szme_data.resize(not_flags_and_1.szme_hdr.m.mesh_count);
                 for (int i = 0; i < not_flags_and_1.szme_hdr.m.mesh_count; i++) {
                     not_flags_and_1.szme_data[i] = std::move(szme_vertex_data_t(stream));
+                    //if (not_flags_and_1.szme_data[i].positions.size() > 0)
+                    //    for (int j = 0; j < not_flags_and_1.vertex_data[i].vertices.size(); j++) {
+                    //        float* x_ptr = (float*)((uint32_t)not_flags_and_1.vertex_data[i].vertices.data() + j*sizeof(vertex_t));
+                    //        float* y_ptr = x_ptr + 1;
+                    //        float* z_ptr = y_ptr + 1;
+                    //        *x_ptr = *x_ptr + not_flags_and_1.szme_data[i].positions[0].x;
+                    //        *y_ptr = *y_ptr + not_flags_and_1.szme_data[i].positions[0].y;
+                    //        *z_ptr = *z_ptr + not_flags_and_1.szme_data[i].positions[0].z;
+                    //    }
                 }
             }
         }
