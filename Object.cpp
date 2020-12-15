@@ -68,3 +68,13 @@ void SingleColoredWorldObject::set_color(glm::vec3 color) {
 	m_color = glm::vec4(color, 1.0f);
 	shader().set_vec4("col", m_color);
 }
+
+void SingleColoredSlyWorldObject::render(Camera& camera, glm::mat4 & proj) {
+	shader().use();
+	shader().set_vec4("col", glm::vec4(color(), 1.0f));
+	shader().set_mat4("model", game_object().constant_model() ? game_object().constant_model_matrix() : game_object().model());
+	shader().set_mat4("view", camera.view());
+	shader().set_mat4("projection", proj);
+}
+
+Shader SingleColoredSlyWorldObject::m_shader{ { Shader("colored_sly_object_shader_vertex.glsl", "colored_sly_object_shader_fragment.glsl") } };

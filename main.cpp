@@ -10,7 +10,7 @@ GLFWwindow* g_window;
 
 Camera g_camera;
 
-constexpr float move_speed = 0.01f;
+float move_speed = 0.01f;
 static float g_delta_time{ 0.0f };
 
 int main(int argc, char* argv[]) {
@@ -45,6 +45,7 @@ int main(int argc, char* argv[]) {
 	glfwSetKeyCallback(g_window, key_callback);
 	glfwSetCursorPosCallback(g_window, cursor_position_callback);
 	glfwSetFramebufferSizeCallback(g_window, size_callback);
+	glfwSetScrollCallback(g_window, scroll_callback);
 
 	glfwMakeContextCurrent(g_window);
 	glfwSetKeyCallback(g_window, key_callback);
@@ -62,6 +63,7 @@ int main(int argc, char* argv[]) {
 	glm::mat4 g_projection = glm::perspective(g_fov, aspect, 0.2f, 550.f);
 
 	Shader::init_shader(SingleColoredWorldObject::shader());
+	Shader::init_shader(SingleColoredSlyWorldObject::shader());
 
 	//Cube cube;
 	//Cube cube2;
@@ -153,6 +155,11 @@ static void handle_input() {
 }
 
 static int current_cursor_mode{ GLFW_CURSOR_DISABLED };
+
+static void scroll_callback(GLFWwindow* window, double xoff, double yoff)
+{
+	move_speed += ((float)yoff)/100.0f;
+}
 
 static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
 	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {

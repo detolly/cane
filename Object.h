@@ -75,8 +75,8 @@ private:
 
 };
 
-class SingleColoredWorldObject : public RenderedWorldObject {
-
+class SingleColoredWorldObject : public RenderedWorldObject
+{
 public:
 	SingleColoredWorldObject();
 	SingleColoredWorldObject(glm::vec3 color);
@@ -94,8 +94,23 @@ private:
 	static Shader m_shader;
 };
 
+class SingleColoredSlyWorldObject : public SingleColoredWorldObject
+{
+public:
+	SingleColoredSlyWorldObject() : SingleColoredWorldObject() {}
+	SingleColoredSlyWorldObject(glm::vec3 color) : SingleColoredWorldObject(color) {}
+	virtual ~SingleColoredSlyWorldObject() {}
 
-class LightedWorldObject : public RenderedWorldObject {
+	static inline Shader& shader() { return m_shader; }
+	virtual void render(Camera& camera, glm::mat4& proj) override;
+private:
+
+	static Shader m_shader;
+};
+
+
+class LightedWorldObject : public RenderedWorldObject
+{
 public:
 
 	virtual ~LightedWorldObject() override = default;

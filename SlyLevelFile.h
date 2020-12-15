@@ -8,7 +8,7 @@
 #include <memory>
 #include <ez_stream.h>
 
-class SlyMesh : public SingleColoredWorldObject {
+class SlyMesh : public SingleColoredSlyWorldObject {
 
 public:
 	SlyMesh(ez_stream& stream) {
@@ -19,12 +19,12 @@ public:
 			(float)(stream.tell() / 7 % 255) / 255.0f }
 		);
 		make_gl_buffers();
-		//game_object().set_constant_model(true);
+		game_object().set_constant_model(true);
 	}
 
 	void parse(ez_stream& stream) {
 		//INFINITE LOOP FOR TOMORROW
-		mesh_data = mesh_data_t(stream);
+		mesh_data = std::move(mesh_data_t(stream));
 	}
 
 	mesh_data_t mesh_data;
@@ -38,9 +38,9 @@ public:
 				glGenBuffers(1, &VBO);
 				glGenBuffers(1, &EBO);
 				glBindVertexArray(VAO);
-				glBindBuffer(GL_ARRAY_BUFFER, VBO);
 				mesh_data.not_flags_and_1.render_properties_vector.push_back({VAO, VBO, EBO});
-
+				
+				glBindBuffer(GL_ARRAY_BUFFER, VBO);
 				glBufferData(GL_ARRAY_BUFFER, mesh_data.not_flags_and_1.vertex_data[i].vertices.size() * sizeof(vertex_t), mesh_data.not_flags_and_1.vertex_data[i].vertices.data(), GL_STATIC_DRAW);
 
 				glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
@@ -49,6 +49,12 @@ public:
 				
 				glEnableVertexAttribArray(0);
 				glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(vertex_t), (void*)0);
+				glEnableVertexAttribArray(1);
+				glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(vertex_t), (void*)12);
+				glEnableVertexAttribArray(2);
+				glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(vertex_t), (void*)24);
+				glEnableVertexAttribArray(3);
+				glVertexAttribPointer(3, 1, GL_UNSIGNED_INT, GL_FALSE, sizeof(vertex_t), (void*)32);
 
 				glBindVertexArray(0);
 			}
@@ -60,12 +66,12 @@ public:
 		if (mesh_data.flags & 1)
 			return;
 
-		SingleColoredWorldObject::render(cam, proj);
+		SingleColoredSlyWorldObject::render(cam, proj);
 
 		for (int i = 0; i < mesh_data.not_flags_and_1.mesh_hdr.mesh_count; i++) {
 			glBindVertexArray(mesh_data.not_flags_and_1.render_properties_vector[i].vao);
-			glDrawElements(GL_TRIANGLES, mesh_data.not_flags_and_1.vertex_data[i].index_hdr.triangle_data.size(), GL_UNSIGNED_INT, 0);
-			glBindVertexArray(0);
+			glDrawElements(GL_TRIANGLES, mesh_data.not_flags_and_1.vertex_data[i].index_hdr.triangle_data.size(), GL_UNSIGNED_SHORT, 0);
+			//glBindVertexArray(0);
 		}
 	}
 };
@@ -99,8 +105,7 @@ public:
 		construct();
 	}
 
-	~SlyLevelFile() {
-	}
+	~SlyLevelFile() {}
 
 	void construct()
 	{
@@ -127,7 +132,13 @@ public:
 			stream.seek(current_szme_index-2);
 			total++;
 			det::dbgprint("Found another object.. Total: %d\r\n", total);
-			m_meshes.push_back(std::move(SlyMesh(stream)));
+			try {
+				m_meshes.push_back(std::move(SlyMesh(stream)));
+			}
+			catch (std::exception& e) {
+				det::dbgprint(e.what());
+				break;
+			}
         }
 
 		size_t finding_texture_table = 0;

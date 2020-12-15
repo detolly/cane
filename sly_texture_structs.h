@@ -107,14 +107,14 @@ struct texture_record_t {
 		numImages = stream.read<byte>();
 		numCluts = stream.read<byte>();
 
-		image_index.reserve(numImages);
+		image_index.resize(numImages);
 		for (int i = 0; i < numImages; i++) {
-			image_index.push_back(stream.read<short>());
+			image_index[i] = stream.read<short>();
 		}
 
-		clut_index.reserve(numCluts);
+		clut_index.resize(numCluts);
 		for (int i = 0; i < numCluts; i++) {
-			clut_index.push_back(stream.read<short>());
+			clut_index[i] = stream.read<short>();
 		}
 	}
 
