@@ -125,8 +125,11 @@ struct szme_header2_t {
         if (flags & 2) {
             m.unk_0x04 = stream.read<uint32_t>();
         }
+        if (flags & 0x200) {
+            m.unk_float = stream.read<float>();
+        }
         if (flags & 4) {
-            m.unk_float2 = stream.read<uint32_t>();
+            m.unk_float2 = stream.read<float>();
         }
         if (flags & 8) {
             m.unk_float3 = stream.read<float>();
@@ -155,7 +158,7 @@ struct szme_header2_t {
             m.unk_0x1A = stream.read<byte>();
             m.unk_0x1B = stream.read<byte>();
             m.unk_0x1C = stream.read<byte>();
-            if (flags & 1)
+            if (~flags & 1)
                 m.mesh_count = stream.read<uint16_t>();
         }
     }
@@ -241,6 +244,7 @@ struct mesh_data_t
             flags_and_1.vertex_data.reserve(flags_and_1.mesh_hdr.mesh_count);
 
             for (int i = 0; i < flags_and_1.mesh_hdr.mesh_count; i++) {
+                stream.seek(offset + flags_and_1.mesh_hdr.mesh_offsets[i]);
                 flags_and_1.vertex_data.push_back(vertex_data_t(stream, offset));
             }
 
