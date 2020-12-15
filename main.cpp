@@ -1,6 +1,7 @@
 
 #include "main.h"
-#include <SlyMeshContainer.h>
+#include <SlyLevelFile.h>
+#include <chrono>
 
 static int g_width = 1920, g_height = 1080;
 static float g_pitch, g_yaw;
@@ -9,7 +10,8 @@ GLFWwindow* g_window;
 
 Camera g_camera;
 
-constexpr float move_speed = 0.1f;
+constexpr float move_speed = 0.01f;
+static float g_delta_time{ 0.0f };
 
 int main(int argc, char* argv[]) {
 
@@ -57,7 +59,7 @@ int main(int argc, char* argv[]) {
 	glDisable(GL_CULL_FACE);
 
 	const float aspect = (float)g_width / (float)g_height;
-	glm::mat4 g_projection = glm::perspective(g_fov, aspect, 0.2f, 1000.f);
+	glm::mat4 g_projection = glm::perspective(g_fov, aspect, 0.2f, 550.f);
 
 	Shader::init_shader(SingleColoredWorldObject::shader());
 
@@ -91,8 +93,8 @@ int main(int argc, char* argv[]) {
 
 	//obj.game_object().set_location({ 10.0f, -10.0f, 0.0f });
 	//obj.game_object().set_scale({5.0f, 5.0f, 5.0f});
-	//
-	SlyMeshContainer mesh_container("level.bin");
+
+	SlyLevelFile mesh_container("level.bin");
 
 	RenderedWorldObject* objects[] = {
 		//&xCube, &yCube, &zCube,
@@ -102,8 +104,13 @@ int main(int argc, char* argv[]) {
 	};
 
 	glfwSwapInterval(1);
+	auto last_time = std::chrono::high_resolution_clock::now();
 	while (!glfwWindowShouldClose(g_window))
 	{
+		auto last = last_time;
+		g_delta_time = ((last_time = std::chrono::high_resolution_clock::now()) - last).count()/1000000.0f;
+
+
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glClearColor(0.2f, 0.4f, 0.6f, 1.0f);
 		handle_input();
@@ -120,28 +127,28 @@ int main(int argc, char* argv[]) {
 static void handle_input() {
 	if (glfwGetKey(g_window, GLFW_KEY_W) > 0) {
 		glm::vec3 rot = g_camera.forward_xy();
-		g_camera.set_location(g_camera.location() + (rot * move_speed));
+		g_camera.set_location(g_camera.location() + (rot * move_speed * g_delta_time));
 		det::dbgprint("%s\n", glm::to_string(g_camera.location()).c_str());
 	}
 	if (glfwGetKey(g_window, GLFW_KEY_A) > 0) {
 		glm::vec3 left = g_camera.left();
-		g_camera.set_location(g_camera.location() + (left * move_speed));
+		g_camera.set_location(g_camera.location() + (left * move_speed * g_delta_time));
 	}
 	if (glfwGetKey(g_window, GLFW_KEY_S) > 0) {
 		glm::vec3 back = g_camera.back_xy();
-		g_camera.set_location(g_camera.location() + (back * move_speed));
+		g_camera.set_location(g_camera.location() + (back * move_speed * g_delta_time));
 	}
 	if (glfwGetKey(g_window, GLFW_KEY_D) > 0) {
 		glm::vec3 right = g_camera.right();
-		g_camera.set_location(g_camera.location() + (right * move_speed));
+		g_camera.set_location(g_camera.location() + (right * move_speed * g_delta_time));
 	}
 	if (glfwGetKey(g_window, GLFW_KEY_SPACE) > 0) {
 		glm::vec3 up = g_camera.up();
-		g_camera.set_location(g_camera.location() + (up * move_speed));
+		g_camera.set_location(g_camera.location() + (up * move_speed * g_delta_time));
 	}
 	if (glfwGetKey(g_window, GLFW_KEY_LEFT_SHIFT) > 0) {
 		glm::vec3 up = g_camera.up();
-		g_camera.set_location(g_camera.location() - (up * move_speed));
+		g_camera.set_location(g_camera.location() - (up * move_speed * g_delta_time));
 	}
 }
 
@@ -171,6 +178,8 @@ static void size_callback(GLFWwindow* window, int width, int height) {
 	//g_projection = glm::perspective(g_fov, aspect, 0.1f, 100.f);
 	glViewport(0, 0, g_width, g_height);
 }
+
+
 
 static void cursor_position_callback(GLFWwindow*, double x, double y) {
 	if (current_cursor_mode == GLFW_CURSOR_DISABLED) {
