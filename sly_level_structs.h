@@ -57,12 +57,12 @@ struct index_data_t
     index_data_t(ez_stream& stream, int mesh_header_index) {
         index_hdr = stream.read<index_header_t>();
         stream.seek(mesh_header_index + index_hdr.index_data_offset_0);
-        triangle_data.resize(index_hdr.triangle_count * 3);
+        triangle_data.reserve(index_hdr.triangle_count * 3);
         for (int i = 0; i < index_hdr.triangle_count * 3; i++) {
             triangle_data.push_back(stream.read<uint16_t>());
         }
         stream.seek(mesh_header_index + index_hdr.index_data_offset_1);
-        index_data.resize(index_hdr.index_count);
+        index_data.reserve(index_hdr.index_count);
         for (int i = 0; i < index_hdr.index_count; i++) {
             index_data.push_back(stream.read<uint16_t>());
         }
@@ -88,7 +88,7 @@ struct vertex_data_t
     vertex_data_t(ez_stream& stream, int mesh_header_start)
     {
         vertex_hdr = stream.read<vertex_header_t>();
-        vertices.resize(vertex_hdr.vertex_count);
+        vertices.reserve(vertex_hdr.vertex_count);
         stream.seek(mesh_header_start+vertex_hdr.vertex_data_offset);
         for (int i = 0; i < vertex_hdr.vertex_count; i++) {
             vertices.push_back(std::move(stream.read<vertex_t>()));
@@ -123,7 +123,7 @@ struct mesh_header_t
         unknown_0x00 = stream.read<uint32_t>();
         unknown_0x04 = stream.read<uint16_t>();
         mesh_count = stream.read<uint16_t>();
-        mesh_offsets.resize(mesh_count);
+        mesh_offsets.reserve(mesh_count);
         for (int i = 0; i < mesh_count; i++) {
             mesh_offsets.push_back(stream.read<uint32_t>());
         }
@@ -216,16 +216,21 @@ struct szme_vertex_data_t {
         unk_count4 = stream.read<unsigned char>();
         unk_count5 = stream.read<unsigned char>();
         pad = stream.read<uint32_t>();
-        for (int i = 0; i < unk_count1; i++)
-            positions.push_back(stream.read<vector3_t>());
-        for (int i = 0; i < unk_count2; i++)
-            rotations.push_back(stream.read<vector3_t>());
-        for (int i = 0; i < unk_count3; i++)
-            unk_color.push_back(stream.read<uint32_t>());
-        for (int i = 0; i < unk_count4; i++)
-            texcoords.push_back(stream.read<vector2_t>());
-        for (int i = 0; i < unk_count5; i++)
-            lighting.push_back(stream.read<uint32_t>());
+        //for (int i = 0; i < unk_count1; i++)
+        //    positions.push_back(stream.read<vector3_t>());
+        //for (int i = 0; i < unk_count2; i++)
+        //    rotations.push_back(stream.read<vector3_t>());
+        //for (int i = 0; i < unk_count3; i++)
+        //    unk_color.push_back(stream.read<uint32_t>());
+        //for (int i = 0; i < unk_count4; i++)
+        //    texcoords.push_back(stream.read<vector2_t>());
+        //for (int i = 0; i < unk_count5; i++)
+        //    lighting.push_back(stream.read<uint32_t>());
+        stream.seek(stream.tell() + unk_count1 * sizeof(vector3_t));
+        stream.seek(stream.tell() + unk_count2 * sizeof(vector3_t));
+        stream.seek(stream.tell() + unk_count3 * sizeof(uint32_t));
+        stream.seek(stream.tell() + unk_count4 * sizeof(vector2_t));
+        stream.seek(stream.tell() + unk_count5 * sizeof(uint32_t));
     }
 
     vector3_t unk_vec;
@@ -258,8 +263,8 @@ struct mesh_data_t
         if (~flags & 1) {
             not_flags_and_1.szms = stream.read<szms_header_t>();
             int offset = stream.tell();
-            not_flags_and_1.mesh_hdr = mesh_header_t(stream);
-            not_flags_and_1.vertex_data.resize(not_flags_and_1.mesh_hdr.mesh_count);
+            not_flags_and_1.mesh_hdr = std::move(mesh_header_t(stream));
+            not_flags_and_1.vertex_data.reserve(not_flags_and_1.mesh_hdr.mesh_count);
 
             for (int i = 0; i < not_flags_and_1.mesh_hdr.mesh_count; i++) {
                 stream.seek(offset + not_flags_and_1.mesh_hdr.mesh_offsets[i]);
@@ -268,7 +273,7 @@ struct mesh_data_t
 
             not_flags_and_1.szme_hdr = szme_header2_t(stream, flags);
             if (~flags & 0x100 && ~flags & 1 && not_flags_and_1.mesh_hdr.mesh_count < 0xFF) {
-                not_flags_and_1.szme_data.resize(not_flags_and_1.szme_hdr.m.mesh_count);
+                not_flags_and_1.szme_data.reserve(not_flags_and_1.szme_hdr.m.mesh_count);
                 for (int i = 0; i < not_flags_and_1.szme_hdr.m.mesh_count; i++) {
                     not_flags_and_1.szme_data.push_back(std::move(szme_vertex_data_t(stream)));
                 }

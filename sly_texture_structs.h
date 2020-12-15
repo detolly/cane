@@ -156,7 +156,7 @@ struct texture_table_t {
 	texture_table_t() {}
 	texture_table_t(ez_stream& stream) {
 		header = stream.read<texture_header_t>();
-		texture.resize(header.numTextures);
+		texture.reserve(header.numTextures);
 		for (int i = 0; i < header.numTextures; i++) {
 			texture.push_back(texture_record_t(stream));
 		}
