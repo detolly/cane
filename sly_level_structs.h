@@ -13,6 +13,24 @@ struct texcoord_t {
     float u, v;
 };
 
+struct vector2_t {
+    float x;
+    float y;
+};
+
+struct vector3_t {
+    float x;
+    float y;
+    float z;
+};
+
+struct vector4_t {
+    float x;
+    float y;
+    float z;
+    float w;
+};
+
 struct normal_t {
     float nx, ny, nz;
 };
@@ -39,12 +57,12 @@ struct index_data_t
     index_data_t(ez_stream& stream, int mesh_header_index) {
         index_hdr = stream.read<index_header_t>();
         stream.seek(mesh_header_index + index_hdr.index_data_offset_0);
-        triangle_data.reserve(index_hdr.triangle_count * 3);
+        triangle_data.resize(index_hdr.triangle_count * 3);
         for (int i = 0; i < index_hdr.triangle_count * 3; i++) {
             triangle_data.push_back(stream.read<uint16_t>());
         }
         stream.seek(mesh_header_index + index_hdr.index_data_offset_1);
-        index_data.reserve(index_hdr.index_count);
+        index_data.resize(index_hdr.index_count);
         for (int i = 0; i < index_hdr.index_count; i++) {
             index_data.push_back(stream.read<uint16_t>());
         }
@@ -70,10 +88,10 @@ struct vertex_data_t
     vertex_data_t(ez_stream& stream, int mesh_header_start)
     {
         vertex_hdr = stream.read<vertex_header_t>();
-        vertices.reserve(vertex_hdr.vertex_count);
+        vertices.resize(vertex_hdr.vertex_count);
         stream.seek(mesh_header_start+vertex_hdr.vertex_data_offset);
         for (int i = 0; i < vertex_hdr.vertex_count; i++) {
-            vertices.push_back(stream.read<vertex_t>());
+            vertices.push_back(std::move(stream.read<vertex_t>()));
         }
         stream.seek(mesh_header_start + vertex_hdr.index_header_offset);
         index_hdr = index_data_t(stream, mesh_header_start);
@@ -105,7 +123,7 @@ struct mesh_header_t
         unknown_0x00 = stream.read<uint32_t>();
         unknown_0x04 = stream.read<uint16_t>();
         mesh_count = stream.read<uint16_t>();
-        mesh_offsets.reserve(mesh_count);
+        mesh_offsets.resize(mesh_count);
         for (int i = 0; i < mesh_count; i++) {
             mesh_offsets.push_back(stream.read<uint32_t>());
         }
@@ -145,14 +163,14 @@ struct szme_header2_t {
             stream.seek(stream.tell() + 0x1C);
         }
         if (flags & 0x80) {
-            m.unk_vec3 = stream.read<glm::vec3>();
-            m.unk_vec4 = stream.read<glm::vec4>();
+            m.unk_vec3 = stream.read<vector3_t>();
+            m.unk_vec4 = stream.read<vector4_t>();
         }
         if (flags & 0x100) {
             //very unsupported
         }
         else {
-            m.position = stream.read<glm::vec3>();
+            m.position = stream.read<vector3_t>();
             m.unk_0x14 = stream.read<float>();
             m.unk_0x16_ignore = stream.read<uint16_t>();
             m.unk_0x1A = stream.read<byte>();
@@ -172,11 +190,11 @@ struct szme_header2_t {
         float unk_float4;
         float unk_float5;
         struct {
-            glm::vec3 unk_vec3;
-            glm::vec4 unk_vec4;
+            vector3_t unk_vec3;
+            vector4_t unk_vec4;
         };
         struct {
-            glm::vec3 position;
+            vector3_t position;
             float unk_0x14;
             uint16_t unk_0x16_ignore;
             byte unk_0x1A;
@@ -190,7 +208,7 @@ struct szme_header2_t {
 struct szme_vertex_data_t {
     szme_vertex_data_t() {}
     szme_vertex_data_t(ez_stream& stream) {
-        unk_vec = stream.read<glm::vec3>();
+        unk_vec = stream.read<vector3_t>();
         unk_float = stream.read<float>();
         unk_count1 = stream.read<unsigned char>();
         unk_count2 = stream.read<unsigned char>();
@@ -199,18 +217,18 @@ struct szme_vertex_data_t {
         unk_count5 = stream.read<unsigned char>();
         pad = stream.read<uint32_t>();
         for (int i = 0; i < unk_count1; i++)
-            positions.push_back(stream.read<glm::vec3>());
+            positions.push_back(stream.read<vector3_t>());
         for (int i = 0; i < unk_count2; i++)
-            rotations.push_back(stream.read<glm::vec3>());
+            rotations.push_back(stream.read<vector3_t>());
         for (int i = 0; i < unk_count3; i++)
             unk_color.push_back(stream.read<uint32_t>());
         for (int i = 0; i < unk_count4; i++)
-            texcoords.push_back(stream.read<glm::vec2>());
+            texcoords.push_back(stream.read<vector2_t>());
         for (int i = 0; i < unk_count5; i++)
             lighting.push_back(stream.read<uint32_t>());
     }
 
-    glm::vec3 unk_vec;
+    vector3_t unk_vec;
     float unk_float;
     unsigned char unk_count1;
     unsigned char unk_count2;
@@ -220,10 +238,10 @@ struct szme_vertex_data_t {
 
     uint32_t pad;
 
-    std::vector<glm::vec3> positions;
-    std::vector<glm::vec3> rotations;
+    std::vector<vector3_t> positions;
+    std::vector<vector3_t> rotations;
     std::vector<uint32_t> unk_color;
-    std::vector<glm::vec2> texcoords;
+    std::vector<vector2_t> texcoords;
     std::vector<uint32_t> lighting;
 
     uint16_t texture_id;
@@ -238,21 +256,21 @@ struct mesh_data_t
     mesh_data_t(ez_stream& stream) {
         flags = stream.read<uint16_t>();
         if (~flags & 1) {
-            flags_and_1.szms = stream.read<szms_header_t>();
+            not_flags_and_1.szms = stream.read<szms_header_t>();
             int offset = stream.tell();
-            flags_and_1.mesh_hdr = mesh_header_t(stream);
-            flags_and_1.vertex_data.reserve(flags_and_1.mesh_hdr.mesh_count);
+            not_flags_and_1.mesh_hdr = mesh_header_t(stream);
+            not_flags_and_1.vertex_data.resize(not_flags_and_1.mesh_hdr.mesh_count);
 
-            for (int i = 0; i < flags_and_1.mesh_hdr.mesh_count; i++) {
-                stream.seek(offset + flags_and_1.mesh_hdr.mesh_offsets[i]);
-                flags_and_1.vertex_data.push_back(vertex_data_t(stream, offset));
+            for (int i = 0; i < not_flags_and_1.mesh_hdr.mesh_count; i++) {
+                stream.seek(offset + not_flags_and_1.mesh_hdr.mesh_offsets[i]);
+                not_flags_and_1.vertex_data.push_back(std::move(vertex_data_t(stream, offset)));
             }
 
-            flags_and_1.szme_hdr = szme_header2_t(stream, flags);
-            if (~flags & 0x100 && ~flags & 1 && flags_and_1.mesh_hdr.mesh_count < 0xFF) {
-                flags_and_1.szme_data.resize(flags_and_1.szme_hdr.m.mesh_count);
-                for (int i = 0; i < flags_and_1.szme_hdr.m.mesh_count; i++) {
-                    flags_and_1.szme_data.push_back(szme_vertex_data_t(stream));
+            not_flags_and_1.szme_hdr = szme_header2_t(stream, flags);
+            if (~flags & 0x100 && ~flags & 1 && not_flags_and_1.mesh_hdr.mesh_count < 0xFF) {
+                not_flags_and_1.szme_data.resize(not_flags_and_1.szme_hdr.m.mesh_count);
+                for (int i = 0; i < not_flags_and_1.szme_hdr.m.mesh_count; i++) {
+                    not_flags_and_1.szme_data.push_back(std::move(szme_vertex_data_t(stream)));
                 }
             }
         }
@@ -261,10 +279,16 @@ struct mesh_data_t
     struct {
         szms_header_t szms;
         mesh_header_t mesh_hdr;
-        std::vector<vertex_data_t> vertex_data;
         szme_header2_t szme_hdr;
+
+        struct {
+            GLuint vao, vbo, ebo;
+        } render_properties;
+
+        std::vector<vertex_data_t> vertex_data;
         std::vector<szme_vertex_data_t> szme_data;
-    } flags_and_1;
+        std::vector<decltype(render_properties)> render_properties_vector;
+    } not_flags_and_1;
 
     uint16_t flags;
 };

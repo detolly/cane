@@ -23,6 +23,7 @@ public:
 	}
 
 	void parse(ez_stream& stream) {
+		//INFINITE LOOP FOR TOMORROW
 		mesh_data = mesh_data_t(stream);
 	}
 
@@ -30,20 +31,42 @@ public:
 
 	void make_gl_buffers() {
 		if (~mesh_data.flags & 1)
-			for (int i = 0; i < mesh_data.flags_and_1.vertex_data.size(); i++) {
+		{
+			for (int i = 0; i < mesh_data.not_flags_and_1.mesh_hdr.mesh_count; i++) {
+				GLuint VAO, VBO, EBO;
+				glGenVertexArrays(1, &VAO);
+				glGenBuffers(1, &VBO);
+				glGenBuffers(1, &EBO);
+				glBindVertexArray(VAO);
+				glBindBuffer(GL_ARRAY_BUFFER, VBO);
+				mesh_data.not_flags_and_1.render_properties_vector.push_back({VAO, VBO, EBO});
 
+				glBufferData(GL_ARRAY_BUFFER, mesh_data.not_flags_and_1.vertex_data[i].vertices.size() * sizeof(vertex_t), mesh_data.not_flags_and_1.vertex_data[i].vertices.data(), GL_STATIC_DRAW);
+
+				glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+				glBufferData(GL_ELEMENT_ARRAY_BUFFER, mesh_data.not_flags_and_1.vertex_data[i].index_hdr.triangle_data.size() * sizeof(uint16_t),
+					mesh_data.not_flags_and_1.vertex_data[i].index_hdr.triangle_data.data(), GL_STATIC_DRAW);
+				
+				glEnableVertexAttribArray(0);
+				glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(vertex_t), (void*)0);
+
+				glBindVertexArray(0);
 			}
+		}
 	}
 
 	void render(Camera& cam, glm::mat4x4& proj) override
 	{
+		if (mesh_data.flags & 1)
+			return;
+
 		SingleColoredWorldObject::render(cam, proj);
 
-		//for (auto submesh : m_submeshes) {
-		//	const auto id = submesh->vao();
-		//	glBindVertexArray(id);
-		//	glDrawArrays(GL_TRIANGLES, 0, submesh->vector().size()/3);
-		//}
+		for (int i = 0; i < mesh_data.not_flags_and_1.mesh_hdr.mesh_count; i++) {
+			glBindVertexArray(mesh_data.not_flags_and_1.render_properties_vector[i].vao);
+			glDrawElements(GL_TRIANGLES, mesh_data.not_flags_and_1.vertex_data[i].index_hdr.triangle_data.size(), GL_UNSIGNED_INT, 0);
+			glBindVertexArray(0);
+		}
 	}
 };
 
@@ -70,14 +93,13 @@ public:
 	SlyLevelFile() {}
 
 	SlyLevelFile(const char* level_file) {
-		FileReader reader(level_file, true);
+		FileReader reader(level_file);
 		m_buffer = reader.read();
 		m_buffer_len = reader.length();
 		construct();
 	}
 
 	~SlyLevelFile() {
-		delete[] m_buffer;
 	}
 
 	void construct()
@@ -99,9 +121,12 @@ public:
 			return -1;
 		};
 
+		int total = 0;
 		size_t current_szme_index{0};
         while((current_szme_index = find(m_buffer, "SZMS", current_szme_index+4, m_buffer_len)) != -1) {
 			stream.seek(current_szme_index-2);
+			total++;
+			det::dbgprint("Found another object.. Total: %d\r\n", total);
 			m_meshes.push_back(std::move(SlyMesh(stream)));
         }
 
