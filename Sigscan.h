@@ -19,7 +19,7 @@ namespace det {
 	{
 		for (int i = 0; i < size; i++) {
 			int advance_count = 0;
-			if (det::memcmp((const char*)((uint32_t)buffer + start + i), sig, mask, &advance_count)) {
+			if (det::memcmp(buffer + start + i, sig, mask, &advance_count)) {
 				return start + i + offset;
 			}
 			i += advance_count;

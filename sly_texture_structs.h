@@ -22,7 +22,7 @@ struct clut_meta_table_t {
 	clut_meta_table_t() {}
 	clut_meta_table_t(ez_stream& stream) {
 		header = stream.read<clut_meta_header_t>();
-		record = new clut_record_t[header.numRecords];
+		record.resize(header.numRecords);
 		for (int i = 0; i < header.numRecords; i++) {
 			record[i] = stream.read<clut_record_t>();
 		}
@@ -33,7 +33,7 @@ struct clut_meta_table_t {
 		short numRecords;
 	} header;
 
-	clut_record_t* record;
+	std::vector<clut_record_t> record;
 
 };
 
@@ -64,7 +64,7 @@ struct image_record_t {
 };
 
 struct image_meta_table_t {
-
+	 
 	image_meta_table_t() {}
 	image_meta_table_t(ez_stream& stream) {
 		header = stream.read<image_meta_header_t>();

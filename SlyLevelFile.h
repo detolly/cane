@@ -84,8 +84,7 @@ public:
 
 	Texture(uint8_t* paletteBuf, uint8_t* imageBuf, int width, int height, uint8_t* csm1ClutIndices) :
 		m_width(width),
-		m_height(height),
-		m_initialized(true)
+		m_height(height)
 	{
 		m_bitmap.resize(width*height);
 		for (int i = 0; i < width * height; i++) {
@@ -93,11 +92,11 @@ public:
 
 			const int x = i % width;
 			const int y = i / width;
-			const int inv_y = (-(y - (width / 2))) + width / 2 - 1;
+			const int inv_y = -y - 1;
 			const int offs = (inv_y * width + x) * 4;
 
 			// const alpha = palette_slice[idx + 3] / 256; // Paint alpha black
-			m_bitmap[i] = { paletteBuf[idx + 0] , paletteBuf[idx + 1], paletteBuf[idx + 2], 0xFF };
+			m_bitmap[i] = { paletteBuf[idx + 0] , paletteBuf[idx + 1], paletteBuf[idx + 2], paletteBuf[idx + 3] };
 		}
 	}
 
@@ -112,8 +111,6 @@ private:
 	std::vector<RGBA> m_bitmap;
 	int m_width;
 	int m_height;
-	bool m_initialized{ false };
-
 };
 
 class SlyLevelFile : public RenderedWorldObject
@@ -235,7 +232,7 @@ public:
 	}
 
 	void make_texture(int clutIndex, int imageIndex) {
-		if (clutIndex >= m_clut_meta_table.record->num_colors) {
+		if (clutIndex >= m_clut_meta_table.record.size()) {
 			det::dbgprint("warn: clutIndex(%d) out of bounds, skipping\n", clutIndex);
 			return;
 		}
@@ -244,22 +241,22 @@ public:
 			return;
 		}
 		 
-		clut_record_t clutMeta = m_clut_meta_table.record[clutIndex];
-		image_record_t imageMeta = m_image_meta_table.texture[clutIndex];
+		const clut_record_t& clutMeta = m_clut_meta_table.record[clutIndex];
+		const image_record_t& imageMeta = m_image_meta_table.texture[imageIndex];
 
 		if (clutMeta.num_colors == 256) {
 			const int width = imageMeta.width;
 			const int height = imageMeta.height;
 			const int paletteBuf = m_TEX_PALETTE_BASE + clutMeta.dataOffset;
 			const int imageBuf = m_TEX_PALETTE_BASE + imageMeta.dataOffset;
-			Texture texture(
-				(uint8_t*)((uint32_t)m_buffer + paletteBuf),
-				(uint8_t*)((uint32_t)m_buffer + imageBuf),
+
+			m_textures.push_back(Texture(
+				(uint8_t*)(m_buffer + paletteBuf),
+				(uint8_t*)(m_buffer + imageBuf),
 				width,
 				height,
 				csm1ClutIndices
-			);
-			m_textures.push_back(std::move(texture));
+			));
 		}
 		else {
 			det::dbgprint("UNSUPPORTED TEXTURE\n");

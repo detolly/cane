@@ -102,7 +102,7 @@ int main(int argc, char* argv[]) {
 	SlyLevelFile level_file("level.bin");
 
 	std::vector<Texture>& t = level_file.textures();
-
+	
 	int index = 0;
 	int num = t.size();
 	for(int i = index; i < index+num; i++)

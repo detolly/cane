@@ -9,7 +9,7 @@ public:
 
 	template <typename T, unsigned int size = sizeof(T)>
 	[[nodiscard]] const T read() {
-		T ret = *(T*)((uint32_t)m_buffer + m_index);
+		T ret = *(T*)((const char*)m_buffer + m_index);
 		m_index += size;
 		if (m_index > m_len)
 			throw std::exception("ur doing it wrong");
