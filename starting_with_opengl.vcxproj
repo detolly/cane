@@ -173,6 +173,7 @@
   <ItemGroup>
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="Cube.cpp" />
+    <ClCompile Include="lodepng.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Object.cpp" />
     <ClCompile Include="OBJModel.cpp" />
@@ -184,10 +185,12 @@
     <ClInclude Include="ez_stream.h" />
     <ClInclude Include="FileReader.h" />
     <ClInclude Include="LightingProperties.h" />
+    <ClInclude Include="lodepng.h" />
     <ClInclude Include="main.h" />
     <ClInclude Include="Object.h" />
     <ClInclude Include="OBJModel.h" />
     <ClInclude Include="Shader.h" />
+    <ClInclude Include="Sigscan.h" />
     <ClInclude Include="SlyLevelFile.h" />
     <ClInclude Include="sly_level_structs.h" />
     <ClInclude Include="sly_texture_structs.h" />

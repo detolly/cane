@@ -2,6 +2,7 @@
 #include "main.h"
 #include <SlyLevelFile.h>
 #include <chrono>
+#include <lodepng.h>
 
 static int g_width = 1920, g_height = 1080;
 static float g_pitch, g_yaw;
@@ -24,6 +25,7 @@ int main(int argc, char* argv[]) {
 #endif
 
 	glfwSetErrorCallback(error_callback);
+	//glfwWindowHint(GLFW_SAMPLES, 4);
 
 	if (!glfwInit()) {
 		det::dbgprint("ERROR INIT WINDOW");
@@ -97,13 +99,20 @@ int main(int argc, char* argv[]) {
 
 	g_camera.set_location({ 0.0f, 2.0f, 0.0f });
 
-	SlyLevelFile mesh_container("level.bin");
+	SlyLevelFile level_file("level.bin");
+
+	std::vector<Texture>& t = level_file.textures();
+
+	int index = 0;
+	int num = t.size();
+	for(int i = index; i < index+num; i++)
+		lodepng::encode("textures/texture " + std::to_string(i) + ".png", (const unsigned char*)(t[i].bitmap().data()), t[i].width(), t[i].height());
 
 	RenderedWorldObject* objects[] = {
 		//&xCube, &yCube, &zCube,
 		//&cube, &cube2, &cube3,
 		//&obj,
-		&mesh_container
+		&level_file
 	};
 
 	glfwSwapInterval(1);

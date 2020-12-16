@@ -15,6 +15,6 @@ uniform mat4 model;
 void main() {
 	float ambient = 0.15f;
 	vec3 lightPos = vec3(0.0f, 100.0f, 0.0f);
-	float diff = max(dot(normalize(normal), normalize(lightPos - FragPos)), 0.0f) * (1.f-ambient) + ambient;
+	float diff = abs(dot(normalize(normal), normalize(lightPos - FragPos))) * (1.f-ambient) + ambient;
 	FragColor = (col * diff)/max(depth, 1.0f);
 }

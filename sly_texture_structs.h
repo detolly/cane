@@ -12,7 +12,7 @@ struct UNK_TABLE_t {
 
 struct clut_record_t {
 	int unk0;
-	short numColods;
+	short num_colors;
 	short size;
 	int dataOffset;
 };

@@ -7,6 +7,7 @@
 #include <sly_texture_structs.h>
 #include <memory>
 #include <ez_stream.h>
+#include <Sigscan.h>
 
 class SlyMesh : public SingleColoredSlyWorldObject {
 
@@ -76,23 +77,50 @@ public:
 	}
 };
 
-class BitmapCreator {
-
+class Texture {
+private:
+	Texture() {}
 public:
 
-	BitmapCreator()
-	{}
+	Texture(uint8_t* paletteBuf, uint8_t* imageBuf, int width, int height, uint8_t* csm1ClutIndices) :
+		m_width(width),
+		m_height(height),
+		m_initialized(true)
+	{
+		m_bitmap.resize(width*height);
+		for (int i = 0; i < width * height; i++) {
+			uint8_t idx = csm1ClutIndices[imageBuf[i]] * 4;
+
+			const int x = i % width;
+			const int y = i / width;
+			const int inv_y = (-(y - (width / 2))) + width / 2 - 1;
+			const int offs = (inv_y * width + x) * 4;
+
+			// const alpha = palette_slice[idx + 3] / 256; // Paint alpha black
+			m_bitmap[i] = { paletteBuf[idx + 0] , paletteBuf[idx + 1], paletteBuf[idx + 2], 0xFF };
+		}
+	}
+
+	const std::vector<RGBA> const& bitmap() const {
+		return m_bitmap;
+	}
+
+	const int width() const { return m_width; }
+	const int height() const { return m_height; }
 
 private:
-	RGBA* m_bitmap;
-	size_t m_bitmap_len;
+	std::vector<RGBA> m_bitmap;
+	int m_width;
+	int m_height;
+	bool m_initialized{ false };
 
 };
 
 class SlyLevelFile : public RenderedWorldObject
 {
-public:
+private:
 	SlyLevelFile() {}
+public:
 
 	SlyLevelFile(const char* level_file) {
 		FileReader reader(level_file);
@@ -149,7 +177,96 @@ public:
 		for (int i = 0; i < 250; i++) {
 			unk_table[i] = stream.read<UNK_TABLE_t>();
 		}
+
+		for (int i = 0; i < 0x100; i += 0x20) {
+			for (int j = i; j < i + 8; j++) {
+				csm1ClutIndices[j       ] = j;
+				csm1ClutIndices[j + 8   ] = j + 0x10;
+				csm1ClutIndices[j + 0x10] = j + 0x8;
+				csm1ClutIndices[j + 0x18] = j + 0x18;
+			}
+		}
+
+		int offset = det::sigscan(
+			m_buffer,
+			0,
+			m_buffer_len,
+			" aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80",
+	"aaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaax",
+			0
+		);
+		det::dbgprint("%08x\n", offset);
+		m_TEX_PALETTE_BASE = offset;
+
+		int tex_entry_idx = 0;
+
+		for (auto texture_record : m_texture_table.texture) {
+
+			const bool is1Img1Pal = (texture_record.clut_index.size() == texture_record.image_index.size());
+			const bool is1ImgManyPal = (texture_record.image_index.size() == 1) && (texture_record.clut_index.size() > 1);
+			const bool isManyImgManyPal = !is1Img1Pal && (texture_record.image_index.size() > 1) && (texture_record.clut_index.size() > 1);
+
+			if (is1Img1Pal) {
+				for (int i = 0; i < texture_record.clut_index.size(); i++) {
+					make_texture(texture_record.clut_index[i], texture_record.image_index[i]);
+				}
+			}
+			else if (is1ImgManyPal) {
+				for (auto palIndex : texture_record.clut_index) {
+					make_texture(palIndex, texture_record.image_index[0]);
+				}
+			}
+			else if (isManyImgManyPal) {
+				//if (!Number.isInteger(texEntry.clutIndices.length / texEntry.imageIndices.length)) {
+				//	console.log(`WARN: nonint m2m ${ texEntryIdx } ${ texEntry.clutIndices.length } ${ texEntry.imageIndices.length }`);
+				//}
+				const auto divPalImg = texture_record.clut_index.size() / texture_record.image_index.size();
+				for (int i = 0; i < texture_record.clut_index.size(); ++i) {
+					int imgIndex = i / divPalImg;
+					make_texture(texture_record.clut_index[i], texture_record.image_index[imgIndex]);
+				}
+			}
+			else {
+				//console.log(`WARN: other ${ texEntryIdx } ${ texEntry.clutIndices.length } ${ texEntry.imageIndices.length }`);
+			}
+			tex_entry_idx++;
+		}
+
 	}
+
+	void make_texture(int clutIndex, int imageIndex) {
+		if (clutIndex >= m_clut_meta_table.record->num_colors) {
+			det::dbgprint("warn: clutIndex(%d) out of bounds, skipping\n", clutIndex);
+			return;
+		}
+		if (imageIndex >= m_image_meta_table.header.numRecords) {
+			det::dbgprint("warn: imageIndex(%d) out of bounds, skipping\n", imageIndex);
+			return;
+		}
+		 
+		clut_record_t clutMeta = m_clut_meta_table.record[clutIndex];
+		image_record_t imageMeta = m_image_meta_table.texture[clutIndex];
+
+		if (clutMeta.num_colors == 256) {
+			const int width = imageMeta.width;
+			const int height = imageMeta.height;
+			const int paletteBuf = m_TEX_PALETTE_BASE + clutMeta.dataOffset;
+			const int imageBuf = m_TEX_PALETTE_BASE + imageMeta.dataOffset;
+			Texture texture(
+				(uint8_t*)((uint32_t)m_buffer + paletteBuf),
+				(uint8_t*)((uint32_t)m_buffer + imageBuf),
+				width,
+				height,
+				csm1ClutIndices
+			);
+			m_textures.push_back(std::move(texture));
+		}
+		else {
+			det::dbgprint("UNSUPPORTED TEXTURE\n");
+		}
+	}
+
+	std::vector<Texture>& textures() { return m_textures; }
 
 	void render(Camera& cam, glm::mat4& matrix) override {
 		for (int i = 0; i < m_meshes.size(); i++) {
@@ -162,7 +279,10 @@ private:
 	size_t m_buffer_len{0};
 
 	std::vector<SlyMesh> m_meshes;
+	std::vector<Texture> m_textures;
 
+	int m_TEX_PALETTE_BASE{ 0 };
+	uint8_t csm1ClutIndices[256];
 	clut_meta_table_t m_clut_meta_table;
 	image_meta_table_t m_image_meta_table;
 	texture_table_t m_texture_table;
