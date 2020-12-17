@@ -60,9 +60,12 @@ int main(int argc, char* argv[]) {
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_MULTISAMPLE);
 	glDisable(GL_CULL_FACE);
+	glEnable(GL_BLEND);
+
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	const float aspect = (float)g_width / (float)g_height;
-	glm::mat4 g_projection = glm::perspective(g_fov, aspect, 0.2f, 550.f);
+	glm::mat4 g_projection = glm::perspective(g_fov, aspect, 0.2f, 650.f);
 
 	Shader::init_shader(SingleColoredWorldObject::shader());
 	Shader::init_shader(SingleColoredSlyWorldObject::shader());
@@ -197,12 +200,12 @@ static void size_callback(GLFWwindow* window, int width, int height) {
 
 
 static void cursor_position_callback(GLFWwindow*, double x, double y) {
+	static double lastX, lastY;
 	if (current_cursor_mode == GLFW_CURSOR_DISABLED) {
-		static double lastX, lastY;
 		double x_diff = lastX - x;
 		double y_diff = lastY - y;
 		g_camera.set_yaw_pitch(g_camera.yaw() - x_diff * 0.1, g_camera.pitch() - y_diff * 0.1);
 		//det::dbgprint("%f %f\n", g_camera.yaw(), g_camera.pitch());
-		lastX = x; lastY = y;
 	}
+	lastX = x; lastY = y;
 }

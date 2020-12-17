@@ -71,14 +71,14 @@ public:
 		if (mesh_data.flags & 1)
 			return;
 
-
 		SingleColoredSlyWorldObject::render(cam, proj);
 
 		for (int i = 0; i < mesh_data.not_flags_and_1.mesh_hdr.mesh_count; i++) {
 			int t_id = 0;
 			if (mesh_data.not_flags_and_1.szme_data.size() >= i+1)
-				if (m_texture_table.texture[mesh_data.not_flags_and_1.szme_data[i].texture_id].is_initialized())
-					glBindTexture(GL_TEXTURE_2D, m_texture_table.texture[mesh_data.not_flags_and_1.szme_data[i].texture_id].gl_texture);
+				if (mesh_data.not_flags_and_1.szme_data[i].texture_id < m_texture_table.texture.size())
+					if (m_texture_table.texture[mesh_data.not_flags_and_1.szme_data[i].texture_id].is_initialized())
+						glBindTexture(GL_TEXTURE_2D, m_texture_table.texture[mesh_data.not_flags_and_1.szme_data[i].texture_id].gl_texture);
 			glBindVertexArray(mesh_data.not_flags_and_1.render_properties_vector[i].vao);
 			glDrawElements(GL_TRIANGLES, mesh_data.not_flags_and_1.vertex_data[i].index_hdr.triangle_data.size(), GL_UNSIGNED_SHORT, 0);
 			//glBindVertexArray(0);

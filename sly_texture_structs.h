@@ -122,21 +122,31 @@ struct texture_record_t {
 	const bool is_initialized() const { return m_initialized; }
 
 	void make_texture(uint8_t* paletteBuf, uint8_t* imageBuf, int width, int height, uint8_t* csm1ClutIndices) {
-		m_initialized = true;
+		m_initialized = true;	
 		m_bitmap.resize(width * height * 4);
 		for (int i = 0; i < width * height; i++) {
 			const int idx = csm1ClutIndices[imageBuf[i]] * 4;
-			const int line = ((i + 1) / width) + 1;
+			const int line = ((i) / width) + 1;
 
 			// const alpha = palette_slice[idx + 3] / 256; // Paint alpha black
-			m_bitmap[4 * (width * height - 1 - line * width + (i % width)) + 3] = 0xFF; //paletteBuf[idx + 3];
-			m_bitmap[4 * (width * height - 1 - line * width + (i % width)) + 2] = paletteBuf[idx + 2];
-			m_bitmap[4 * (width * height - 1 - line * width + (i % width)) + 1] = paletteBuf[idx + 1];
-			m_bitmap[4 * (width * height - 1 - line * width + (i % width)) + 0] = paletteBuf[idx + 0];
+			//m_bitmap[4 * (width * height - line * width + (i % width)) + 3] = paletteBuf[idx + 3] * 2 - 1; 
+			//m_bitmap[4 * (width * height - line * width + (i % width)) + 2] = paletteBuf[idx + 2];
+			//m_bitmap[4 * (width * height - line * width + (i % width)) + 1] = paletteBuf[idx + 1];
+			//m_bitmap[4 * (width * height - line * width + (i % width)) + 0] = paletteBuf[idx + 0];
+			m_bitmap[4 * i + 0] = paletteBuf[idx + 0];
+			m_bitmap[4 * i + 1] = paletteBuf[idx + 1];
+			m_bitmap[4 * i + 2] = paletteBuf[idx + 2];
+			m_bitmap[4 * i + 3] = paletteBuf[idx + 3] * 2 - 1;
+			if (paletteBuf[idx + 0] == 255 && paletteBuf[idx + 1] == 255 && paletteBuf[idx + 2] == 255)
+				m_bitmap[4 * i + 3] = 0;
 		}
 
 		glGenTextures(1, &gl_texture);
 		glBindTexture(GL_TEXTURE_2D, gl_texture);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, m_bitmap.data());
 		glGenerateMipmap(GL_TEXTURE_2D);
 	}
