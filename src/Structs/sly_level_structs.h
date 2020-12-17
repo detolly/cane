@@ -1,8 +1,8 @@
 #pragma once
 
 #include <cstdint>
-#include <Object.h>
-#include <ez_stream.h>
+#include <Renderer/Object.h>
+#include <Utility/ez_stream.h>
 #include <glm/vec2.hpp>
 #include <glm/vec3.hpp>
 #include <glm/vec4.hpp>
@@ -313,13 +313,13 @@ struct mesh_data_t
         mesh_header_t mesh_hdr;
         szme_header2_t szme_hdr;
 
-        struct {
+        struct render_properties {
             GLuint vao, vbo, ebo;
-        } render_properties;
+        };
 
         std::vector<vertex_data_t> vertex_data;
         std::vector<szme_vertex_data_t> szme_data;
-        std::vector<decltype(render_properties)> render_properties_vector;
+        std::vector<render_properties> render_properties_vector;
     } not_flags_and_1;
 
     uint16_t flags;

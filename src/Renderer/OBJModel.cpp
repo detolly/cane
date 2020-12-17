@@ -1,5 +1,5 @@
-#include "OBJModel.h"
-#include <FileReader.h>
+#include <Renderer/OBJModel.h>
+#include <Utility/FileReader.h>
 #include <main.h>
 
 OBJModel::OBJModel(const char* file_location)
@@ -8,7 +8,7 @@ OBJModel::OBJModel(const char* file_location)
     const char* buf = r.read();
     parse(buf);
     make_gl_buffers();
-    //det::dbgprint(buf);
+    //det:://dbgprint(buf);
 }
 
 void OBJModel::parse(const char* buf) {
@@ -19,7 +19,7 @@ void OBJModel::parse(const char* buf) {
         if (a[last_start] == '#')
             continue;
         const std::string current_line = a.substr(last_start, start-last_start-1);
-        //det::dbgprint(current_line.c_str());
+        //det:://dbgprint(current_line.c_str());
         if (current_line.starts_with("v "))
         {
             const std::string verts = current_line.substr(2);

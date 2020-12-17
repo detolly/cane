@@ -1,13 +1,18 @@
 #pragma once
 
-#include <Object.h>
-#include <FileReader.h>
-#include <Camera.h>
-#include <sly_level_structs.h>
-#include <sly_texture_structs.h>
+#include <main.h>
+
+#include <Renderer/Object.h>
+#include <Renderer/Camera.h>
+#include <Structs/sly_level_structs.h>
+#include <Structs/sly_texture_structs.h>
 #include <memory>
-#include <ez_stream.h>
-#include <Sigscan.h>
+#include <Utility/ez_stream.h>
+#include <Utility/Sigscan.h>
+#include <Utility/FileReader.h>
+
+#include <glad/glad.h>
+#include <gl/GL.h>
 
 class SlyMesh : public SingleColoredSlyWorldObject {
 
@@ -21,8 +26,8 @@ public:
 			(float)(stream.tell() / 3 % 255) / 255.0f,
 			(float)(stream.tell() / 7 % 255) / 255.0f }
 		);
-		if (mesh_data.not_flags_and_1.szme_data.size() > 0)
-			det::dbgprint("Mesh has texture id of: %d\n", mesh_data.not_flags_and_1.szme_data[0].texture_id);
+		//if (mesh_data.not_flags_and_1.szme_data.size() > 0)
+			//dbgprint("Mesh has texture id of: %d\n", mesh_data.not_flags_and_1.szme_data[0].texture_id);
 		make_gl_buffers();
 		game_object().set_constant_model(true);
 	}
@@ -37,13 +42,14 @@ public:
 	void make_gl_buffers() {
 		if (~mesh_data.flags & 1)
 		{
+			mesh_data.not_flags_and_1.render_properties_vector.resize(mesh_data.not_flags_and_1.mesh_hdr.mesh_count);
 			for (int i = 0; i < mesh_data.not_flags_and_1.mesh_hdr.mesh_count; i++) {
 				GLuint VAO, VBO, EBO;
 				glGenVertexArrays(1, &VAO);
 				glGenBuffers(1, &VBO);
 				glGenBuffers(1, &EBO);
 				glBindVertexArray(VAO);
-				mesh_data.not_flags_and_1.render_properties_vector.push_back({VAO, VBO, EBO});
+				mesh_data.not_flags_and_1.render_properties_vector[i] = {VAO, VBO, EBO};
 				
 				glBindBuffer(GL_ARRAY_BUFFER, VBO);
 				glBufferData(GL_ARRAY_BUFFER, mesh_data.not_flags_and_1.vertex_data[i].vertices.size() * sizeof(vertex_t), mesh_data.not_flags_and_1.vertex_data[i].vertices.data(), GL_STATIC_DRAW);
@@ -148,7 +154,7 @@ public:
 			}
 		}
 
-		int offset = det::sigscan(
+		int offset = detolly::sigscan(
 			m_buffer,
 			0,
 			m_buffer_len,
@@ -156,7 +162,7 @@ public:
 			"aaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaax",
 			0
 		);
-		det::dbgprint("%08x\n", offset);
+		//dbgprint("%08x\n", offset);
 		m_TEX_PALETTE_BASE = offset;
 
 		int tex_entry_idx = 0;
@@ -204,12 +210,12 @@ public:
 		while ((current_szme_index = find(m_buffer, "SZMS", current_szme_index + 4, m_buffer_len)) != -1) {
 			stream.seek(current_szme_index - 2);
 			total++;
-			det::dbgprint("Found another object.. Total: %d\r\n", total);
+			//dbgprint("Found another object.. Total: %d\r\n", total);
 			try {
 				m_meshes.push_back(std::move(SlyMesh(stream, m_texture_table)));
 			}
 			catch (std::exception& e) {
-				det::dbgprint(e.what());
+				//dbgprint(e.what());
 				break;
 			}
 		}
@@ -217,11 +223,11 @@ public:
 
 	void make_texture(texture_record_t& tex, int clutIndex, int imageIndex) {
 		if (clutIndex >= m_clut_meta_table.record.size()) {
-			det::dbgprint("warn: clutIndex(%d) out of bounds, skipping\n", clutIndex);
+			//dbgprint("warn: clutIndex(%d) out of bounds, skipping\n", clutIndex);
 			return;
 		}
 		if (imageIndex >= m_image_meta_table.header.numRecords) {
-			det::dbgprint("warn: imageIndex(%d) out of bounds, skipping\n", imageIndex);
+			//dbgprint("warn: imageIndex(%d) out of bounds, skipping\n", imageIndex);
 			return;
 		}
 		 
@@ -241,7 +247,7 @@ public:
 				csm1ClutIndices);
 		}
 		else {
-			det::dbgprint("UNSUPPORTED TEXTURE\n");
+			//dbgprint("UNSUPPORTED TEXTURE\n");
 		}
 	}
 

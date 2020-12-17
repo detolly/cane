@@ -1,8 +1,11 @@
 #pragma once
 
 #include <cstdint>
-#include <ez_stream.h>
+#include <Utility/ez_stream.h>
 #include <main.h>
+
+#include <glad/glad.h>
+#include <GLFW/glfw3.h>
 
 struct UNK_TABLE_t {
 	uint16_t u0x0;

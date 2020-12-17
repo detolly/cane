@@ -1,6 +1,7 @@
 #pragma once
 
 #include <fstream>
+#include <filesystem>
 
 class FileReader {
 public:
@@ -8,7 +9,8 @@ public:
 	~FileReader() { if (!m_should_give_ownership) delete[] m_buf; }
 
 	const char* read() {
-		std::ifstream file = std::ifstream(m_loc, std::ios::in | std::ios::binary | std::ios::ate);
+		const auto path = std::filesystem::current_path();
+		std::ifstream file = std::ifstream(path / m_loc, std::ios::in | std::ios::binary | std::ios::ate);
 		if (file.is_open()) {
 			std::streamoff len = file.tellg();
 			m_len = (size_t)len;

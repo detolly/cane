@@ -5,8 +5,8 @@
 #include <glm/vec4.hpp>
 #include <glm/mat4x4.hpp>
 #include <glm/ext/quaternion_common.hpp>
-#include <LightingProperties.h>
-#include <Shader.h>
+#include <Renderer/LightingProperties.h>
+#include <Renderer/Shader.h>
 
 class Camera;
 

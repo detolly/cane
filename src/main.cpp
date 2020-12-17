@@ -1,8 +1,5 @@
 
 #include "main.h"
-#include <SlyLevelFile.h>
-#include <chrono>
-#include <lodepng.h>
 
 static int g_width = 1920, g_height = 1080;
 static float g_pitch, g_yaw;
@@ -28,7 +25,7 @@ int main(int argc, char* argv[]) {
 	//glfwWindowHint(GLFW_SAMPLES, 4);
 
 	if (!glfwInit()) {
-		det::dbgprint("ERROR INIT WINDOW");
+		//dbgprint("ERROR INIT WINDOW");
 	}
 
 	//glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 1);
@@ -39,7 +36,7 @@ int main(int argc, char* argv[]) {
 
 	if (!g_window) {
 		glfwTerminate();
-		det::dbgprint("ERROR CREATE WINDOW");
+		//dbgprint("ERROR CREATE WINDOW");
 	}
 
 	glfwSetInputMode(g_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
@@ -52,9 +49,9 @@ int main(int argc, char* argv[]) {
 	glfwMakeContextCurrent(g_window);
 	glfwSetKeyCallback(g_window, key_callback);
 
-	if (int initcode = glewInit(); initcode != GLEW_OK) {
-		det::dbgprint("ERROR INIT GLEW\n%s\n", glewGetErrorString(initcode));
-		det::dbgprint("ERROR INIT GLEW\n%s\n", glewGetErrorString(initcode));
+	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
+		//dbgprint("ERROR INIT GLEW\n%s\n", glewGetErrorString(initcode));
+		//dbgprint("ERROR INIT GLEW\n%s\n", glewGetErrorString(initcode));
 	}
 
 	glEnable(GL_DEPTH_TEST);
@@ -140,7 +137,7 @@ static void handle_input() {
 	if (glfwGetKey(g_window, GLFW_KEY_W) > 0) {
 		glm::vec3 rot = g_camera.forward_xy();
 		g_camera.set_location(g_camera.location() + (rot * move_speed * g_delta_time));
-		det::dbgprint("%s\n", glm::to_string(g_camera.location()).c_str());
+		//dbgprint("%s\n", glm::to_string(g_camera.location()).c_str());
 	}
 	if (glfwGetKey(g_window, GLFW_KEY_A) > 0) {
 		glm::vec3 left = g_camera.left();
@@ -186,7 +183,7 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
 }
 
 static void error_callback(int id, const char* desc) {
-	det::dbgprint("%s\n", desc);
+	//dbgprint("%s\n", desc);
 }
 
 static void size_callback(GLFWwindow* window, int width, int height) {
@@ -205,7 +202,7 @@ static void cursor_position_callback(GLFWwindow*, double x, double y) {
 		double x_diff = lastX - x;
 		double y_diff = lastY - y;
 		g_camera.set_yaw_pitch(g_camera.yaw() - x_diff * 0.1, g_camera.pitch() - y_diff * 0.1);
-		//det::dbgprint("%f %f\n", g_camera.yaw(), g_camera.pitch());
+		//det:://dbgprint("%f %f\n", g_camera.yaw(), g_camera.pitch());
 	}
 	lastX = x; lastY = y;
 }

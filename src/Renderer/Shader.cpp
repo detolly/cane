@@ -21,13 +21,13 @@ void Shader::make_gl_shader(Shader& shader, const char* vs, const char* fs)
 	if (!success)
 	{
 		glGetShaderInfoLog(ivs, 512, NULL, infoLog);
-		det::dbgprint("ERROR::SHADER::VERTEX::COMPILATION_FAILED\nOBJECT: %x\n%s\n", &shader, infoLog);
+		//dbgprint("ERROR::SHADER::VERTEX::COMPILATION_FAILED\nOBJECT: %x\n%s\n", &shader, infoLog);
 	}
 	glGetShaderiv(ifs, GL_COMPILE_STATUS, &success);
 	if (!success)
 	{
 		glGetShaderInfoLog(ifs, 512, NULL, infoLog);
-		det::dbgprint("ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\nOBJECT: %x\n%s\n", &shader, infoLog);
+		//dbgprint("ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\nOBJECT: %x\n%s\n", &shader, infoLog);
 	}
 
 	unsigned int program;
@@ -52,7 +52,7 @@ const char* Shader::read_from_file(const char* file_name, std::streamoff* size =
 	std::memset(buf, 0, length);
 	file.seekg(0, std::ios::beg);
 	file.read(buf, length);
-	det::dbgprint("Reading shader from file -- Size: %d bytes\n", len);
+	//dbgprint("Reading shader from file -- Size: %d bytes\n", len);
 	return buf;
 }
 

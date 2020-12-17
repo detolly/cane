@@ -3,7 +3,7 @@
 #include <cstring>
 #include <cstdint>
 
-namespace det {
+namespace detolly {
 	static inline bool memcmp(const char* buffer, const char* bMask, const char* szMask, int* advance_by) {
 		for (size_t bCount = 0; bCount < std::strlen(szMask); ++bCount) {
 			//printf("Read byte: 0x%x,  Byte Mask: 0x%x\r\n", *(BYTE*)(bData + bCount), (BYTE)bMask[bCount]);
@@ -19,7 +19,7 @@ namespace det {
 	{
 		for (int i = 0; i < size; i++) {
 			int advance_count = 0;
-			if (det::memcmp(buffer + start + i, sig, mask, &advance_count)) {
+			if (detolly::memcmp(buffer + start + i, sig, mask, &advance_count)) {
 				return start + i + offset;
 			}
 			i += advance_count;

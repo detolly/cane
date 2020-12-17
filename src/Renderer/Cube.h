@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Object.h>
+#include <Renderer/Object.h>
 
 class Camera;
 class Cube final : public SingleColoredWorldObject {

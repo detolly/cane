@@ -1,4 +1,4 @@
-#include <Cube.h>
+#include <Renderer/Cube.h>
 #include <main.h>
 
 Cube::Cube(glm::vec3 location)

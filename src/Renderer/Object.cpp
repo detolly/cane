@@ -1,10 +1,11 @@
-#include <Object.h>
 #include <glm/vec3.hpp>
 #include <glm/mat4x4.hpp>
 #include <glm/glm.hpp>
 #include <glm/gtx/rotate_vector.hpp>
-#include <Shader.h>
-#include <Camera.h>
+
+#include <Renderer/Shader.h>
+#include <Renderer/Camera.h>
+#include <Renderer/Object.h>
 
 GameObject::GameObject() {}
 

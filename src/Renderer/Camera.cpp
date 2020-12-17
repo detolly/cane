@@ -1,5 +1,5 @@
 
-#include <Camera.h>
+#include <Renderer/Camera.h>
 
 const glm::vec3 Camera::forward() const {
 	glm::vec3 r = glm::vec3(1.0f, 0.0f, 0.0f);
@@ -34,7 +34,7 @@ const glm::vec3 Camera::back_xy() const {
 }
 
 const glm::vec3 Camera::forward_xy() const {
-	//det::dbgprint("not tested -- Camera::forward_xy();\n");
+	//dbgprint("not tested -- Camera::forward_xy();\n");
 	glm::vec3 r = glm::vec3(1.0f, 0.0f, 0.0f);
 	r = glm::rotate(r, -glm::radians(m_yaw) + glm::pi<float>() / 2.0f, glm::vec3(0.0f, 1.0f, 0.0f));
 	//r = glm::rotate(r, -glm::radians(m_pitch), glm::vec3(1.0f, 0.0f, 0.0f));
