@@ -12,7 +12,7 @@ float move_speed = 0.01f;
 static float g_delta_time{ 0.0f };
 
 int main(int argc, char* argv[]) {
-
+#ifdef WIN32
 #ifdef NDEBUG
 	CloseHandle(GetStdHandle((DWORD)stdin));
 	CloseHandle(GetStdHandle((DWORD)stderr));
@@ -20,12 +20,13 @@ int main(int argc, char* argv[]) {
 	PostMessage(GetConsoleWindow(), WM_CLOSE, 0, 0);
 	FreeConsole();
 #endif
+#endif
 
 	glfwSetErrorCallback(error_callback);
 	//glfwWindowHint(GLFW_SAMPLES, 4);
 
 	if (!glfwInit()) {
-		//dbgprint("ERROR INIT WINDOW");
+		dbgprint("ERROR INIT WINDOW");
 	}
 
 	//glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 1);
@@ -36,7 +37,7 @@ int main(int argc, char* argv[]) {
 
 	if (!g_window) {
 		glfwTerminate();
-		//dbgprint("ERROR CREATE WINDOW");
+		dbgprint("ERROR CREATE WINDOW");
 	}
 
 	glfwSetInputMode(g_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
@@ -50,8 +51,7 @@ int main(int argc, char* argv[]) {
 	glfwSetKeyCallback(g_window, key_callback);
 
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
-		//dbgprint("ERROR INIT GLEW\n%s\n", glewGetErrorString(initcode));
-		//dbgprint("ERROR INIT GLEW\n%s\n", glewGetErrorString(initcode));
+		dbgprint("ERROR INIT GLAD\n");
 	}
 
 	glEnable(GL_DEPTH_TEST);
@@ -66,6 +66,14 @@ int main(int argc, char* argv[]) {
 
 	Shader::init_shader(SingleColoredWorldObject::shader());
 	Shader::init_shader(SingleColoredSlyWorldObject::shader());
+
+	// Setup Dear ImGui context
+	IMGUI_CHECKVERSION();
+	ImGui::CreateContext();
+	ImGuiIO& io = ImGui::GetIO();
+	ImGui_ImplGlfw_InitForOpenGL(g_window, true);
+	ImGui_ImplOpenGL3_Init("#version 330 core");
+	ImGui::StyleColorsDark();
 
 	//Cube cube;
 	//Cube cube2;
@@ -127,46 +135,72 @@ int main(int argc, char* argv[]) {
 		for (RenderedWorldObject* object : objects)
 			object->render(g_camera, g_projection);
 
+		if (current_cursor_mode == GLFW_CURSOR_NORMAL)
+			render_gui();
+
 		glfwSwapBuffers(g_window);
 		glfwPollEvents();
 	}
 
 }
 
+static void render_gui() {
+	ImGui_ImplOpenGL3_NewFrame();
+	ImGui_ImplGlfw_NewFrame();
+	ImGui::NewFrame();
+	static bool p_open = false;
+	ImGui::ShowDemoWindow(&p_open);
+
+	/*
+	ImGui::BeginMainMenuBar();
+
+	ImGui::BeginMenu("File");
+	ImGui::EndMenu();
+
+	ImGui::EndMenuBar();
+	ImGui::End();
+	*/
+	ImGui::EndFrame();
+	ImGui::Render();
+	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+}
+
 static void handle_input() {
-	if (glfwGetKey(g_window, GLFW_KEY_W) > 0) {
-		glm::vec3 rot = g_camera.forward_xy();
-		g_camera.set_location(g_camera.location() + (rot * move_speed * g_delta_time));
-		//dbgprint("%s\n", glm::to_string(g_camera.location()).c_str());
-	}
-	if (glfwGetKey(g_window, GLFW_KEY_A) > 0) {
-		glm::vec3 left = g_camera.left();
-		g_camera.set_location(g_camera.location() + (left * move_speed * g_delta_time));
-	}
-	if (glfwGetKey(g_window, GLFW_KEY_S) > 0) {
-		glm::vec3 back = g_camera.back_xy();
-		g_camera.set_location(g_camera.location() + (back * move_speed * g_delta_time));
-	}
-	if (glfwGetKey(g_window, GLFW_KEY_D) > 0) {
-		glm::vec3 right = g_camera.right();
-		g_camera.set_location(g_camera.location() + (right * move_speed * g_delta_time));
-	}
-	if (glfwGetKey(g_window, GLFW_KEY_SPACE) > 0) {
-		glm::vec3 up = g_camera.up();
-		g_camera.set_location(g_camera.location() + (up * move_speed * g_delta_time));
-	}
-	if (glfwGetKey(g_window, GLFW_KEY_LEFT_SHIFT) > 0) {
-		glm::vec3 up = g_camera.up();
-		g_camera.set_location(g_camera.location() - (up * move_speed * g_delta_time));
+	if (current_cursor_mode != GLFW_CURSOR_NORMAL) {
+		if (glfwGetKey(g_window, GLFW_KEY_W) > 0) {
+			glm::vec3 rot = g_camera.forward_xy();
+			g_camera.set_location(g_camera.location() + (rot * move_speed * g_delta_time));
+			//dbgprint("%s\n", glm::to_string(g_camera.location()).c_str());
+		}
+		if (glfwGetKey(g_window, GLFW_KEY_A) > 0) {
+			glm::vec3 left = g_camera.left();
+			g_camera.set_location(g_camera.location() + (left * move_speed * g_delta_time));
+		}
+		if (glfwGetKey(g_window, GLFW_KEY_S) > 0) {
+			glm::vec3 back = g_camera.back_xy();
+			g_camera.set_location(g_camera.location() + (back * move_speed * g_delta_time));
+		}
+		if (glfwGetKey(g_window, GLFW_KEY_D) > 0) {
+			glm::vec3 right = g_camera.right();
+			g_camera.set_location(g_camera.location() + (right * move_speed * g_delta_time));
+		}
+		if (glfwGetKey(g_window, GLFW_KEY_SPACE) > 0) {
+			glm::vec3 up = g_camera.up();
+			g_camera.set_location(g_camera.location() + (up * move_speed * g_delta_time));
+		}
+		if (glfwGetKey(g_window, GLFW_KEY_LEFT_SHIFT) > 0) {
+			glm::vec3 up = g_camera.up();
+			g_camera.set_location(g_camera.location() - (up * move_speed * g_delta_time));
+		}
 	}
 }
 
-static int current_cursor_mode{ GLFW_CURSOR_DISABLED };
-
 static void scroll_callback(GLFWwindow* window, double xoff, double yoff)
 {
-	move_speed += (((float)yoff)-(yoff < 0.0f ? -0.995f : 0.995f));
-	move_speed = std::min(std::max(move_speed, 0.0f), .5f);
+	if (current_cursor_mode != GLFW_CURSOR_NORMAL) {
+		move_speed += (((float)yoff) - (yoff < 0.0f ? -0.995f : 0.995f));
+		move_speed = std::min(std::max(move_speed, 0.0f), .5f);
+	}
 }
 
 static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {

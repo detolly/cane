@@ -4,6 +4,9 @@
 #include <windows.h>
 #endif
 
+#include <iostream>
+#include <chrono>
+
 #define GLEW_STATIC
 #define GLFW_INCLUDE_NONE
 
@@ -19,9 +22,9 @@
 #include <glm/ext/scalar_constants.hpp>
 #include <glm/gtx/string_cast.hpp>
 
-
-#include <iostream>
-#include <chrono>
+#include <imgui/imgui.h>
+#include <imgui/backends/imgui_impl_opengl3.h>
+#include <imgui/backends/imgui_impl_glfw.h>
 
 #include <Renderer/OBJModel.h>
 #include <Renderer/Shader.h>
@@ -34,12 +37,15 @@
 //#pragma comment(lib, "glew32s.lib")
 
 //int main(int argc, const char* argv[]);
+static void render_gui();
 static void key_callback(GLFWwindow*, int, int, int, int);
 static void error_callback(int, const char* desc);
 static void size_callback(GLFWwindow*, int, int);
 static void cursor_position_callback(GLFWwindow*, double, double);
 static void handle_input();
 static void scroll_callback(GLFWwindow*, double, double);
+
+static int current_cursor_mode{ GLFW_CURSOR_DISABLED };
 
 template <typename... T>
 inline static void dbgprint(const char* a, T ...args)  {

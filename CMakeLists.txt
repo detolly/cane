@@ -51,17 +51,16 @@ add_subdirectory(include/glm)
 target_link_libraries(cane glm)
 
 include_directories(include/imgui)
-add_library(imgui STATIC
-	include/imgui/imconfig.h
-	include/imgui/imgui_demo.cpp
-	include/imgui/imgui_draw.cpp
-	include/imgui/imgui_internal.h
-	include/imgui/imgui_widgets.cpp
-	include/imgui/imgui.cpp
-	include/imgui/imgui.h
-	include/imgui/imstb_rectpack.h
-	include/imgui/imstb_textedit.h
-	include/imgui/imstb_truetype.h
-)
 
+add_definitions(-DIMGUI_IMPL_OPENGL_LOADER_GLAD=1)
+file(GLOB IMGUI_SOURCES include/imgui/*.cpp)
+file(GLOB IMGUI_HEADERS include/imgui/*.h)
+set(IMGUI_BACKEND_SOURCES
+	include/imgui/backends/imgui_impl_opengl3.cpp
+	include/imgui/backends/imgui_impl_opengl3.h
+	include/imgui/backends/imgui_impl_glfw.h 
+	include/imgui/backends/imgui_impl_glfw.cpp)
+add_library(imgui STATIC ${IMGUI_SOURCES} ${IMGUI_HEADERS} ${IMGUI_BACKEND_SOURCES})
+target_include_directories(imgui PUBLIC lib/glad/include lib/glfw/include)
+target_link_libraries(imgui glad)
 target_link_libraries(cane imgui)
