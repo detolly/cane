@@ -1,11 +1,12 @@
 # cane
 To-be Sly cooper level editor
 
-Until I make a cmake thing for this, here's how to build:
+Prerequisites:
+ * cmake
+ * git
 
-change the project files so it includes the source directory, as well as the following components:
+How to build:
 
-  * [glfw](https://www.glfw.org/download.html)
-  * [glew](http://glew.sourceforge.net/)
-  * opengl (you probably have it already in like system32 or whatever)
-  * [glm](https://github.com/g-truc/glm)
+1. ```git clone --recurse-submodules https://github.com/detolly/cane/```
+2. open terminal / cmd or something
+3. ```mkdir build && cd build && cmake .. && cmake --build --config Release .```
