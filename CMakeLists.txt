@@ -9,25 +9,31 @@ add_executable(cane
 	src/Structs/sly_level_structs.h
 	src/Structs/sly_texture_structs.h
 	src/Structs/SlyLevelFile.h
+	src/Renderer/Camera.h
 	src/Renderer/Camera.cpp
+	src/Renderer/Cube.h
 	src/Renderer/Cube.cpp
 	src/Renderer/LightingProperties.h
+	src/Renderer/Object.h
 	src/Renderer/Object.cpp
+	src/Renderer/OBJModel.h
 	src/Renderer/OBJModel.cpp
+	src/Renderer/Shader.h
 	src/Renderer/Shader.cpp
 )
 
 target_include_directories(cane PUBLIC include)
 target_include_directories(cane PRIVATE src)
+target_include_directories(cane PRIVATE resources)
 
 set_property(TARGET cane PROPERTY CXX_STANDARD 20)
 
-configure_file("resources/colored_object_shader_fragment.glsl" ${CMAKE_CURRENT_BINARY_DIR})
-configure_file("resources/colored_object_shader_vertex.glsl" ${CMAKE_CURRENT_BINARY_DIR})
-configure_file("resources/colored_sly_object_shader_fragment.glsl" ${CMAKE_CURRENT_BINARY_DIR})
-configure_file("resources/colored_sly_object_shader_vertex.glsl" ${CMAKE_CURRENT_BINARY_DIR})
-configure_file("resources/lit_object_shader_fragment.glsl" ${CMAKE_CURRENT_BINARY_DIR})
-configure_file("resources/lit_object_shader_vertex.glsl" ${CMAKE_CURRENT_BINARY_DIR})
+add_custom_command(TARGET cane POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/resources/colored_object_shader_fragment.glsl		$<TARGET_FILE_DIR:${PROJECT_NAME}>	)
+add_custom_command(TARGET cane POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/resources/colored_object_shader_vertex.glsl			$<TARGET_FILE_DIR:${PROJECT_NAME}>	)
+add_custom_command(TARGET cane POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/resources/colored_sly_object_shader_fragment.glsl	$<TARGET_FILE_DIR:${PROJECT_NAME}>	)
+add_custom_command(TARGET cane POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/resources/colored_sly_object_shader_vertex.glsl		$<TARGET_FILE_DIR:${PROJECT_NAME}>	)
+add_custom_command(TARGET cane POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/resources/lit_object_shader_fragment.glsl			$<TARGET_FILE_DIR:${PROJECT_NAME}>	)
+add_custom_command(TARGET cane POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/resources/lit_object_shader_vertex.glsl				$<TARGET_FILE_DIR:${PROJECT_NAME}>	)
 
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)

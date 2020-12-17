@@ -12,6 +12,7 @@ public:
 	Shader(const char* vertex_loc, const char* fragment_loc) : m_vs(vertex_loc), m_fs(fragment_loc)
 	{}
 
+	template<bool raw=false>
 	static void init_shader(Shader& shader) {
 		const char* vs = read_from_file(shader.m_vs, &shader.m_vertex_size);
 		const char* fs = read_from_file(shader.m_fs, &shader.m_fragment_size);
