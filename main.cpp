@@ -100,13 +100,11 @@ int main(int argc, char* argv[]) {
 	g_camera.set_location({ 0.0f, 2.0f, 0.0f });
 
 	SlyLevelFile level_file("level.bin");
-
-	std::vector<Texture>& t = level_file.textures();
 	
-	int index = 0;
-	int num = t.size();
-	for(int i = index; i < index+num; i++)
-		lodepng::encode("textures/texture " + std::to_string(i) + ".png", (const unsigned char*)(t[i].bitmap().data()), t[i].width(), t[i].height());
+	//int index = 0;
+	//int num = t.size();
+	//for(int i = index; i < index+num; i++)
+	//	lodepng::encode("textures/texture " + std::to_string(i) + ".png", t[i].bitmap().data(), t[i].width(), t[i].height());
 
 	RenderedWorldObject* objects[] = {
 		//&xCube, &yCube, &zCube,

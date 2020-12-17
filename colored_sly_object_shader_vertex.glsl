@@ -7,6 +7,7 @@ layout (location = 3) in int unused;
 
 layout (location = 0) out vec3 o_normal;
 layout (location = 1) out vec3 FragPos;
+layout (location = 2) out vec2 tex_coord;
 
 uniform mat4 projection;
 uniform mat4 view;
@@ -20,4 +21,5 @@ void main() {
 	FragPos = vec3(model * vec4(pos, 1.0));
 	gl_Position = projection * view * model * vec4(new_pos, 1.0f);
 	depth = gl_Position.z / 75.0f;
+	tex_coord = texcoords;
 }

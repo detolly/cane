@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <ez_stream.h>
+#include <main.h>
 
 struct UNK_TABLE_t {
 	uint16_t u0x0;
@@ -118,7 +119,31 @@ struct texture_record_t {
 		}
 	}
 
+	const bool is_initialized() const { return m_initialized; }
+
+	void make_texture(uint8_t* paletteBuf, uint8_t* imageBuf, int width, int height, uint8_t* csm1ClutIndices) {
+		m_initialized = true;
+		m_bitmap.resize(width * height * 4);
+		for (int i = 0; i < width * height; i++) {
+			const int idx = csm1ClutIndices[imageBuf[i]] * 4;
+			const int line = ((i + 1) / width) + 1;
+
+			// const alpha = palette_slice[idx + 3] / 256; // Paint alpha black
+			m_bitmap[4 * (width * height - 1 - line * width + (i % width)) + 3] = 0xFF; //paletteBuf[idx + 3];
+			m_bitmap[4 * (width * height - 1 - line * width + (i % width)) + 2] = paletteBuf[idx + 2];
+			m_bitmap[4 * (width * height - 1 - line * width + (i % width)) + 1] = paletteBuf[idx + 1];
+			m_bitmap[4 * (width * height - 1 - line * width + (i % width)) + 0] = paletteBuf[idx + 0];
+		}
+
+		glGenTextures(1, &gl_texture);
+		glBindTexture(GL_TEXTURE_2D, gl_texture);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, m_bitmap.data());
+		glGenerateMipmap(GL_TEXTURE_2D);
+	}
+
 	//texture_record_t(texture_record_t&&) = default
+
+	unsigned int gl_texture;
 
 	uint16_t flags;
 	uint16_t id;
@@ -129,6 +154,8 @@ struct texture_record_t {
 	unsigned char unk5;
 	unsigned char unk7;
 	unsigned char unk_flag;
+
+	bool m_initialized{false};
 
 	union {
 		struct {
@@ -147,6 +174,8 @@ struct texture_record_t {
 
 	std::vector<short> image_index;
 	std::vector<short> clut_index;
+
+	std::vector<unsigned char> m_bitmap;
 
 };
 
