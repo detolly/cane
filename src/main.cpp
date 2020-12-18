@@ -11,6 +11,8 @@ Camera g_camera;
 float move_speed = 0.01f;
 static float g_delta_time{ 0.0f };
 
+static SlyLevelFile* g_level_file{nullptr};
+
 int main(int argc, char* argv[]) {
 #ifdef WIN32
 #ifdef NDEBUG
@@ -108,6 +110,7 @@ int main(int argc, char* argv[]) {
 	g_camera.set_location({ 0.0f, 2.0f, 0.0f });
 
 	SlyLevelFile level_file("level.bin");
+	g_level_file = &level_file;
 	
 	//int index = 0;
 	//int num = t.size();
@@ -148,19 +151,14 @@ static void render_gui() {
 	ImGui_ImplOpenGL3_NewFrame();
 	ImGui_ImplGlfw_NewFrame();
 	ImGui::NewFrame();
-	static bool p_open = false;
-	ImGui::ShowDemoWindow(&p_open);
-
-	/*
-	ImGui::BeginMainMenuBar();
-
-	ImGui::BeginMenu("File");
-	ImGui::EndMenu();
-
-	ImGui::EndMenuBar();
-	ImGui::End();
-	*/
-	ImGui::EndFrame();
+	float width = ImGui::GetWindowWidth();
+	float height = ImGui::GetWindowHeight();
+	{
+		ImGui::Begin("Debug Information");
+		ImGui::Text("Greetings!");
+		ImGui::End();
+	}
+	
 	ImGui::Render();
 	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }

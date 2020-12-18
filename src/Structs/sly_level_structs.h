@@ -9,6 +9,7 @@
 #include <cstddef>
 
 //#pragma pack(push, 1)
+#pragma optimize("f", on)
 
 struct RGBA {
     unsigned char r, g, b, a;
@@ -104,7 +105,6 @@ struct vertex_data_t
         stream.seek(mesh_header_start+vertex_hdr.vertex_data_offset);
         for (int i = 0; i < vertex_hdr.vertex_count; i++) {
             vertices[i] = stream.read<vertex_t>();
-            vertices[i] /= 100.0f;
         }
         stream.seek(mesh_header_start + vertex_hdr.index_header_offset);
         index_hdr = index_data_t(stream, mesh_header_start);
@@ -287,11 +287,14 @@ struct mesh_data_t
     mesh_data_t() {}
     mesh_data_t(ez_stream& stream) {
         flags = stream.read<uint16_t>();
-        if (~flags & 1) {
+        //if (~flags & 1) {
             not_flags_and_1.szms = stream.read<szms_header_t>();
             int offset = stream.tell();
             not_flags_and_1.mesh_hdr = std::move(mesh_header_t(stream));
             not_flags_and_1.vertex_data.resize(not_flags_and_1.mesh_hdr.mesh_count);
+
+            if (not_flags_and_1.mesh_hdr.mesh_count == 0)
+                return;
 
             for (int i = 0; i < not_flags_and_1.mesh_hdr.mesh_count; i++) {
                 stream.seek(offset + not_flags_and_1.mesh_hdr.mesh_offsets[i]);
@@ -305,7 +308,15 @@ struct mesh_data_t
                     not_flags_and_1.szme_data[i] = std::move(szme_vertex_data_t(stream));
                 }
             }
-        }
+            vector3_t p = not_flags_and_1.szme_hdr.m.position;
+            for (int i = 0; i < not_flags_and_1.mesh_hdr.mesh_count; i++) {
+                for (int j = 0; j < not_flags_and_1.vertex_data[i].vertices.size(); j++) {
+                    not_flags_and_1.vertex_data[i].vertices[j].pos_x = (not_flags_and_1.vertex_data[i].vertices[j].pos_x - p.x) / 100.0f;
+                    not_flags_and_1.vertex_data[i].vertices[j].pos_y = (not_flags_and_1.vertex_data[i].vertices[j].pos_y - p.y) / 100.0f;
+                    not_flags_and_1.vertex_data[i].vertices[j].pos_z = (not_flags_and_1.vertex_data[i].vertices[j].pos_z - p.z) / 100.0f;
+                }
+            }
+        //}
     }
 
     struct {
@@ -325,4 +336,4 @@ struct mesh_data_t
     uint16_t flags;
 };
 
-//#pragma pack(pop)
+#pragma optimize("f", off)

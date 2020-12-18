@@ -14,6 +14,7 @@
 #include <glad/glad.h>
 #include <gl/GL.h>
 
+
 class SlyMesh : public SingleColoredSlyWorldObject {
 
 public:
@@ -21,20 +22,22 @@ public:
 
 	SlyMesh(ez_stream& stream, texture_table_t& texture_table) : m_texture_table(texture_table) {
 		parse(stream);
-		set_color(glm::vec3{
-			(float)(stream.tell() / 1 % 255) / 255.0f,
-			(float)(stream.tell() / 3 % 255) / 255.0f,
-			(float)(stream.tell() / 7 % 255) / 255.0f }
-		);
+		//set_color(glm::vec3{
+		//	(float)(stream.tell() / 1 % 255) / 255.0f,
+		//	(float)(stream.tell() / 3 % 255) / 255.0f,
+		//	(float)(stream.tell() / 7 % 255) / 255.0f }
+		//);
+		set_color({0.5f, 0.5f, 0.5f});
 		//if (mesh_data.not_flags_and_1.szme_data.size() > 0)
 			//dbgprint("Mesh has texture id of: %d\n", mesh_data.not_flags_and_1.szme_data[0].texture_id);
 		make_gl_buffers();
-		game_object().set_constant_model(true);
+		//game_object().set_scale({ 1.f/100.f, 1.f/100.f, 1.f/100.f });
 	}
 
 	void parse(ez_stream& stream) {
-		//INFINITE LOOP FOR TOMORROW
 		mesh_data = std::move(mesh_data_t(stream));
+		auto p = mesh_data.not_flags_and_1.szme_hdr.m.position;
+		game_object().set_location(glm::vec3(-(p.x / 100.0f), p.z / 100.0f, p.y / 100.0f));
 	}
 
 	mesh_data_t mesh_data;
@@ -257,6 +260,10 @@ public:
 		}
 	}
 
+	image_meta_table_t const& image_image_table() { return m_image_meta_table; }
+	clut_meta_table_t const& clut_meta_table() { return m_clut_meta_table; }
+	texture_table_t const& texture_table() { return m_texture_table; }
+
 private:
 	const char* m_buffer{nullptr};
 	size_t m_buffer_len{0};
@@ -270,3 +277,4 @@ private:
 	texture_table_t m_texture_table;
 	UNK_TABLE_t unk_table[250];
 };
+
