@@ -15,6 +15,7 @@ public:
 
 	const inline glm::vec3& scale()		const { return m_scale; }
 	const inline glm::vec3& location()	const { return m_location; }
+		  inline glm::vec3& raw_location()	  { return m_location; }
 	const inline glm::vec4& rotation()	const { return m_rotation; }
 
 	const inline bool should_recalculate_model_matrix() const { return m_should_recalculate_model_matrix; }

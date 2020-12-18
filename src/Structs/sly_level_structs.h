@@ -48,6 +48,8 @@ struct vertex_t
     texcoord_t tex_coords;
     uint32_t unk_0x20;
 
+    const inline glm::vec3 to_glm_vec3() const { return glm::vec3(pos_x, pos_y, pos_z); }
+
     const vertex_t& operator /= (const float a) {
         pos_x = pos_x / a;
         pos_y = pos_y / a;
@@ -105,6 +107,11 @@ struct vertex_data_t
         stream.seek(mesh_header_start+vertex_hdr.vertex_data_offset);
         for (int i = 0; i < vertex_hdr.vertex_count; i++) {
             vertices[i] = stream.read<vertex_t>();
+            float temp = vertices[i].pos_y;
+            vertices[i].pos_y = vertices[i].pos_z;
+            vertices[i].pos_z = temp;
+            vertices[i].pos_x = -vertices[i].pos_x;
+            /* TODO: REMEMBER WHEN EXPORTING */
         }
         stream.seek(mesh_header_start + vertex_hdr.index_header_offset);
         index_hdr = index_data_t(stream, mesh_header_start);
@@ -316,6 +323,7 @@ struct mesh_data_t
                     not_flags_and_1.vertex_data[i].vertices[j].pos_z = (not_flags_and_1.vertex_data[i].vertices[j].pos_z - p.z) / 100.0f;
                 }
             }
+            not_flags_and_1.szme_hdr.m.position = {p.x/100.f, p.y/100.f, p.z/100.f};
         //}
     }
 

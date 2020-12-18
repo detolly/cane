@@ -37,7 +37,7 @@ public:
 	void parse(ez_stream& stream) {
 		mesh_data = std::move(mesh_data_t(stream));
 		auto p = mesh_data.not_flags_and_1.szme_hdr.m.position;
-		game_object().set_location(glm::vec3(-(p.x / 100.0f), p.z / 100.0f, p.y / 100.0f));
+		game_object().set_location(glm::vec3(p.x, p.y, p.z));
 	}
 
 	mesh_data_t mesh_data;
@@ -263,6 +263,7 @@ public:
 	image_meta_table_t const& image_image_table() { return m_image_meta_table; }
 	clut_meta_table_t const& clut_meta_table() { return m_clut_meta_table; }
 	texture_table_t const& texture_table() { return m_texture_table; }
+	std::vector<SlyMesh>& meshes() { return m_meshes; }
 
 private:
 	const char* m_buffer{nullptr};

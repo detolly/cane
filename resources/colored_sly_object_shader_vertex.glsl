@@ -16,10 +16,10 @@ uniform mat4 model;
 varying float depth;
 
 void main() {
-	vec3 new_pos = vec3(-pos.x, pos.z, pos.y);
 	o_normal = normal;
-	FragPos = vec3(model * vec4(new_pos, 1.0));
-	gl_Position = projection * view * model * vec4(new_pos, 1.0f);
+	vec4 vec4pos = vec4(pos.x, pos.y, pos.z, 1.0);
+	FragPos = vec3(model * vec4pos);
+	gl_Position = projection * view * model * vec4pos;
 	depth = gl_Position.z / 75.0f;
 	tex_coord = texcoords;
 }

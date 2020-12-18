@@ -44,8 +44,15 @@ static void size_callback(GLFWwindow*, int, int);
 static void cursor_position_callback(GLFWwindow*, double, double);
 static void handle_input();
 static void scroll_callback(GLFWwindow*, double, double);
+static void mouse_button_callback(GLFWwindow*, int, int, int);
+
+bool ray_intersects_triangle(
+	const glm::vec3& orig, const glm::vec3& dir,
+	const glm::vec3& v0, const glm::vec3& v1, const glm::vec3& v2,
+	glm::vec3& insersectionpoint);
 
 static int current_cursor_mode{ GLFW_CURSOR_DISABLED };
+static int currently_selected_mesh = -1;
 
 template <typename... T>
 inline static void dbgprint(const char* a, T ...args)  {
