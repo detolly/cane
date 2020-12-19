@@ -197,7 +197,7 @@ static void render_gui_hidden() {
 			ImGui::Text(" Flag & 0x20 \t Float %.4f", header.m.unk_float5);
 			ImGui::Text("~Flag & 0x100\t Float %.4f", header.m.unk_0x14);
 			ImGui::Text("~Flag & 0x100\t Vec3 %.4f %.4f %.4f (O position)", header.m.position.x, header.m.position.y, header.m.position.z);
-			ImGui::DragFloat3("XYZ", (float*)&mesh.game_object().raw_location(), 0.1f, -100.0f, 100.0f, "%.3f", 1.0f);
+			ImGui::DragFloat3("XYZ", (float*)&mesh.game_object().raw_location(), 0.1f, 0.0f, 0.0f, "%.3f", 1.0f);
 			if (~mesh.mesh_data.flags & 1) {
 				ImGui::Text("Mesh Header:");
 				auto& na = mesh.mesh_data.not_flags_and_1;
@@ -206,11 +206,14 @@ static void render_gui_hidden() {
 				ImGui::Text("Mesh Count: %d\nUK1: %d | UK2: %d", na.mesh_hdr.mesh_count, na.mesh_hdr.unknown_0x00, na.mesh_hdr.unknown_0x04);
 				ImGui::Text("SZME Data: ");
 				for (int i = 0; i < na.szme_data.size(); i++) {
-					ImGui::Text("UnkVec %.4f %.4f %.4f", na.szme_data[i].unk_vec.x, na.szme_data[i].unk_vec.y, na.szme_data[i].unk_vec.z);
-					ImGui::Text("position_count %03d\trotation_count %03d\tuc3 %03d\ttexcoords_count %03d\tlighing_count %03d", na.szme_data[i].position_count, na.szme_data[i].rotation_count, na.szme_data[i].unk_count3, na.szme_data[i].texcoords_count, na.szme_data[i].lighing_count);
-					ImGui::Text("Positions information: ");
-					for (int j = 0; j < na.szme_data[i].positions.size(); j++) {
-						ImGui::Text("%f %f %f", na.szme_data[i].positions[j].x, na.szme_data[i].positions[j].y, na.szme_data[i].positions[j].z);
+					/* horribly inefficient */
+					if (ImGui::CollapsingHeader((std::string("Position Data #") + std::to_string(i)).c_str())) {
+						ImGui::Text("UnkVec %.4f %.4f %.4f", na.szme_data[i].unk_vec.x, na.szme_data[i].unk_vec.y, na.szme_data[i].unk_vec.z);
+						ImGui::Text("position_count %03d\trotation_count %03d\tuc3 %03d\ttexcoords_count %03d\tlighing_count %03d", na.szme_data[i].position_count, na.szme_data[i].rotation_count, na.szme_data[i].unk_count3, na.szme_data[i].texcoords_count, na.szme_data[i].lighing_count);
+						ImGui::Text("Positions information: ");
+						for (int j = 0; j < na.szme_data[i].positions.size(); j++) {
+							ImGui::Text("%f %f %f", na.szme_data[i].positions[j].x, na.szme_data[i].positions[j].y, na.szme_data[i].positions[j].z);
+						}
 					}
 				}
 			}

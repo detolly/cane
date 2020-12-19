@@ -293,9 +293,9 @@ struct szme_vertex_data_t : public SingleColoredWorldObject {
     void render(Camera& cam, glm::mat4& proj) override {
         SingleColoredWorldObject::render(cam, proj);
 
-        glLineWidth(8.0f);
         glBindVertexArray(render_properties.vao);
-        glDrawElements(GL_LINES, 0, positions.size(), 0);
+        glLineWidth(8.0f);
+        glDrawArrays(GL_LINE_STRIP, 0, positions.size());
     }
 
     struct {
@@ -309,8 +309,6 @@ struct szme_vertex_data_t : public SingleColoredWorldObject {
     unsigned char unk_count3;
     unsigned char texcoords_count;
     unsigned char lighing_count;
-
-    uint32_t pad;
 
     std::vector<glm::vec3> positions;
     std::vector<glm::vec3> rotations;
@@ -362,12 +360,7 @@ struct mesh_data_t
 
             }
             else if (flags == 0x10 || flags == 0) /* only test no production */ {
-                not_flags_and_1.szme_hdr.m.position = {
-                    -not_flags_and_1.szme_data[0].unk_vec.x,
-                    not_flags_and_1.szme_data[0].unk_vec.z,
-                    not_flags_and_1.szme_data[0].unk_vec.y
-                };
-
+                not_flags_and_1.szme_hdr.m.position = not_flags_and_1.szme_data[0].unk_vec;
             }
         }
     }
