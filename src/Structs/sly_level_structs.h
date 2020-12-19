@@ -7,10 +7,6 @@
 #include <glm/vec3.hpp>
 #include <glm/vec4.hpp>
 #include <cstddef>
-#include <gl/GL.h>
-#include <glad/glad.h>
-
-using byte = unsigned char;
 
 //#pragma pack(push, 1)
 #pragma optimize("f", on)
@@ -365,14 +361,14 @@ struct mesh_data_t
             if (flags == 2) {
 
             }
-            else if (flags == 0x10 (unk_float4) || flags == 0) /* only test no production */ {
+            else if (flags == 0x10 || flags == 0) /* only test no production */ {
                 not_flags_and_1.szme_hdr.m.position = {
                     -not_flags_and_1.szme_data[0].unk_vec.x,
                     not_flags_and_1.szme_data[0].unk_vec.z,
                     not_flags_and_1.szme_data[0].unk_vec.y
                 };
 
-            //}
+            }
         }
     }
 
