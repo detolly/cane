@@ -26,18 +26,22 @@
 #include <imgui/backends/imgui_impl_opengl3.h>
 #include <imgui/backends/imgui_impl_glfw.h>
 
+#include <Utility/math.h>
+
 #include <Renderer/OBJModel.h>
 #include <Renderer/Shader.h>
 #include <Renderer/Camera.h>
 #include <Renderer/Cube.h>
 #include <Structs/SlyLevelFile.h>
 
+
 //#pragma comment(lib, "opengl32.lib")
 //#pragma comment(lib, "glfw3.lib")
 //#pragma comment(lib, "glew32s.lib")
 
 //int main(int argc, const char* argv[]);
-static void render_gui();
+static void render_gui_hidden();
+static void render_gui_non_hidden();
 static void key_callback(GLFWwindow*, int, int, int, int);
 static void error_callback(int, const char* desc);
 static void size_callback(GLFWwindow*, int, int);
@@ -45,11 +49,6 @@ static void cursor_position_callback(GLFWwindow*, double, double);
 static void handle_input();
 static void scroll_callback(GLFWwindow*, double, double);
 static void mouse_button_callback(GLFWwindow*, int, int, int);
-
-bool ray_intersects_triangle(
-	const glm::vec3& orig, const glm::vec3& dir,
-	const glm::vec3& v0, const glm::vec3& v1, const glm::vec3& v2,
-	glm::vec3& insersectionpoint);
 
 static int current_cursor_mode{ GLFW_CURSOR_DISABLED };
 static int currently_selected_mesh = -1;

@@ -16,6 +16,17 @@ public:
 		return ret;
 	}
 
+	template <unsigned int size = sizeof(glm::vec3)>
+	const glm::vec3 read_sly_vec() {
+		glm::vec3 ret = read<glm::vec3>();
+		float temp = ret.y;
+		ret.y = ret.z;
+		ret.z = temp;
+		ret.x = -ret.x;
+		ret /= 100.0f;
+		return ret;
+	}
+
 private:
 	const char* m_buffer{ nullptr };
 	unsigned int m_index{ 0 };

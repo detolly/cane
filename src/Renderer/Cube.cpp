@@ -37,8 +37,6 @@ void Cube::free_gl_buffers() {
 void Cube::render(Camera& cam, glm::mat4& proj)
 {
 	SingleColoredWorldObject::render(cam, proj);
-
-	shader().set_mvp(game_object().model(), cam.view(), proj);
 	
 	glBindVertexArray(m_vao);
 	glDrawArrays(GL_TRIANGLES, 0, sizeof(m_vertex_buffer_data) / sizeof(float) / 3);

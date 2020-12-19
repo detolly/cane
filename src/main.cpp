@@ -141,8 +141,26 @@ int main(int argc, char* argv[]) {
 		for (RenderedWorldObject* object : objects)
 			object->render(g_camera, g_projection);
 
+		if (currently_selected_mesh != -1) {
+			auto& mesh = g_level_file->meshes()[currently_selected_mesh];
+			if (~mesh.mesh_data.flags & 1) {
+				auto& na = mesh.mesh_data.not_flags_and_1;
+				for (int i = 0; i < na.szme_data.size(); i++) {
+					na.szme_data[i].render(g_camera, g_projection);
+				}
+			}
+		}
+
+		ImGui_ImplOpenGL3_NewFrame();
+		ImGui_ImplGlfw_NewFrame();
+		ImGui::NewFrame();
+		
 		if (current_cursor_mode == GLFW_CURSOR_NORMAL)
-			render_gui();
+			render_gui_hidden();
+		render_gui_non_hidden();
+		
+		ImGui::Render();
+		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
 		glfwSwapBuffers(g_window);
 		glfwPollEvents();
@@ -150,10 +168,17 @@ int main(int argc, char* argv[]) {
 
 }
 
-static void render_gui() {
-	ImGui_ImplOpenGL3_NewFrame();
-	ImGui_ImplGlfw_NewFrame();
-	ImGui::NewFrame();
+static void render_gui_non_hidden() {
+	using wf = ImGuiWindowFlags_;
+	ImGui::SetNextWindowPos({ 0.0f, 0.0f });
+	ImGui::Begin("asd", nullptr, wf::ImGuiWindowFlags_NoBackground | wf::ImGuiWindowFlags_NoTitleBar | wf::ImGuiWindowFlags_NoMove | wf::ImGuiWindowFlags_NoCollapse | wf::ImGuiWindowFlags_NoResize | wf::ImGuiWindowFlags_AlwaysAutoResize);
+	ImGui::BeginChild("Coords", {200.0f, 40.0f}, false, wf::ImGuiWindowFlags_NoCollapse | wf::ImGuiWindowFlags_NoMove | wf::ImGuiWindowFlags_NoTitleBar | wf::ImGuiWindowFlags_NoDecoration | wf::ImGuiWindowFlags_AlwaysAutoResize | wf::ImGuiWindowFlags_NoScrollbar);
+	ImGui::Text("%.4f %.4f %.4f", g_camera.location().x, g_camera.location().y, g_camera.location().z);
+	ImGui::EndChild();
+	ImGui::End();
+}
+
+static void render_gui_hidden() {
 	float width = ImGui::GetWindowWidth();
 	float height = ImGui::GetWindowHeight();
 	{
@@ -161,23 +186,38 @@ static void render_gui() {
 		ImGui::Text("Selected Mesh: ");
 		if (currently_selected_mesh > -1) {
 			auto& mesh = g_level_file->meshes()[currently_selected_mesh];
-			ImGui::Text("Flags: %08x", mesh.mesh_data.flags);
+			auto& header = mesh.mesh_data.not_flags_and_1.szme_hdr;
+			ImGui::Text("Flags: 0x%08x", mesh.mesh_data.flags);
+			ImGui::Text("Relevant Flag Information:");
+			ImGui::Text(" Flag & 0x2  \t Uint32_t 0x%08x", header.m.unk_0x04);
+			ImGui::Text(" Flag & 0x200\t Float %.4f", header.m.unk_float);
+			ImGui::Text(" Flag & 0x4  \t Float %.4f", header.m.unk_float2);
+			ImGui::Text(" Flag & 0x8  \t Float %.4f", header.m.unk_float3);
+			ImGui::Text(" Flag & 0x10 \t Float %.4f", header.m.unk_float4);
+			ImGui::Text(" Flag & 0x20 \t Float %.4f", header.m.unk_float5);
+			ImGui::Text("~Flag & 0x100\t Float %.4f", header.m.unk_0x14);
+			ImGui::Text("~Flag & 0x100\t Vec3 %.4f %.4f %.4f (O position)", header.m.position.x, header.m.position.y, header.m.position.z);
 			ImGui::DragFloat3("XYZ", (float*)&mesh.game_object().raw_location(), 0.1f, -100.0f, 100.0f, "%.3f", 1.0f);
 			if (~mesh.mesh_data.flags & 1) {
 				ImGui::Text("Mesh Header:");
 				auto& na = mesh.mesh_data.not_flags_and_1;
+				ImGui::Text("Unknown 0x00 0x%08x", na.mesh_hdr.unknown_0x00);
+				ImGui::Text("Unknown 0x04 0x%04x", na.mesh_hdr.unknown_0x04);
 				ImGui::Text("Mesh Count: %d\nUK1: %d | UK2: %d", na.mesh_hdr.mesh_count, na.mesh_hdr.unknown_0x00, na.mesh_hdr.unknown_0x04);
 				ImGui::Text("SZME Data: ");
 				for (int i = 0; i < na.szme_data.size(); i++) {
-					ImGui::Text("uc1 %03d\tuc2 %03d\tuc3 %03d\tuc4 %03d\tuc5 %03d", na.szme_data[i].unk_count1, na.szme_data[i].unk_count2, na.szme_data[i].unk_count3, na.szme_data[i].unk_count4, na.szme_data[i].unk_count5);
+					ImGui::Text("UnkVec %.4f %.4f %.4f", na.szme_data[i].unk_vec.x, na.szme_data[i].unk_vec.y, na.szme_data[i].unk_vec.z);
+					ImGui::Text("position_count %03d\trotation_count %03d\tuc3 %03d\ttexcoords_count %03d\tlighing_count %03d", na.szme_data[i].position_count, na.szme_data[i].rotation_count, na.szme_data[i].unk_count3, na.szme_data[i].texcoords_count, na.szme_data[i].lighing_count);
+					ImGui::Text("Positions information: ");
+					for (int j = 0; j < na.szme_data[i].positions.size(); j++) {
+						ImGui::Text("%f %f %f", na.szme_data[i].positions[j].x, na.szme_data[i].positions[j].y, na.szme_data[i].positions[j].z);
+					}
 				}
 			}
 			mesh.game_object().set_should_recalculate_model_matrix(true);
 		}
 		ImGui::End();
 	}
-	ImGui::Render();
-	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
 
 static void handle_input() {
@@ -224,17 +264,7 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 	if (!io->WantCaptureMouse && button == GLFW_MOUSE_BUTTON_LEFT && current_cursor_mode == GLFW_CURSOR_NORMAL && action == GLFW_RELEASE) {
 		double mouse_x, mouse_y;
 		glfwGetCursorPos(window, &mouse_x, &mouse_y);
-		float x = (2.0f * mouse_x) / g_width - 1.0f;
-		float y = 1.0f - (2.0f * mouse_y) / g_height;
-		float z = 1.0f;
-		//dbgprint("screen coords: %f %f\n", x, y);
-		glm::vec3 ray_nds = glm::vec3(x, y, z);
-		glm::vec4 ray_clip = glm::vec4(ray_nds.x, ray_nds.y, -1.0f, 1.0f);
-		glm::vec4 ray_eye = glm::inverse(g_projection) * ray_clip;
-		ray_eye = glm::vec4(ray_eye.x, ray_eye.y, -1.0f, 0.0f);
-		auto temp = glm::normalize(glm::inverse(g_camera.view()) * ray_eye);
-		glm::vec3 ray = glm::vec3(temp.x, temp.y, temp.z);
-		//dbgprint("%f %f %f\n", ray.x, ray.y, ray.z);
+		glm::vec3 ray = clickray(mouse_x, mouse_y, (double)g_width, (double)g_height, g_projection, g_camera);
 		std::vector<SlyMesh>& meshes = g_level_file->meshes();
 		int mesh = -1;
 		bool has_found = false;
@@ -249,9 +279,9 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 						if (ray_intersects_triangle(
 							g_camera.location(),
 							ray,
-							vertices[triangles[tri]].to_glm_vec3() + meshes[i].game_object().location(),
-							vertices[triangles[tri+1]].to_glm_vec3() + meshes[i].game_object().location(),
-							vertices[triangles[tri+2]].to_glm_vec3() + meshes[i].game_object().location(),
+							vertices[triangles[tri]].pos + meshes[i].game_object().location(),
+							vertices[triangles[tri+1]].pos + meshes[i].game_object().location(),
+							vertices[triangles[tri+2]].pos + meshes[i].game_object().location(),
 							intersection_point
 						)) {
 							float len = glm::length(g_camera.location() - intersection_point);
@@ -264,50 +294,9 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 					}
 				}
 		}
-		if (!has_found) {
-			currently_selected_mesh = -1;
-		}
-		else {
-			currently_selected_mesh = mesh;
-		}
+		currently_selected_mesh = has_found ? mesh : -1;
 	}
 }
-
-/* https://en.wikipedia.org/wiki/M%C3%B6ller%E2%80%93Trumbore_intersection_algorithm thanks wikipedia<3*/
-bool ray_intersects_triangle(const glm::vec3& ray_origin,
-	const glm::vec3& ray_vector,
-	const glm::vec3& vertex0, const glm::vec3& vertex1, const glm::vec3& vertex2, 
-	glm::vec3& outIntersectionPoint)
-{
-	const float EPSILON = 0.0000001;
-	glm::vec3 edge1, edge2, h, s, q;
-	float a, f, u, v;
-	edge1 = vertex1 - vertex0;
-	edge2 = vertex2 - vertex0;
-	h = glm::cross(ray_vector, edge2);
-	a = glm::dot(edge1, h);
-	if (a > -EPSILON && a < EPSILON)
-		return false;    // This ray is parallel to this triangle.
-	f = 1.0 / a;
-	s = ray_origin - vertex0;
-	u = f * glm::dot(s, h);
-	if (u < 0.0 || u > 1.0)
-		return false;
-	q = glm::cross(s, edge1);
-	v = f * glm::dot(ray_vector, q);
-	if (v < 0.0 || u + v > 1.0)
-		return false;
-	// At this stage we can compute t to find out where the intersection point is on the line.
-	float t = f * glm::dot(edge2, q);
-	if (t > EPSILON) // ray intersection
-	{
-		outIntersectionPoint = ray_origin + ray_vector * t;
-		return true;
-	}
-	else // This means that there is a line intersection but not a ray intersection.
-		return false;
-}
-
 
 static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
 	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {

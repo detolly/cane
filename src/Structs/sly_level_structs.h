@@ -7,6 +7,10 @@
 #include <glm/vec3.hpp>
 #include <glm/vec4.hpp>
 #include <cstddef>
+#include <gl/GL.h>
+#include <glad/glad.h>
+
+using byte = unsigned char;
 
 //#pragma pack(push, 1)
 #pragma optimize("f", on)
@@ -28,6 +32,13 @@ struct vector3_t {
     float x;
     float y;
     float z;
+
+    const vector3_t& operator /= (const float a) {
+        x = x / a;
+        y = y / a;
+        z = z / a;
+        return *this;
+    }
 };
 
 struct vector4_t {
@@ -43,19 +54,18 @@ struct normal_t {
 
 struct vertex_t
 {
-    float pos_x, pos_y, pos_z;
+    vertex_t() {}
+    vertex_t(ez_stream& stream) {
+        pos = stream.read_sly_vec();
+        normal = stream.read<normal_t>();
+        tex_coords = stream.read<texcoord_t>();
+        unk_0x20 = stream.read<uint32_t>();
+    }
+
+    glm::vec3 pos;
     normal_t normal;
     texcoord_t tex_coords;
     uint32_t unk_0x20;
-
-    const inline glm::vec3 to_glm_vec3() const { return glm::vec3(pos_x, pos_y, pos_z); }
-
-    const vertex_t& operator /= (const float a) {
-        pos_x = pos_x / a;
-        pos_y = pos_y / a;
-        pos_z = pos_z / a;
-        return *this;
-    }
 };
 
 struct index_header_t
@@ -106,11 +116,7 @@ struct vertex_data_t
         vertices.resize(vertex_hdr.vertex_count);
         stream.seek(mesh_header_start+vertex_hdr.vertex_data_offset);
         for (int i = 0; i < vertex_hdr.vertex_count; i++) {
-            vertices[i] = stream.read<vertex_t>();
-            float temp = vertices[i].pos_y;
-            vertices[i].pos_y = vertices[i].pos_z;
-            vertices[i].pos_z = temp;
-            vertices[i].pos_x = -vertices[i].pos_x;
+            vertices[i] = std::move(vertex_t(stream));
             /* TODO: REMEMBER WHEN EXPORTING */
         }
         stream.seek(mesh_header_start + vertex_hdr.index_header_offset);
@@ -183,14 +189,14 @@ struct szme_header2_t {
             stream.seek(stream.tell() + 0x1C);
         }
         if (flags & 0x80) {
-            m.unk_vec3 = stream.read<vector3_t>();
-            m.unk_vec4 = stream.read<vector4_t>();
+            m.unk_vec3 = stream.read<glm::vec3>();
+            m.unk_vec4 = stream.read<glm::vec4>();
         }
         if (flags & 0x100) {
             //very unsupported
         }
         else {
-            m.position = stream.read<vector3_t>();
+            m.position = stream.read_sly_vec();
             m.unk_0x14 = stream.read<float>();
             m.unk_0x16_ignore = stream.read<uint16_t>();
             m.unk_0x1A = stream.read<byte>();
@@ -204,17 +210,17 @@ struct szme_header2_t {
     uint32_t magic;
     struct {
         uint32_t unk_0x04;
-        float unk_float;
-        float unk_float2;
-        float unk_float3;
-        float unk_float4;
-        float unk_float5;
+        float unk_float {0.0f};
+        float unk_float2{0.0f};
+        float unk_float3{0.0f};
+        float unk_float4{0.0f};
+        float unk_float5{0.0f};
         struct {
-            vector3_t unk_vec3;
-            vector4_t unk_vec4;
+            glm::vec3 unk_vec3;
+            glm::vec4 unk_vec4;
         };
         struct {
-            vector3_t position;
+            glm::vec3 position;
             float unk_0x14;
             uint16_t unk_0x16_ignore;
             byte unk_0x1A;
@@ -225,36 +231,42 @@ struct szme_header2_t {
     } m;
 };
 
-struct szme_vertex_data_t {
+struct szme_vertex_data_t : public SingleColoredWorldObject {
     szme_vertex_data_t() {}
     szme_vertex_data_t(ez_stream& stream) {
-        unk_vec = stream.read<vector3_t>();
+        unk_vec = stream.read_sly_vec();
         unk_float = stream.read<float>();
-        unk_count1 = stream.read<unsigned char>();
-        unk_count2 = stream.read<unsigned char>();
+        position_count = stream.read<unsigned char>();
+        rotation_count = stream.read<unsigned char>();
         unk_count3 = stream.read<unsigned char>();
-        unk_count4 = stream.read<unsigned char>();
-        unk_count5 = stream.read<unsigned char>();
+        texcoords_count = stream.read<unsigned char>();
+        lighing_count = stream.read<unsigned char>();
         
         int v = stream.tell();
         int pad_size = -v & (3);
         stream.seek(v + pad_size);
 
-        positions.resize(unk_count1);
-        rotations.resize(unk_count2);
+        positions.resize(position_count);
+        rotations.resize(rotation_count);
         unk_color.resize(unk_count3);
-        texcoords.resize(unk_count4);
-        lighting.resize(unk_count5);
-        for (int i = 0; i < unk_count1; i++)
-            positions[i] = stream.read<vector3_t>();
-        for (int i = 0; i < unk_count2; i++)
-            rotations[i] = stream.read<vector3_t>();
+        texcoords.resize(texcoords_count);
+        lighting.resize(lighing_count);
+        for (int i = 0; i < position_count; i++) {
+            //TODO: remember this also
+            positions[i] = stream.read_sly_vec();
+        }
+        for (int i = 0; i < rotation_count; i++)
+            rotations[i] = stream.read<glm::vec3>();
         for (int i = 0; i < unk_count3; i++)
             unk_color[i] = stream.read<uint32_t>();
-        for (int i = 0; i < unk_count4; i++)
+        for (int i = 0; i < texcoords_count; i++)
             texcoords[i] = stream.read<vector2_t>();
-        for (int i = 0; i < unk_count5; i++)
+        for (int i = 0; i < lighing_count; i++)
             lighting[i] = stream.read<RGBA>();
+
+        game_object().set_constant_model(true);
+        set_color({1.0f, 0.0f, 0.0f});
+        make_gl_buffers();
 
         //stream.seek(stream.tell() + unk_count1 * sizeof(vector3_t));
         //stream.seek(stream.tell() + unk_count2 * sizeof(vector3_t));
@@ -267,18 +279,45 @@ struct szme_vertex_data_t {
         unk_u8_2 = stream.read<byte>();
     }
 
-    vector3_t unk_vec;
+    void make_gl_buffers() {
+        GLuint vao, vbo;
+        glGenVertexArrays(1, &vao);
+        glBindVertexArray(vao);
+        glGenBuffers(1, &vbo);
+
+        render_properties = { vao, vbo };
+
+        glBindBuffer(GL_ARRAY_BUFFER, vbo);
+        glBufferData(GL_ARRAY_BUFFER, positions.size()*sizeof(vector3_t), positions.data(), GL_STATIC_DRAW);
+
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
+        glEnableVertexAttribArray(0);
+    }
+
+    void render(Camera& cam, glm::mat4& proj) override {
+        SingleColoredWorldObject::render(cam, proj);
+
+        glLineWidth(8.0f);
+        glBindVertexArray(render_properties.vao);
+        glDrawElements(GL_LINES, 0, positions.size(), 0);
+    }
+
+    struct {
+        GLuint vao, vbo;
+    } render_properties;
+
+    glm::vec3 unk_vec;
     float unk_float;
-    unsigned char unk_count1;
-    unsigned char unk_count2;
+    unsigned char position_count;
+    unsigned char rotation_count;
     unsigned char unk_count3;
-    unsigned char unk_count4;
-    unsigned char unk_count5;
+    unsigned char texcoords_count;
+    unsigned char lighing_count;
 
     uint32_t pad;
 
-    std::vector<vector3_t> positions;
-    std::vector<vector3_t> rotations;
+    std::vector<glm::vec3> positions;
+    std::vector<glm::vec3> rotations;
     std::vector<uint32_t> unk_color;
     std::vector<vector2_t> texcoords;
     std::vector<RGBA> lighting;
@@ -294,7 +333,7 @@ struct mesh_data_t
     mesh_data_t() {}
     mesh_data_t(ez_stream& stream) {
         flags = stream.read<uint16_t>();
-        //if (~flags & 1) {
+        if (~flags & 1) {
             not_flags_and_1.szms = stream.read<szms_header_t>();
             int offset = stream.tell();
             not_flags_and_1.mesh_hdr = std::move(mesh_header_t(stream));
@@ -315,16 +354,26 @@ struct mesh_data_t
                     not_flags_and_1.szme_data[i] = std::move(szme_vertex_data_t(stream));
                 }
             }
-            vector3_t p = not_flags_and_1.szme_hdr.m.position;
+
+            const auto& p = not_flags_and_1.szme_hdr.m.position;
             for (int i = 0; i < not_flags_and_1.mesh_hdr.mesh_count; i++) {
                 for (int j = 0; j < not_flags_and_1.vertex_data[i].vertices.size(); j++) {
-                    not_flags_and_1.vertex_data[i].vertices[j].pos_x = (not_flags_and_1.vertex_data[i].vertices[j].pos_x - p.x) / 100.0f;
-                    not_flags_and_1.vertex_data[i].vertices[j].pos_y = (not_flags_and_1.vertex_data[i].vertices[j].pos_y - p.y) / 100.0f;
-                    not_flags_and_1.vertex_data[i].vertices[j].pos_z = (not_flags_and_1.vertex_data[i].vertices[j].pos_z - p.z) / 100.0f;
+                    not_flags_and_1.vertex_data[i].vertices[j].pos = (not_flags_and_1.vertex_data[i].vertices[j].pos - p);
                 }
             }
-            not_flags_and_1.szme_hdr.m.position = {p.x/100.f, p.y/100.f, p.z/100.f};
-        //}
+
+            if (flags == 2) {
+
+            }
+            else if (flags == 0x10 (unk_float4) || flags == 0) /* only test no production */ {
+                not_flags_and_1.szme_hdr.m.position = {
+                    -not_flags_and_1.szme_data[0].unk_vec.x,
+                    not_flags_and_1.szme_data[0].unk_vec.z,
+                    not_flags_and_1.szme_data[0].unk_vec.y
+                };
+
+            //}
+        }
     }
 
     struct {

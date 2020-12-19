@@ -2,10 +2,13 @@ cmake_minimum_required(VERSION 3.10)
 project(cane)
 
 add_executable(cane
+	src/main.h
 	src/main.cpp
 	src/Utility/ez_stream.h
 	src/Utility/FileReader.h
 	src/Utility/Sigscan.h
+	src/Utility/math.h
+	src/Utility/math.cpp
 	src/Structs/sly_level_structs.h
 	src/Structs/sly_texture_structs.h
 	src/Structs/SlyLevelFile.h

@@ -4,7 +4,6 @@
 #include <glm/mat4x4.hpp>
 #include <glm/glm.hpp>
 #include <glm/gtx/rotate_vector.hpp>
-#include <main.h>
 
 class Camera {
 
