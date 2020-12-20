@@ -21,7 +21,7 @@ static ImGuiIO* io;
 
 static GLuint g_depthrenderbuffer;
 static GLuint g_render_texture;
-static GLuint g_fbo;
+static GLuint g_renderer_fbo;
 
 int main(int argc, char* argv[]) {
 #ifdef WIN32
@@ -160,7 +160,7 @@ int main(int argc, char* argv[]) {
 		handle_input();
 
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		if (g_fbo) {
+		if (g_renderer_fbo) {
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 			glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
 		}
@@ -176,8 +176,9 @@ int main(int argc, char* argv[]) {
 		{
 			if (ImGui::BeginMenu("Windows"))
 			{
-				ImGui::MenuItem("Renderer", nullptr, &g_renderer_shown);
-				ImGui::MenuItem("Debug Information", nullptr, &g_debug_information_shown);
+				ImGui::MenuItem("Renderer", nullptr, &config::the().windows.renderer);
+				ImGui::MenuItem("Debug Information", nullptr, &config::the().windows.debug_information);
+				ImGui::MenuItem("Mesh Browser", nullptr, &config::the().windows.mesh_browser);
 				ImGui::EndMenu();
 			}
 			ImGui::EndMainMenuBar();
@@ -190,6 +191,7 @@ int main(int argc, char* argv[]) {
 
 		render_gui();
 		render_renderer();
+		render_mesh_browser();
 
 		ImGui::End();
 
@@ -209,8 +211,8 @@ static void make_render_texture(int width, int height) {
 	if (g_render_texture != 0) {
 		glDeleteTextures(1, &g_render_texture);
 	}
-	if (g_fbo != 0) {
-		glDeleteFramebuffers(1, &g_fbo);
+	if (g_renderer_fbo != 0) {
+		glDeleteFramebuffers(1, &g_renderer_fbo);
 	}
 	if (g_depthrenderbuffer != 0) {
 		glDeleteRenderbuffers(1, &g_depthrenderbuffer);
@@ -219,8 +221,8 @@ static void make_render_texture(int width, int height) {
 
 	static int msaa = 4;
 
-	glGenFramebuffers(1, &g_fbo);
-	glBindFramebuffer(GL_FRAMEBUFFER, g_fbo);
+	glGenFramebuffers(1, &g_renderer_fbo);
+	glBindFramebuffer(GL_FRAMEBUFFER, g_renderer_fbo);
 	glViewport(0, 0, width, height);
 	
 	glGenRenderbuffers(1, &g_depthrenderbuffer);
@@ -254,11 +256,17 @@ static void make_render_texture(int width, int height) {
 	}
 }
 
+static void render_mesh_browser() {
+	if (ImGui::Begin("Mesh Browser", &config::the().windows.mesh_browser)) {
+
+	}
+}
+
 static void render_renderer() {
 	using wf = ImGuiWindowFlags_;
-	if (ImGui::Begin("Renderer", &g_renderer_shown))
+	if (ImGui::Begin("Renderer", &config::the().windows.renderer))
 	{
-		glBindFramebuffer(GL_FRAMEBUFFER, g_fbo);
+		glBindFramebuffer(GL_FRAMEBUFFER, g_renderer_fbo);
 
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glClearColor(0.2f, 0.4f, 0.6f, 1.0f);
@@ -279,7 +287,7 @@ static void render_renderer() {
 
 		if (ImGui::BeginPopupContextItem()) {
 			if (ImGui::BeginMenu("View")) {
-				ImGui::MenuItem("Wireframe", nullptr, &g_draw_wireframe_only);
+				ImGui::MenuItem("Wireframe", nullptr, &config::the().renderer.wireframe);
 				ImGui::EndMenu();
 			}
 			ImGui::EndPopup();
@@ -319,21 +327,10 @@ static void render_renderer() {
 
 static void render_gui() {
 	{
-		if (ImGui::Begin("Debug Information", &g_debug_information_shown)) {
+		if (ImGui::Begin("Debug Information", &config::the().windows.debug_information)) {
 			ImGui::Text("Selected Mesh: ");
 			if (currently_selected_mesh > -1) {
 				auto& mesh = g_level_file->meshes()[currently_selected_mesh];
-				auto& header = mesh.mesh_data.not_flags_and_1.szme_hdr;
-				ImGui::Text("Flags: 0x%08x", mesh.mesh_data.flags);
-				ImGui::Text("Relevant Flag Information:");
-				ImGui::Text(" Flag & 0x2  \t Uint32_t 0x%08x", header.m.unk_0x04);
-				ImGui::Text(" Flag & 0x200\t Float %.4f", header.m.unk_float);
-				ImGui::Text(" Flag & 0x4  \t Float %.4f", header.m.unk_float2);
-				ImGui::Text(" Flag & 0x8  \t Float %.4f", header.m.unk_float3);
-				ImGui::Text(" Flag & 0x10 \t Float %.4f", header.m.unk_float4);
-				ImGui::Text(" Flag & 0x20 \t Float %.4f", header.m.unk_float5);
-				ImGui::Text("~Flag & 0x100\t Float %.4f", header.m.unk_0x14);
-				ImGui::Text("~Flag & 0x100\t Vec3 %.4f %.4f %.4f (O position)", header.m.position.x, header.m.position.y, header.m.position.z);
 				ImGui::DragFloat3("XYZ", (float*)&mesh.game_object().raw_location(), 0.1f, 0.0f, 0.0f, "%.3f", 1.0f);
 				if (~mesh.mesh_data.flags & 1) {
 					ImGui::Text("Mesh Header:");
@@ -341,12 +338,35 @@ static void render_gui() {
 					ImGui::Text("Unknown 0x00 0x%08x", na.mesh_hdr.unknown_0x00);
 					ImGui::Text("Unknown 0x04 0x%04x", na.mesh_hdr.unknown_0x04);
 					ImGui::Text("Mesh Count: %d\nUK1: %d | UK2: %d", na.mesh_hdr.mesh_count, na.mesh_hdr.unknown_0x00, na.mesh_hdr.unknown_0x04);
+					
+					auto& header = mesh.mesh_data.not_flags_and_1.szme_hdr;
+					ImGui::Text("SZME Header: ");
+					ImGui::Text("Flags: 0x%08x", mesh.mesh_data.flags);
+					ImGui::Text("Relevant Flag Information:");
+					ImGui::Text(" Flag & 0x2  \t Uint32_t 0x%08x", header.m.unk_0x04);
+					ImGui::Text(" Flag & 0x200\t Float %.4f", header.m.unk_float);
+					ImGui::Text(" Flag & 0x4  \t Float %.4f", header.m.unk_float2);
+					ImGui::Text(" Flag & 0x8  \t Float %.4f", header.m.unk_float3);
+					ImGui::Text(" Flag & 0x10 \t Float %.4f", header.m.unk_float4);
+					ImGui::Text(" Flag & 0x20 \t Float %.4f", header.m.unk_float5);
+					ImGui::Text("~Flag & 0x100\t Float %.4f", header.m.unk_0x14);
+					ImGui::Text("~Flag & 0x100\t Vec3 %.4f %.4f %.4f (O position)", header.m.position.x, header.m.position.y, header.m.position.z);
+					ImGui::Text("~Flag & 0x100\t unk_0x16_ignore: 0x%08x (%9d)", header.m.unk_0x16_ignore, header.m.unk_0x16_ignore);
+					ImGui::Text("~Flag & 0x100\t unk_byte_1A: %03x (%03d)", header.m.unk_0x1A, header.m.unk_0x1A);
+					ImGui::Text("~Flag & 0x100\t unk_byte_1B: %03x (%03d)", header.m.unk_0x1B, header.m.unk_0x1B);
+					ImGui::Text("~Flag & 0x100\t unk_byte_1C: %03x (%03d)", header.m.unk_0x1C, header.m.unk_0x1C);
+					uint16_t* ptr = (uint16_t*)&header.m.unk_0x1A;
+					uint16_t* ptr2 = (uint16_t*)&header.m.unk_0x1B;
+					ImGui::Text("~Flag & 0x100\t unk_byte_1A1B: %04x (%05d)", *ptr, *ptr);
+					ImGui::Text("~Flag & 0x100\t unk_byte_1B1C: %04x (%05d)", *ptr2, *ptr2);
+					
 					ImGui::Text("SZME Data: ");
 					for (int i = 0; i < na.szme_data.size(); i++) {
-						/* horribly inefficient */
 						char buf[32];
-						sprintf(buf, "Position Data #%d", i);
+						sprintf(buf, "SZME Data #%d", i);
 						if (ImGui::CollapsingHeader(buf)) {
+							ImGui::Text("unk_u8_1 %03x (%03d)", na.szme_data[i].unk_u8_1, na.szme_data[i].unk_u8_1);
+							ImGui::Text("unk_u8_2 %03x (%03d)", na.szme_data[i].unk_u8_2, na.szme_data[i].unk_u8_2);
 							ImGui::Text("UnkVec %.4f %.4f %.4f", na.szme_data[i].unk_vec.x, na.szme_data[i].unk_vec.y, na.szme_data[i].unk_vec.z);
 							ImGui::Text("position_count %03d\trotation_count %03d\tuc3 %03d\ttexcoords_count %03d\tlighing_count %03d", na.szme_data[i].position_count, na.szme_data[i].rotation_count, na.szme_data[i].unk_count3, na.szme_data[i].texcoords_count, na.szme_data[i].lighing_count);
 							ImGui::Text("Positions information: ");

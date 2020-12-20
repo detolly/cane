@@ -260,6 +260,10 @@ struct szme_vertex_data_t : public SingleColoredWorldObject {
         for (int i = 0; i < lighing_count; i++)
             lighting[i] = stream.read<RGBA>();
 
+        texture_id = stream.read<uint16_t>();
+        unk_u8_1 = stream.read<byte>();
+        unk_u8_2 = stream.read<byte>();
+
         game_object().set_constant_model(true);
         set_color({1.0f, 0.0f, 0.0f});
         make_gl_buffers();
@@ -269,10 +273,6 @@ struct szme_vertex_data_t : public SingleColoredWorldObject {
         //stream.seek(stream.tell() + unk_count3 * sizeof(uint32_t));
         //stream.seek(stream.tell() + unk_count4 * sizeof(vector2_t));
         //stream.seek(stream.tell() + unk_count5 * sizeof(uint32_t));
-
-        texture_id = stream.read<uint16_t>();
-        unk_u8_1 = stream.read<byte>();
-        unk_u8_2 = stream.read<byte>();
     }
 
     void make_gl_buffers() {
@@ -294,7 +294,7 @@ struct szme_vertex_data_t : public SingleColoredWorldObject {
         SingleColoredWorldObject::render(cam, proj);
 
         glBindVertexArray(render_properties.vao);
-        glPointSize(2.0f);
+        glPointSize(4.0f);
         //glLineWidth(8.0f);
         glDrawArrays(GL_POINTS, 0, positions.size());
     }

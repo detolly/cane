@@ -9,6 +9,8 @@ add_executable(cane
 	src/Utility/Sigscan.h
 	src/Utility/math.h
 	src/Utility/math.cpp
+	src/Utility/config.h
+	src/Utility/config.cpp
 	src/Structs/sly_level_structs.h
 	src/Structs/sly_texture_structs.h
 	src/Structs/SlyLevelFile.h

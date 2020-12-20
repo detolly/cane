@@ -28,6 +28,7 @@
 #include <imgui/backends/imgui_impl_glfw.h>
 
 #include <Utility/math.h>
+#include <Utility/config.h>
 
 #include <Renderer/OBJModel.h>
 #include <Renderer/Shader.h>
@@ -44,11 +45,6 @@
 
 std::vector<RenderedWorldObject*> g_objects;
 
-static bool g_renderer_shown{ true };
-static bool g_debug_information_shown{ true };
-
-static bool g_draw_wireframe_only{ false };
-
 static void render_gui();
 static void key_callback(GLFWwindow*, int, int, int, int);
 static void error_callback(int, const char* desc);
@@ -57,6 +53,8 @@ static void cursor_position_callback(GLFWwindow*, double, double);
 static void handle_input();
 static void scroll_callback(GLFWwindow*, double, double);
 static void mouse_button_callback(GLFWwindow*, int, int, int);
+
+static void render_mesh_browser();
 static void render_renderer();
 
 static void make_render_texture(int width, int height);
