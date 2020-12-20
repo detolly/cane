@@ -38,6 +38,7 @@ public:
 		m_should_recalculate_view_matrix = true;
 	}
 
+	const glm::vec3 direction() const;
 	const glm::vec3 forward() const;
 	const glm::vec3 left() const;
 	const glm::vec3 right() const;
@@ -53,5 +54,5 @@ private:
 	bool m_should_recalculate_view_matrix{ true };
 	glm::mat4 m_view{ glm::mat4(1.0f) };
 	glm::vec3 m_location{ glm::vec3(1.0f) };
-	float m_pitch{ 0 }, m_yaw{ 0 };
+	float m_pitch{ 0 }, m_yaw{ -90.f };
 };

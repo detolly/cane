@@ -23,6 +23,7 @@
 #include <glm/gtx/string_cast.hpp>
 
 #include <imgui/imgui.h>
+#include <imgui_internal.h>
 #include <imgui/backends/imgui_impl_opengl3.h>
 #include <imgui/backends/imgui_impl_glfw.h>
 
@@ -40,8 +41,15 @@
 //#pragma comment(lib, "glew32s.lib")
 
 //int main(int argc, const char* argv[]);
-static void render_gui_hidden();
-static void render_gui_non_hidden();
+
+std::vector<RenderedWorldObject*> g_objects;
+
+static bool g_renderer_shown{ true };
+static bool g_debug_information_shown{ true };
+
+static bool g_draw_wireframe_only{ false };
+
+static void render_gui();
 static void key_callback(GLFWwindow*, int, int, int, int);
 static void error_callback(int, const char* desc);
 static void size_callback(GLFWwindow*, int, int);
@@ -49,6 +57,9 @@ static void cursor_position_callback(GLFWwindow*, double, double);
 static void handle_input();
 static void scroll_callback(GLFWwindow*, double, double);
 static void mouse_button_callback(GLFWwindow*, int, int, int);
+static void render_renderer();
+
+static void make_render_texture(int width, int height);
 
 static int current_cursor_mode{ GLFW_CURSOR_DISABLED };
 static int currently_selected_mesh = -1;

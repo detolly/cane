@@ -1,7 +1,7 @@
 #pragma once
 
 #include <Renderer/Object.h>
-#include <main.h>
+#include <glad/glad.h>
 #include <vector>
 
 class OBJModel : public SingleColoredWorldObject {

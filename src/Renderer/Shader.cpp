@@ -1,6 +1,6 @@
 #include "Shader.h"
 
-#include <main.h>
+#include <glad/glad.h>
 #include <memory>
 
 void Shader::make_gl_shader(Shader& shader, const char* vs, const char* fs)

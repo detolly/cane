@@ -1,6 +1,8 @@
 #include <Renderer/OBJModel.h>
 #include <Utility/FileReader.h>
-#include <main.h>
+#include <glad/glad.h>
+#include <string>
+#include <Renderer/Camera.h>
 
 OBJModel::OBJModel(const char* file_location)
 {

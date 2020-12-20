@@ -294,7 +294,8 @@ struct szme_vertex_data_t : public SingleColoredWorldObject {
         SingleColoredWorldObject::render(cam, proj);
 
         glBindVertexArray(render_properties.vao);
-        glPointSize(8.0f);
+        glPointSize(2.0f);
+        //glLineWidth(8.0f);
         glDrawArrays(GL_POINTS, 0, positions.size());
     }
 

@@ -1,7 +1,11 @@
 
 #include "main.h"
 
-static int g_width = 1920, g_height = 1080;
+static int g_width = 1600, g_height = 900;
+static bool can_resize = true;
+static ImVec2 g_render_location;
+static ImVec2 g_render_size;
+
 static float g_pitch, g_yaw;
 constexpr float g_fov = glm::radians(100.f);
 static GLFWwindow* g_window;
@@ -14,6 +18,10 @@ static float g_delta_time{ 0.0f };
 static SlyLevelFile* g_level_file{nullptr};
 static glm::mat4 g_projection;
 static ImGuiIO* io;
+
+static GLuint g_depthrenderbuffer;
+static GLuint g_render_texture;
+static GLuint g_fbo;
 
 int main(int argc, char* argv[]) {
 #ifdef WIN32
@@ -44,7 +52,8 @@ int main(int argc, char* argv[]) {
 		dbgprint("ERROR CREATE WINDOW");
 	}
 
-	glfwSetInputMode(g_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	//glfwSetInputMode(g_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	current_cursor_mode = GLFW_CURSOR_NORMAL;
 
 	glfwSetKeyCallback(g_window, key_callback);
 	glfwSetCursorPosCallback(g_window, cursor_position_callback);
@@ -76,22 +85,36 @@ int main(int argc, char* argv[]) {
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
 	io = &ImGui::GetIO();
+	//io->ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
 	ImGui_ImplGlfw_InitForOpenGL(g_window, true);
 	ImGui_ImplOpenGL3_Init("#version 330 core");
 	ImGui::StyleColorsDark();
 
+	io->ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+	io->ConfigDockingWithShift = false;
+	//io->ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
+
+	ImGuiStyle& style = ImGui::GetStyle();
+	style.FrameRounding = 0.0f;
+	style.GrabRounding = 0.0f;
+	style.ChildRounding = 0.0f;
+	style.PopupRounding = 0.0f;
+	style.WindowRounding = 0.0f;
+	style.ScrollbarRounding = 0.0f;
+	style.TabRounding = 0.0f;
+	
 	//Cube cube;
 	//Cube cube2;
 	//Cube cube3;
-	//Cube xCube;
-	//Cube xxCube;
-	//Cube xxxCube;
+	Cube xCube;
+	Cube xxCube;
+	Cube xxxCube;
 
 	//OBJModel obj("obj.obj");
 
-	//xCube.game_object().set_location({ 1.0f, 5.0f, 1.0f });
-	//xxCube.game_object().set_location({ -1.0f, 5.0f, 2.0f });
-	//xxxCube.game_object().set_location({ 1.0f, 5.0f, 3.0f });
+	xCube.game_object().set_location({ 1.0f, 5.0f, 1.0f });
+	xxCube.game_object().set_location({ -1.0f, 5.0f, 2.0f });
+	xxxCube.game_object().set_location({ 1.0f, 5.0f, 3.0f });
 	//
 	//xCube.game_object().set_scale({ 2.0f, 0.1f, 0.1f });
 	//yCube.game_object().set_scale({ 0.1f, 2.0f, 0.1f });
@@ -120,8 +143,8 @@ int main(int argc, char* argv[]) {
 	//for(int i = index; i < index+num; i++)
 	//	lodepng::encode("textures/texture " + std::to_string(i) + ".png", t[i].bitmap().data(), t[i].width(), t[i].height());
 
-	RenderedWorldObject* objects[] = {
-		//&xCube, &xxCube, &xxxCube,
+	g_objects = {
+		&xCube, &xxCube, &xxxCube,
 		//&cube, &cube2, &cube3,
 		//&obj,
 		&level_file
@@ -132,13 +155,115 @@ int main(int argc, char* argv[]) {
 	while (!glfwWindowShouldClose(g_window))
 	{
 		auto last = last_time;
-		g_delta_time = ((last_time = std::chrono::high_resolution_clock::now()) - last).count()/1000000.0f;
+		g_delta_time = ((last_time = std::chrono::high_resolution_clock::now()) - last).count() / 1000000.0f;
+
+		handle_input();
+
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		if (g_fbo) {
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
+		}
+
+		ImGui_ImplOpenGL3_NewFrame();
+		ImGui_ImplGlfw_NewFrame();
+		ImGui::NewFrame();
+
+		using wf = ImGuiWindowFlags_;
+		ImGui::SetNextWindowSize({ (float)g_width, (float)g_height });
+		ImGui::Begin("root", nullptr, wf::ImGuiWindowFlags_NoCollapse | wf::ImGuiWindowFlags_NoTitleBar | wf::ImGuiWindowFlags_NoMove | wf::ImGuiWindowFlags_NoResize | wf::ImGuiWindowFlags_NoBringToFrontOnFocus | wf::ImGuiWindowFlags_NoInputs | wf::ImGuiWindowFlags_MenuBar);
+		if (ImGui::BeginMainMenuBar())
+		{
+			if (ImGui::BeginMenu("Windows"))
+			{
+				ImGui::MenuItem("Renderer", nullptr, &g_renderer_shown);
+				ImGui::MenuItem("Debug Information", nullptr, &g_debug_information_shown);
+				ImGui::EndMenu();
+			}
+			ImGui::EndMainMenuBar();
+		}
+
+		ImGuiDockNodeFlags dockspaceFlags = ImGuiDockNodeFlags_None;
+		ImGuiID dockspaceID = ImGui::GetID("root");
+		//ImGui::SetNextWindowSize(ImGui::GetContentRegionAvail());
+		ImGui::DockSpace(dockspaceID, ImVec2(0.0f, 0.0f), dockspaceFlags);
+
+		render_gui();
+		render_renderer();
+
+		ImGui::End();
+
+		ImGui::Render();
+		ImGui::UpdatePlatformWindows();
+		ImGui::RenderPlatformWindowsDefault();
+		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+		glfwSwapBuffers(g_window);
+		glfwPollEvents();
+	}
+
+}
+
+static void make_render_texture(int width, int height) {
+
+	if (g_render_texture != 0) {
+		glDeleteTextures(1, &g_render_texture);
+	}
+	if (g_fbo != 0) {
+		glDeleteFramebuffers(1, &g_fbo);
+	}
+	if (g_depthrenderbuffer != 0) {
+		glDeleteRenderbuffers(1, &g_depthrenderbuffer);
+	}
+
+
+	static int msaa = 4;
+
+	glGenFramebuffers(1, &g_fbo);
+	glBindFramebuffer(GL_FRAMEBUFFER, g_fbo);
+	glViewport(0, 0, width, height);
+	
+	glGenRenderbuffers(1, &g_depthrenderbuffer);
+	glBindRenderbuffer(GL_RENDERBUFFER, g_depthrenderbuffer);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, width, height);
+	
+	glGenTextures(1, &g_render_texture);
+	glBindTexture(GL_TEXTURE_2D, g_render_texture);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, g_render_texture, 0);
+	glFramebufferRenderbuffer(GL_DRAW_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, g_depthrenderbuffer);
+
+
+	const auto result = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+	switch (result) {
+	case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT:				dbgprint("GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT\n"); break;
+	case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT:		dbgprint("GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT\n"); break;
+	case GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS:				dbgprint("GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS\n"); break;
+	case GL_FRAMEBUFFER_UNSUPPORTED:						dbgprint("GL_FRAMEBUFFER_UNSUPPORTED\n"); break;
+	case GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE:				dbgprint("GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE\n"); break;
+	case GL_RENDERBUFFER_SAMPLES:							dbgprint("GL_RENDERBUFFER_SAMPLES\n"); break;
+	case GL_FRAMEBUFFER_INCOMPLETE_VIEW_TARGETS_OVR:		dbgprint("GL_FRAMEBUFFER_INCOMPLETE_VIEW_TARGETS_OVR\n"); break;
+	case GL_FRAMEBUFFER_ATTACHMENT_OBJECT_TYPE:				dbgprint("GL_FRAMEBUFFER_ATTACHMENT_OBJECT_TYPE\n"); break;
+	}
+	if (result != GL_FRAMEBUFFER_COMPLETE) {
+		dbgprint("Framebuffer error: %d\n", glGetError());
+	}
+}
+
+static void render_renderer() {
+	using wf = ImGuiWindowFlags_;
+	if (ImGui::Begin("Renderer", &g_renderer_shown))
+	{
+		glBindFramebuffer(GL_FRAMEBUFFER, g_fbo);
 
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glClearColor(0.2f, 0.4f, 0.6f, 1.0f);
-		handle_input();
 
-		for (RenderedWorldObject* object : objects)
+		for (RenderedWorldObject* object : g_objects)
 			object->render(g_camera, g_projection);
 
 		if (currently_selected_mesh != -1) {
@@ -150,77 +275,93 @@ int main(int argc, char* argv[]) {
 				}
 			}
 		}
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-		ImGui_ImplOpenGL3_NewFrame();
-		ImGui_ImplGlfw_NewFrame();
-		ImGui::NewFrame();
-		
-		if (current_cursor_mode == GLFW_CURSOR_NORMAL)
-			render_gui_hidden();
-		render_gui_non_hidden();
-		
-		ImGui::Render();
-		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+		if (ImGui::BeginPopupContextItem()) {
+			if (ImGui::BeginMenu("View")) {
+				ImGui::MenuItem("Wireframe", nullptr, &g_draw_wireframe_only);
+				ImGui::EndMenu();
+			}
+			ImGui::EndPopup();
+		}
+		g_render_location = ImGui::GetWindowPos();
+		const auto csize = ImGui::GetWindowContentRegionMax();
 
-		glfwSwapBuffers(g_window);
-		glfwPollEvents();
+		ImVec2 vMin = ImGui::GetWindowContentRegionMin();
+		g_render_location.x += vMin.x;
+		g_render_location.y += vMin.y;
+
+		if (can_resize && (g_render_size.x != csize.x || g_render_size.y != csize.y)) {
+			make_render_texture(csize.x, csize.y);
+			g_render_size = csize;
+		}
+		ImGui::Image((ImTextureID)g_render_texture, g_render_size, { 0, 1 }, { 1, 0 } );
+		char buf[64];
+		sprintf(buf, "%.4f %.4f", g_camera.yaw(), g_camera.pitch());
+		const auto yaw_text_size = ImGui::CalcTextSize(buf);
+		sprintf(buf, "%.4f %.4f %.4f", g_camera.location().x, g_camera.location().y, g_camera.location().z);
+		const auto text_size = ImGui::CalcTextSize(buf);
+		ImGui::SetNextWindowSize({ text_size.x + 50.f, 60.0f });
+		ImGui::SetNextWindowPos({ g_render_location.x, g_render_location.y});
+		ImGui::SetNextWindowBgAlpha(0.5f);
+			ImGui::Begin("asd", nullptr, wf::ImGuiWindowFlags_NoTitleBar | wf::ImGuiWindowFlags_NoMove | wf::ImGuiWindowFlags_NoCollapse | wf::ImGuiWindowFlags_NoDocking | wf::ImGuiWindowFlags_NoResize);
+			ImGui::BeginChild("Coords", {}, false, wf::ImGuiWindowFlags_NoCollapse | wf::ImGuiWindowFlags_NoMove | wf::ImGuiWindowFlags_NoTitleBar | wf::ImGuiWindowFlags_NoDecoration | wf::ImGuiWindowFlags_NoResize | wf::ImGuiWindowFlags_NoScrollbar | wf::ImGuiWindowFlags_NoDocking);
+				ImGui::SameLine((text_size.x + 50.f) / 2.0f - (text_size.x / 2.0f));
+				ImGui::Text("%.4f %.4f %.4f", g_camera.location().x, g_camera.location().y, g_camera.location().z);
+				ImGui::NewLine();
+				ImGui::SameLine((yaw_text_size.x + 50.f) / 2.0f - (yaw_text_size.x / 2.0f));
+				ImGui::Text("%.4f %.4f", g_camera.yaw(), g_camera.pitch());
+			ImGui::EndChild();
+			ImGui::End();
+		ImGui::End();
 	}
-
 }
 
-static void render_gui_non_hidden() {
-	using wf = ImGuiWindowFlags_;
-	ImGui::SetNextWindowPos({ 0.0f, 0.0f });
-	ImGui::Begin("asd", nullptr, wf::ImGuiWindowFlags_NoBackground | wf::ImGuiWindowFlags_NoTitleBar | wf::ImGuiWindowFlags_NoMove | wf::ImGuiWindowFlags_NoCollapse | wf::ImGuiWindowFlags_NoResize | wf::ImGuiWindowFlags_AlwaysAutoResize);
-	ImGui::BeginChild("Coords", {200.0f, 40.0f}, false, wf::ImGuiWindowFlags_NoCollapse | wf::ImGuiWindowFlags_NoMove | wf::ImGuiWindowFlags_NoTitleBar | wf::ImGuiWindowFlags_NoDecoration | wf::ImGuiWindowFlags_AlwaysAutoResize | wf::ImGuiWindowFlags_NoScrollbar);
-	ImGui::Text("%.4f %.4f %.4f", g_camera.location().x, g_camera.location().y, g_camera.location().z);
-	ImGui::EndChild();
-	ImGui::End();
-}
-
-static void render_gui_hidden() {
-	float width = ImGui::GetWindowWidth();
-	float height = ImGui::GetWindowHeight();
+static void render_gui() {
 	{
-		ImGui::Begin("Debug Information");
-		ImGui::Text("Selected Mesh: ");
-		if (currently_selected_mesh > -1) {
-			auto& mesh = g_level_file->meshes()[currently_selected_mesh];
-			auto& header = mesh.mesh_data.not_flags_and_1.szme_hdr;
-			ImGui::Text("Flags: 0x%08x", mesh.mesh_data.flags);
-			ImGui::Text("Relevant Flag Information:");
-			ImGui::Text(" Flag & 0x2  \t Uint32_t 0x%08x", header.m.unk_0x04);
-			ImGui::Text(" Flag & 0x200\t Float %.4f", header.m.unk_float);
-			ImGui::Text(" Flag & 0x4  \t Float %.4f", header.m.unk_float2);
-			ImGui::Text(" Flag & 0x8  \t Float %.4f", header.m.unk_float3);
-			ImGui::Text(" Flag & 0x10 \t Float %.4f", header.m.unk_float4);
-			ImGui::Text(" Flag & 0x20 \t Float %.4f", header.m.unk_float5);
-			ImGui::Text("~Flag & 0x100\t Float %.4f", header.m.unk_0x14);
-			ImGui::Text("~Flag & 0x100\t Vec3 %.4f %.4f %.4f (O position)", header.m.position.x, header.m.position.y, header.m.position.z);
-			ImGui::DragFloat3("XYZ", (float*)&mesh.game_object().raw_location(), 0.1f, 0.0f, 0.0f, "%.3f", 1.0f);
-			if (~mesh.mesh_data.flags & 1) {
-				ImGui::Text("Mesh Header:");
-				auto& na = mesh.mesh_data.not_flags_and_1;
-				ImGui::Text("Unknown 0x00 0x%08x", na.mesh_hdr.unknown_0x00);
-				ImGui::Text("Unknown 0x04 0x%04x", na.mesh_hdr.unknown_0x04);
-				ImGui::Text("Mesh Count: %d\nUK1: %d | UK2: %d", na.mesh_hdr.mesh_count, na.mesh_hdr.unknown_0x00, na.mesh_hdr.unknown_0x04);
-				ImGui::Text("SZME Data: ");
-				for (int i = 0; i < na.szme_data.size(); i++) {
-					/* horribly inefficient */
-					if (ImGui::CollapsingHeader((std::string("Position Data #") + std::to_string(i)).c_str())) {
-						ImGui::Text("UnkVec %.4f %.4f %.4f", na.szme_data[i].unk_vec.x, na.szme_data[i].unk_vec.y, na.szme_data[i].unk_vec.z);
-						ImGui::Text("position_count %03d\trotation_count %03d\tuc3 %03d\ttexcoords_count %03d\tlighing_count %03d", na.szme_data[i].position_count, na.szme_data[i].rotation_count, na.szme_data[i].unk_count3, na.szme_data[i].texcoords_count, na.szme_data[i].lighing_count);
-						ImGui::Text("Positions information: ");
-						for (int j = 0; j < na.szme_data[i].positions.size(); j++) {
-							ImGui::Text("%f %f %f", na.szme_data[i].positions[j].x, na.szme_data[i].positions[j].y, na.szme_data[i].positions[j].z);
+		if (ImGui::Begin("Debug Information", &g_debug_information_shown)) {
+			ImGui::Text("Selected Mesh: ");
+			if (currently_selected_mesh > -1) {
+				auto& mesh = g_level_file->meshes()[currently_selected_mesh];
+				auto& header = mesh.mesh_data.not_flags_and_1.szme_hdr;
+				ImGui::Text("Flags: 0x%08x", mesh.mesh_data.flags);
+				ImGui::Text("Relevant Flag Information:");
+				ImGui::Text(" Flag & 0x2  \t Uint32_t 0x%08x", header.m.unk_0x04);
+				ImGui::Text(" Flag & 0x200\t Float %.4f", header.m.unk_float);
+				ImGui::Text(" Flag & 0x4  \t Float %.4f", header.m.unk_float2);
+				ImGui::Text(" Flag & 0x8  \t Float %.4f", header.m.unk_float3);
+				ImGui::Text(" Flag & 0x10 \t Float %.4f", header.m.unk_float4);
+				ImGui::Text(" Flag & 0x20 \t Float %.4f", header.m.unk_float5);
+				ImGui::Text("~Flag & 0x100\t Float %.4f", header.m.unk_0x14);
+				ImGui::Text("~Flag & 0x100\t Vec3 %.4f %.4f %.4f (O position)", header.m.position.x, header.m.position.y, header.m.position.z);
+				ImGui::DragFloat3("XYZ", (float*)&mesh.game_object().raw_location(), 0.1f, 0.0f, 0.0f, "%.3f", 1.0f);
+				if (~mesh.mesh_data.flags & 1) {
+					ImGui::Text("Mesh Header:");
+					auto& na = mesh.mesh_data.not_flags_and_1;
+					ImGui::Text("Unknown 0x00 0x%08x", na.mesh_hdr.unknown_0x00);
+					ImGui::Text("Unknown 0x04 0x%04x", na.mesh_hdr.unknown_0x04);
+					ImGui::Text("Mesh Count: %d\nUK1: %d | UK2: %d", na.mesh_hdr.mesh_count, na.mesh_hdr.unknown_0x00, na.mesh_hdr.unknown_0x04);
+					ImGui::Text("SZME Data: ");
+					for (int i = 0; i < na.szme_data.size(); i++) {
+						/* horribly inefficient */
+						char buf[32];
+						sprintf(buf, "Position Data #%d", i);
+						if (ImGui::CollapsingHeader(buf)) {
+							ImGui::Text("UnkVec %.4f %.4f %.4f", na.szme_data[i].unk_vec.x, na.szme_data[i].unk_vec.y, na.szme_data[i].unk_vec.z);
+							ImGui::Text("position_count %03d\trotation_count %03d\tuc3 %03d\ttexcoords_count %03d\tlighing_count %03d", na.szme_data[i].position_count, na.szme_data[i].rotation_count, na.szme_data[i].unk_count3, na.szme_data[i].texcoords_count, na.szme_data[i].lighing_count);
+							ImGui::Text("Positions information: ");
+							for (int j = 0; j < na.szme_data[i].positions.size(); j++) {
+								ImGui::Text("%f %f %f", na.szme_data[i].positions[j].x, na.szme_data[i].positions[j].y, na.szme_data[i].positions[j].z);
+							}
 						}
 					}
 				}
+				mesh.game_object().set_should_recalculate_model_matrix(true);
 			}
-			mesh.game_object().set_should_recalculate_model_matrix(true);
+			ImGui::End();
 		}
-		ImGui::End();
 	}
+
 }
 
 static void handle_input() {
@@ -263,11 +404,17 @@ static void scroll_callback(GLFWwindow* window, double xoff, double yoff)
 
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 {
+	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
+		can_resize = false;
+	else if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE)
+		can_resize = true;
 	//TODO: Ctrl+click should select multiple objects for exporting into one mesh / moving and so on
-	if (!io->WantCaptureMouse && button == GLFW_MOUSE_BUTTON_LEFT && current_cursor_mode == GLFW_CURSOR_NORMAL && action == GLFW_RELEASE) {
-		double mouse_x, mouse_y;
-		glfwGetCursorPos(window, &mouse_x, &mouse_y);
-		glm::vec3 ray = clickray(mouse_x, mouse_y, (double)g_width, (double)g_height, g_projection, g_camera);
+	double mouse_x, mouse_y;
+	glfwGetCursorPos(window, &mouse_x, &mouse_y);
+	if (button == GLFW_MOUSE_BUTTON_LEFT && current_cursor_mode == GLFW_CURSOR_NORMAL && action == GLFW_RELEASE
+		&& mouse_x > g_render_location.x && mouse_y > g_render_location.y
+		&& mouse_x < g_render_location.x + g_render_size.x && mouse_y < g_render_location.y + g_render_size.y) {
+		glm::vec3 ray = clickray(mouse_x - g_render_location.x, mouse_y - g_render_location.y, g_render_size.x, g_render_size.y, g_projection, g_camera);
 		std::vector<SlyMesh>& meshes = g_level_file->meshes();
 		int mesh = -1;
 		bool has_found = false;
@@ -302,15 +449,18 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 }
 
 static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
-	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
+	if (key == GLFW_KEY_V && action == GLFW_PRESS) {
 		if (current_cursor_mode != GLFW_CURSOR_DISABLED) {
 			glfwSetInputMode(g_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 			current_cursor_mode = GLFW_CURSOR_DISABLED;
+			ImGui::SetMouseCursor(ImGuiMouseCursor_None);
+			io->ConfigFlags |= ImGuiConfigFlags_NoMouse;
 		}
 		else {
 			glfwSetInputMode(g_window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 			current_cursor_mode = GLFW_CURSOR_NORMAL;
-		}//glfwSetWindowShouldClose(window, GLFW_TRUE);
+			io->ConfigFlags = io->ConfigFlags & ~(1<<4);
+		}
 	}
 }
 
@@ -322,16 +472,16 @@ static void size_callback(GLFWwindow* window, int width, int height) {
 	g_width = width;
 	g_height = height;
 	const float aspect = (float)g_width / (float)g_height;
-	//g_projection = glm::perspective(g_fov, aspect, 0.1f, 100.f);
+	g_projection = glm::perspective(g_fov, aspect, 0.2f, 650.0f);
 	glViewport(0, 0, g_width, g_height);
 }
 
 static void cursor_position_callback(GLFWwindow*, double x, double y) {
 	static double lastX, lastY;
 	if (current_cursor_mode == GLFW_CURSOR_DISABLED) {
-		double x_diff = lastX - x;
-		double y_diff = lastY - y;
-		g_camera.set_yaw_pitch(g_camera.yaw() - x_diff * 0.1, g_camera.pitch() - y_diff * 0.1);
+		double x_diff = x - lastX;
+		double y_diff = y - lastY;
+		g_camera.set_yaw_pitch(g_camera.yaw() + x_diff * 0.1, g_camera.pitch() - y_diff * 0.1);
 		//det:://dbgprint("%f %f\n", g_camera.yaw(), g_camera.pitch());
 	}
 	lastX = x; lastY = y;
