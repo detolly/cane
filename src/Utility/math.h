@@ -11,7 +11,7 @@
 #include <glm/ext/scalar_constants.hpp>
 #include <glm/gtx/string_cast.hpp>
 
-glm::vec3 clickray(double mouse_x, double mouse_y, double width, double height, glm::mat4& projection, Camera& camera);
+glm::vec3 clickray(double mouse_x, double mouse_y, double width, double height, const glm::mat4& projection, Camera& camera);
 
 /* https://en.wikipedia.org/wiki/M%C3%B6ller%E2%80%93Trumbore_intersection_algorithm thanks wikipedia<3*/
 bool ray_intersects_triangle(const glm::vec3& ray_origin,

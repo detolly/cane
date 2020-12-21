@@ -14,6 +14,8 @@ public:
 	} windows;
 	struct {
 		bool wireframe { false };
+		float fov{ 90.0f };
+		float move_speed{ 0.01f };
 	} renderer;
 	struct {
 

@@ -7,7 +7,6 @@
 #include <iostream>
 #include <chrono>
 
-#define GLEW_STATIC
 #define GLFW_INCLUDE_NONE
 
 #include <glad/glad.h>
@@ -29,23 +28,17 @@
 
 #include <Utility/math.h>
 #include <Utility/config.h>
+#include <Utility/dbgprint.h>
 
 #include <Renderer/OBJModel.h>
 #include <Renderer/Shader.h>
 #include <Renderer/Camera.h>
 #include <Renderer/Cube.h>
+
 #include <Structs/SlyLevelFile.h>
 
+#include <Editor.h>
 
-//#pragma comment(lib, "opengl32.lib")
-//#pragma comment(lib, "glfw3.lib")
-//#pragma comment(lib, "glew32s.lib")
-
-//int main(int argc, const char* argv[]);
-
-std::vector<RenderedWorldObject*> g_objects;
-
-static void render_gui();
 static void key_callback(GLFWwindow*, int, int, int, int);
 static void error_callback(int, const char* desc);
 static void size_callback(GLFWwindow*, int, int);
@@ -54,23 +47,4 @@ static void handle_input();
 static void scroll_callback(GLFWwindow*, double, double);
 static void mouse_button_callback(GLFWwindow*, int, int, int);
 
-static void render_mesh_browser();
-static void render_renderer();
-
-static void make_render_texture(int width, int height);
-
 static int current_cursor_mode{ GLFW_CURSOR_DISABLED };
-static int currently_selected_mesh = -1;
-
-template <typename... T>
-inline static void dbgprint(const char* a, T ...args)  {
-#ifndef NDEBUG
-	printf(a, args...);
-#endif
-}
-
-inline static void dbgprintf(const char* a) {
-#ifndef NDEBUG
-	printf(a);
-#endif
-}

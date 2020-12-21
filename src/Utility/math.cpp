@@ -1,6 +1,6 @@
 #include "math.h"
 
-glm::vec3 clickray(double mouse_x, double mouse_y, double width, double height, glm::mat4& projection, Camera& camera)
+glm::vec3 clickray(double mouse_x, double mouse_y, double width, double height, const glm::mat4& projection, Camera& camera)
 {
 	float x = (2.0f * mouse_x) / width - 1.0f;
 	float y = 1.0f - (2.0f * mouse_y) / height;

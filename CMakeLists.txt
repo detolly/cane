@@ -4,6 +4,8 @@ project(cane)
 add_executable(cane
 	src/main.h
 	src/main.cpp
+	src/Editor.h
+	src/Editor.cpp
 	src/Utility/ez_stream.h
 	src/Utility/FileReader.h
 	src/Utility/Sigscan.h
@@ -11,6 +13,14 @@ add_executable(cane
 	src/Utility/math.cpp
 	src/Utility/config.h
 	src/Utility/config.cpp
+	src/Gui/RenderBuffer.h
+	src/Gui/RenderBuffer.cpp
+	src/Gui/DebugInformation.h
+	src/Gui/DebugInformation.cpp
+	src/Gui/RendererWindow.h
+	src/Gui/RendererWindow.cpp
+	src/Gui/ModelBrowser.h
+	src/Gui/ModelBrowser.cpp
 	src/Structs/sly_level_structs.h
 	src/Structs/sly_texture_structs.h
 	src/Structs/SlyLevelFile.h
