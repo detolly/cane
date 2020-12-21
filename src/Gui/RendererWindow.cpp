@@ -7,7 +7,10 @@ void RendererWindow::render()
 	using wf = ImGuiWindowFlags_;
 	if (ImGui::Begin("Renderer", &config::the().windows.renderer))
 	{
-		const auto csize = ImGui::GetWindowContentRegionMax();
+		ImVec2 vMin = ImGui::GetWindowContentRegionMin();
+		auto csize = ImGui::GetWindowContentRegionMax();
+		csize.x -= vMin.x;
+		csize.y -= vMin.y;
 		if (!is_allocated()) {
 			resize_buffer(csize.x, csize.y);
 			m_render_size = csize;
@@ -17,7 +20,6 @@ void RendererWindow::render()
 			m_render_size = csize;
 		}
 
-		ImVec2 vMin = ImGui::GetWindowContentRegionMin();
 		m_render_location = ImGui::GetWindowPos();
 		m_render_location.x += vMin.x;
 		m_render_location.y += vMin.y;

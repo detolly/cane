@@ -118,22 +118,32 @@ int main(int argc, char* argv[]) {
 				ImGui::MenuItem("Mesh Browser", nullptr, &config::the().windows.mesh_browser);
 				ImGui::EndMenu();
 			}
+			if (ImGui::BeginMenu("Options"))
+			{
+				if (ImGui::MenuItem("Preferences")) {
+
+				}
+				ImGui::EndMenu();
+			}
 			ImGui::EndMainMenuBar();
 		}
 
 		ImGuiDockNodeFlags dockspaceFlags = ImGuiDockNodeFlags_NoCloseButton;
-		ImGuiID dockspaceID = ImGui::GetID("root");
+		ImGuiID dockspaceID = ImGui::GetID("dock");
 		//ImGui::SetNextWindowSize(ImGui::GetContentRegionAvail());
 		ImGui::SetNextWindowSize({ (float)g_width, (float)g_height });
 		ImGui::DockSpace(dockspaceID, ImVec2(0.0f, 0.0f), dockspaceFlags);
 
 		if (config::the().windows.debug_information) {
+			ImGui::SetNextWindowDockID(dockspaceID, ImGuiCond_FirstUseEver);
 			Editor::the().debug_window().render();
 		}
 		if (config::the().windows.renderer) {
+			ImGui::SetNextWindowDockID(dockspaceID, ImGuiCond_FirstUseEver);
 			Editor::the().renderer().render();
 		}
 		if (config::the().windows.mesh_browser) {
+			ImGui::SetNextWindowDockID(dockspaceID, ImGuiCond_FirstUseEver);
 			Editor::the().model_browser().render();
 		}
 
@@ -200,7 +210,7 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
 }
 
 static void error_callback(int id, const char* desc) {
-	//dbgprint("%s\n", desc);
+	dbgprint("%s\n", desc);
 }
 
 static void size_callback(GLFWwindow* window, int width, int height) {
@@ -219,7 +229,6 @@ static void cursor_position_callback(GLFWwindow*, double x, double y) {
 			Editor::the().renderer().camera().yaw() + x_diff * 0.1,
 			Editor::the().renderer().camera().pitch() - y_diff * 0.1
 		);
-		//det:://dbgprint("%f %f\n", g_camera.yaw(), g_camera.pitch());
 	}
 	lastX = x; lastY = y;
 }
