@@ -99,7 +99,6 @@ int main(int argc, char* argv[]) {
 	{
 		auto last = last_time;
 		g_delta_time = ((last_time = std::chrono::high_resolution_clock::now()) - last).count() / 1000000.0f;
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 		handle_input();
 
@@ -118,6 +117,8 @@ int main(int argc, char* argv[]) {
 				ImGui::MenuItem("Renderer", nullptr, &config::the().windows.renderer);
 				ImGui::MenuItem("Debug Information", nullptr, &config::the().windows.debug_information);
 				ImGui::MenuItem("Model Browser", nullptr, &config::the().windows.model_browser);
+				ImGui::MenuItem("Model Viewer", nullptr, &config::the().windows.model_viewer);
+				ImGui::MenuItem("Examples", nullptr, &config::the().windows.examples);
 				ImGui::EndMenu();
 			}
 			if (ImGui::BeginMenu("Options"))
@@ -135,19 +136,27 @@ int main(int argc, char* argv[]) {
 		//ImGui::SetNextWindowSize(ImGui::GetContentRegionAvail());
 		ImGui::SetNextWindowSize({ (float)g_width, (float)g_height });
 		ImGui::DockSpace(dockspaceID, ImVec2(0.0f, 0.0f), dockspaceFlags);
-
 		if (config::the().windows.debug_information) {
-			ImGui::SetNextWindowDockID(dockspaceID, ImGuiCond_FirstUseEver);
+			//ImGui::SetNextWindowDockID(dockspaceID, ImGuiCond_FirstUseEver);
 			Editor::the().debug_window()->render();
 		}
 		if (config::the().windows.renderer) {
-			ImGui::SetNextWindowDockID(dockspaceID, ImGuiCond_FirstUseEver);
+			//ImGui::SetNextWindowDockID(dockspaceID, ImGuiCond_FirstUseEver);
 			Editor::the().renderer()->render();
 		}
 		if (config::the().windows.model_browser) {
-			ImGui::SetNextWindowDockID(dockspaceID, ImGuiCond_FirstUseEver);
+			//ImGui::SetNextWindowDockID(dockspaceID, ImGuiCond_FirstUseEver);
 			Editor::the().model_browser()->render();
 		}
+		if (config::the().windows.model_viewer) {
+			Editor::the().model_viewer()->render();
+		}
+		if (config::the().windows.examples) {
+			ImGui::ShowDemoWindow(&config::the().windows.examples);
+		}
+
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glViewport(0, 0, g_width, g_height);
 
 		ImGui::End();
 

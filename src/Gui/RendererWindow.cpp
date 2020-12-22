@@ -1,75 +1,76 @@
 #include <Gui/RendererWindow.h>
 #include <Editor.h>
+#include <glm/mat4x4.hpp>
+#include <Structs/SlyLevelFile.h>
 
 void RendererWindow::render()
 {
 	auto& editor = Editor::the();
 	using wf = ImGuiWindowFlags_;
-	if (ImGui::Begin("Renderer", &config::the().windows.renderer))
-	{
-		ImVec2 vMin = ImGui::GetWindowContentRegionMin();
-		auto csize = ImGui::GetWindowContentRegionMax();
-		csize.x -= vMin.x;
-		csize.y -= vMin.y;
-		if (!is_allocated()) {
-			m_render_size = csize;
-			resize_buffer(csize.x, csize.y);
-		}
-		else if ((m_render_size.x != csize.x || m_render_size.y != csize.y) && Editor::the().can_resize()) {
-			m_render_size = csize;
-			resize_buffer(csize.x, csize.y);
-			set_should_recalculate_projection(true);
-		}
-
-		m_render_location = ImGui::GetWindowPos();
-		m_render_location.x += vMin.x;
-		m_render_location.y += vMin.y;
-
-		glBindFramebuffer(GL_FRAMEBUFFER, fbo());
-
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		glClearColor(0.2f, 0.4f, 0.6f, 1.0f);
-
-		editor.level_file()->render(m_camera, projection());
-
-		const auto selected_mesh = m_currently_selected_mesh;
-		if (selected_mesh != -1) {
-			auto& mesh = Editor::the().level_file()->meshes()[selected_mesh];
-			if (~mesh.mesh_data.flags & 1) {
-				auto& na = mesh.mesh_data.not_flags_and_1;
-				for (int i = 0; i < na.szme_data.size(); i++) {
-					na.szme_data[i].render(m_camera, projection());
-				}
-			}
-		}
-
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-		if (ImGui::BeginPopupContextItem()) {
-			if (ImGui::BeginMenu("View")) {
-				ImGui::MenuItem("Wireframe", nullptr, &config::the().renderer.wireframe);
-				ImGui::EndMenu();
-			}
-			ImGui::EndPopup();
-		}
-
-		ImGui::Image((ImTextureID)texture(), m_render_size, { 0, 1 }, { 1, 0 });
-		char buf[64];
-		sprintf(buf, "%.4f %.4f %.4f", camera().location().x, camera().location().y, camera().location().z);
-		const auto text_size = ImGui::CalcTextSize(buf);
-		ImGui::SetNextWindowSize({ text_size.x + 50.f, 60.0f });
-		ImGui::SetNextWindowPos({ m_render_location.x, m_render_location.y });
-		ImGui::SetNextWindowBgAlpha(0.5f);
-		ImGui::Begin("asd", nullptr, wf::ImGuiWindowFlags_NoTitleBar | wf::ImGuiWindowFlags_NoMove | wf::ImGuiWindowFlags_NoCollapse | wf::ImGuiWindowFlags_NoDocking | wf::ImGuiWindowFlags_NoResize);
-		ImGui::BeginChild("Coords", {}, false, wf::ImGuiWindowFlags_NoCollapse | wf::ImGuiWindowFlags_NoMove | wf::ImGuiWindowFlags_NoTitleBar | wf::ImGuiWindowFlags_NoDecoration | wf::ImGuiWindowFlags_NoResize | wf::ImGuiWindowFlags_NoScrollbar | wf::ImGuiWindowFlags_NoDocking);
-		ImGui::SameLine((text_size.x + 50.f) / 2.0f - (text_size.x / 2.0f));
-		ImGui::Text("%.4f %.4f %.4f", camera().location().x, camera().location().y, camera().location().z);
-		ImGui::NewLine();
-		ImGui::SameLine((text_size.x + 50.f) / 2.0f - (text_size.x / 2.0f));
-		ImGui::Text("%.4f %.4f", camera().yaw(), camera().pitch());
-		ImGui::EndChild();
-		ImGui::End();
+	ImGui::Begin("Renderer", &config::the().windows.renderer);
+	ImVec2 vMin = ImGui::GetWindowContentRegionMin();
+	auto csize = ImGui::GetWindowContentRegionMax();
+	csize.x -= vMin.x;
+	csize.y -= vMin.y;
+	if (!is_allocated()) {
+		m_render_size = csize;
+		resize_buffer(csize.x, csize.y);
 	}
+	else if ((m_render_size.x != csize.x || m_render_size.y != csize.y) && Editor::the().can_resize()) {
+		m_render_size = csize;
+		resize_buffer(csize.x, csize.y);
+		set_should_recalculate_projection(true);
+	}
+
+	m_render_location = ImGui::GetWindowPos();
+	m_render_location.x += vMin.x;
+	m_render_location.y += vMin.y;
+
+	glBindFramebuffer(GL_FRAMEBUFFER, fbo());
+	glViewport(0, 0, m_render_size.x, m_render_size.y);
+
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glClearColor(0.2f, 0.4f, 0.6f, 1.0f);
+
+	editor.level_file()->render(m_camera, projection());
+
+	const auto selected_mesh = m_currently_selected_mesh;
+	if (selected_mesh != -1) {
+		auto& mesh = Editor::the().level_file()->meshes()[selected_mesh];
+		if (~mesh.mesh_data.flags & 1) {
+			auto& na = mesh.mesh_data.not_flags_and_1;
+			for (int i = 0; i < na.szme_data.size(); i++) {
+				na.szme_data[i].render(m_camera, projection());
+			}
+		}
+	}
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	if (ImGui::BeginPopupContextItem()) {
+		if (ImGui::BeginMenu("View")) {
+			ImGui::MenuItem("Wireframe", nullptr, &config::the().renderer.wireframe);
+			ImGui::EndMenu();
+		}
+		ImGui::EndPopup();
+	}
+
+	ImGui::Image((ImTextureID)texture(), m_render_size, { 0, 1 }, { 1, 0 });
+	char buf[64];
+	sprintf(buf, "%.4f %.4f %.4f", camera().location().x, camera().location().y, camera().location().z);
+	const auto text_size = ImGui::CalcTextSize(buf);
+	ImGui::SetNextWindowSize({ text_size.x + 50.f, 60.0f });
+	ImGui::SetNextWindowPos({ m_render_location.x, m_render_location.y });
+	ImGui::SetNextWindowBgAlpha(0.5f);
+	ImGui::Begin("asd", nullptr, wf::ImGuiWindowFlags_NoTitleBar | wf::ImGuiWindowFlags_NoMove | wf::ImGuiWindowFlags_NoCollapse | wf::ImGuiWindowFlags_NoDocking | wf::ImGuiWindowFlags_NoResize);
+		ImGui::BeginChild("Coords", {}, false, wf::ImGuiWindowFlags_NoCollapse | wf::ImGuiWindowFlags_NoMove | wf::ImGuiWindowFlags_NoTitleBar | wf::ImGuiWindowFlags_NoDecoration | wf::ImGuiWindowFlags_NoResize | wf::ImGuiWindowFlags_NoScrollbar | wf::ImGuiWindowFlags_NoDocking);
+			ImGui::SameLine((text_size.x + 50.f) / 2.0f - (text_size.x / 2.0f));
+			ImGui::Text("%.4f %.4f %.4f", camera().location().x, camera().location().y, camera().location().z);
+			ImGui::NewLine();
+			ImGui::SameLine((text_size.x + 50.f) / 2.0f - (text_size.x / 2.0f));
+			ImGui::Text("%.4f %.4f", camera().yaw(), camera().pitch());
+		ImGui::EndChild();
+	ImGui::End();
 	ImGui::End();
 }
 

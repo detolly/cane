@@ -2,12 +2,15 @@
 #include <Gui/DebugInformation.h>
 #include <Gui/RendererWindow.h>
 #include <Gui/ModelBrowser.h>
+#include <Gui/ModelViewer.h>
+#include <Structs/SlyLevelFile.h>
 
 void Editor::init()
 {
 	Editor::the().m_renderer_window = new RendererWindow();
 	Editor::the().m_debug_window = new DebugInformation();
 	Editor::the().m_model_browser = new ModelBrowser();
+	Editor::the().m_model_viewer = new ModelViewer();
 }
 
 void Editor::open(const char* file)
@@ -15,6 +18,7 @@ void Editor::open(const char* file)
 	if (has_file_loaded())
 		delete m_level;
 	m_level = new SlyLevelFile(file);
+	model_browser()->make_thumbnails();
 }
 
 void Editor::size_callback(int width, int height)

@@ -8,9 +8,11 @@ public:
 	static config& the() { return c; }
 
 	struct {
-		bool renderer{true};
-		bool debug_information{true};
-		bool model_browser{ false };
+		bool renderer			{ true };
+		bool debug_information	{ true };
+		bool model_browser		{ true };
+		bool model_viewer		{ true };
+		bool examples			{ true };
 	} windows;
 	struct {
 		bool wireframe { false };
@@ -20,4 +22,9 @@ public:
 	struct {
 
 	} debug_information;
+	struct {
+		struct {
+			float r{0.2f}, g{0.2f}, b{0.2f}, a{1.0f};
+		} rgba;
+	} model_viewer;
 };
