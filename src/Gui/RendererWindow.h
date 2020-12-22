@@ -23,7 +23,7 @@ public:
 	Camera& camera() { return m_camera; }
 
 	int currently_selected_mesh() { return m_currently_selected_mesh; }
-	void select(glm::vec3 ray, bool ctrl_modifier = false);
+	void select(double x, double y, bool ctrl_modifier = false);
 
 	void set_should_recalculate_projection(bool value) { m_should_recalculate_projection = value; }
 	bool should_recalculate_projection() { return m_should_recalculate_projection; }

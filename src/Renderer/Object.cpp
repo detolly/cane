@@ -19,8 +19,12 @@ const glm::mat4& GameObject::model()
 {
 	if (should_recalculate_model_matrix()) {
 		m_should_recalculate_model_matrix = false;
+		//TODO THIS IS COMPLETELY WRONG
 		m_model = glm::scale(glm::mat4(1.0f), scale());
 		m_model = glm::translate(m_model, location());
+		m_model = glm::rotate(m_model, glm::radians(m_rotation.x), glm::vec3(0.0f, -1.0f, 0.0f));
+		m_model = glm::rotate(m_model, glm::radians(m_rotation.y), glm::vec3(1.0f, 0.0f, 0.0f));
+		m_model = glm::rotate(m_model, glm::radians(m_rotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
 		//TODO: rotate
 	}
 	return m_model;

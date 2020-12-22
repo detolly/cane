@@ -85,6 +85,7 @@ int main(int argc, char* argv[]) {
 	style.ScrollbarRounding = 0.0f;
 	style.TabRounding = 0.0f;
 
+	Editor::init();
 	Editor::the().open("level.bin");
 	
 	//int index = 0;
@@ -108,6 +109,7 @@ int main(int argc, char* argv[]) {
 
 		using wf = ImGuiWindowFlags_;
 		ImGui::SetNextWindowSize({ (float)g_width, (float)g_height }, ImGuiCond_::ImGuiCond_Always);
+		ImGui::SetNextWindowPos({ 0, 0 });
 		ImGui::Begin("root", nullptr, wf::ImGuiWindowFlags_NoCollapse | wf::ImGuiWindowFlags_NoTitleBar | wf::ImGuiWindowFlags_NoMove | wf::ImGuiWindowFlags_NoResize | wf::ImGuiWindowFlags_NoBringToFrontOnFocus | wf::ImGuiWindowFlags_NoInputs | wf::ImGuiWindowFlags_MenuBar);
 		if (ImGui::BeginMainMenuBar())
 		{
@@ -115,7 +117,7 @@ int main(int argc, char* argv[]) {
 			{
 				ImGui::MenuItem("Renderer", nullptr, &config::the().windows.renderer);
 				ImGui::MenuItem("Debug Information", nullptr, &config::the().windows.debug_information);
-				ImGui::MenuItem("Mesh Browser", nullptr, &config::the().windows.mesh_browser);
+				ImGui::MenuItem("Model Browser", nullptr, &config::the().windows.model_browser);
 				ImGui::EndMenu();
 			}
 			if (ImGui::BeginMenu("Options"))
@@ -136,15 +138,15 @@ int main(int argc, char* argv[]) {
 
 		if (config::the().windows.debug_information) {
 			ImGui::SetNextWindowDockID(dockspaceID, ImGuiCond_FirstUseEver);
-			Editor::the().debug_window().render();
+			Editor::the().debug_window()->render();
 		}
 		if (config::the().windows.renderer) {
 			ImGui::SetNextWindowDockID(dockspaceID, ImGuiCond_FirstUseEver);
-			Editor::the().renderer().render();
+			Editor::the().renderer()->render();
 		}
-		if (config::the().windows.mesh_browser) {
+		if (config::the().windows.model_browser) {
 			ImGui::SetNextWindowDockID(dockspaceID, ImGuiCond_FirstUseEver);
-			Editor::the().model_browser().render();
+			Editor::the().model_browser()->render();
 		}
 
 		ImGui::End();
@@ -162,7 +164,7 @@ int main(int argc, char* argv[]) {
 
 static void handle_input() {
 	if (current_cursor_mode != GLFW_CURSOR_NORMAL) {
-		Editor::the().renderer().handle_input(g_window, g_delta_time);
+		Editor::the().renderer()->handle_input(g_window, g_delta_time);
 	}
 }
 
@@ -183,14 +185,19 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 	//TODO: Ctrl+click should select multiple objects for exporting into one mesh / moving and so on
 	double mouse_x, mouse_y;
 	glfwGetCursorPos(window, &mouse_x, &mouse_y);
-	const auto location = Editor::the().renderer().render_location();
-	const auto render_size = Editor::the().renderer().render_size();
-	if (config::the().windows.renderer && button == GLFW_MOUSE_BUTTON_LEFT && current_cursor_mode == GLFW_CURSOR_NORMAL && action == GLFW_RELEASE
+	const auto location = Editor::the().renderer()->render_location();
+	const auto render_size = Editor::the().renderer()->render_size();
+	static bool last_left_click_was_inside_renderer{false};
+	if (config::the().windows.renderer && last_left_click_was_inside_renderer && button == GLFW_MOUSE_BUTTON_LEFT && current_cursor_mode == GLFW_CURSOR_NORMAL && action == GLFW_RELEASE
 		&& mouse_x > location.x && mouse_y > location.y
 		&& mouse_x < location.x + render_size.x && mouse_y < location.y + render_size.y) {
-		glm::vec3 ray = clickray(mouse_x - location.x, mouse_y - location.y, render_size.x, render_size.y, Editor::the().renderer().projection(), Editor::the().renderer().camera());
-		Editor::the().renderer().select(ray);
+		Editor::the().renderer()->select(mouse_x - location.x, mouse_y - location.y, mods & GLFW_MOD_CONTROL);
 	}
+	if (config::the().windows.renderer && button == GLFW_MOUSE_BUTTON_LEFT && current_cursor_mode == GLFW_CURSOR_NORMAL && action == GLFW_PRESS && mouse_x > location.x && mouse_y > location.y
+		&& mouse_x < location.x + render_size.x && mouse_y < location.y + render_size.y)
+		last_left_click_was_inside_renderer = true;
+	else
+		last_left_click_was_inside_renderer = false;
 }
 
 static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
@@ -225,9 +232,9 @@ static void cursor_position_callback(GLFWwindow*, double x, double y) {
 		double x_diff = x - lastX;
 		double y_diff = y - lastY;
 		//todo more abstraction
-		Editor::the().renderer().camera().set_yaw_pitch(
-			Editor::the().renderer().camera().yaw() + x_diff * 0.1,
-			Editor::the().renderer().camera().pitch() - y_diff * 0.1
+		Editor::the().renderer()->camera().set_yaw_pitch(
+			Editor::the().renderer()->camera().yaw() + x_diff * 0.1,
+			Editor::the().renderer()->camera().pitch() - y_diff * 0.1
 		);
 	}
 	lastX = x; lastY = y;

@@ -5,7 +5,7 @@
 
 void ModelBrowser::render()
 {
-	if (ImGui::Begin("Mesh Browser", &config::the().windows.mesh_browser)) {
+	if (ImGui::Begin("Model Browser", &config::the().windows.model_browser)) {
 
 	}
 	ImGui::End();

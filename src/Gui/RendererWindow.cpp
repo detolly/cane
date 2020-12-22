@@ -12,12 +12,13 @@ void RendererWindow::render()
 		csize.x -= vMin.x;
 		csize.y -= vMin.y;
 		if (!is_allocated()) {
-			resize_buffer(csize.x, csize.y);
 			m_render_size = csize;
+			resize_buffer(csize.x, csize.y);
 		}
 		else if ((m_render_size.x != csize.x || m_render_size.y != csize.y) && Editor::the().can_resize()) {
-			resize_buffer(csize.x, csize.y);
 			m_render_size = csize;
+			resize_buffer(csize.x, csize.y);
+			set_should_recalculate_projection(true);
 		}
 
 		m_render_location = ImGui::GetWindowPos();
@@ -103,8 +104,9 @@ void RendererWindow::handle_input(void* a_window, float delta_time)
 	}
 }
 
-void RendererWindow::select(glm::vec3 ray, bool ctrl_modifier)
+void RendererWindow::select(double mouse_x, double mouse_y, bool ctrl_modifier)
 {
+	glm::vec3 ray = clickray(mouse_x, mouse_y, render_size().x, render_size().y, projection(), camera());
 	std::vector<SlyMesh>& meshes = Editor::the().level_file()->meshes();
 	int mesh = -1;
 	bool has_found = false;
@@ -116,12 +118,15 @@ void RendererWindow::select(glm::vec3 ray, bool ctrl_modifier)
 				const auto& triangles = meshes[i].mesh_data.not_flags_and_1.vertex_data[j].index_hdr.triangle_data;
 				const auto& vertices = meshes[i].mesh_data.not_flags_and_1.vertex_data[j].vertices;
 				for (int tri = 0; tri < triangles.size(); tri += 3) {
+					const auto v1 = meshes[i].game_object().model() * glm::vec4(vertices[triangles[tri]].pos, 1.0f);
+					const auto v2 = meshes[i].game_object().model() * glm::vec4(vertices[triangles[tri + 1]].pos, 1.0f);
+					const auto v3 = meshes[i].game_object().model() * glm::vec4(vertices[triangles[tri + 2]].pos, 1.0f);
 					if (ray_intersects_triangle(
 						camera().location(),
 						ray,
-						vertices[triangles[tri]].pos + meshes[i].game_object().location(),
-						vertices[triangles[tri + 1]].pos + meshes[i].game_object().location(),
-						vertices[triangles[tri + 2]].pos + meshes[i].game_object().location(),
+						v1,
+						v2,
+						v3,
 						intersection_point
 					)) {
 						float len = glm::length(camera().location() - intersection_point);

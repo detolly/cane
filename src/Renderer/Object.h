@@ -15,9 +15,10 @@ public:
 
 	const inline glm::vec3& scale()		const { return m_scale; }
 	const inline glm::vec3& location()	const { return m_location; }
-	const inline glm::vec4& rotation()	const { return m_rotation; }
+	const inline glm::vec3& rotation()	const { return m_rotation; }
 	inline glm::vec3& raw_scale() { return m_scale; }
 	inline glm::vec3& raw_location() { return m_location; }
+	inline glm::vec3& raw_rotation() { return m_rotation; }
 
 	const inline bool should_recalculate_model_matrix() const { return m_should_recalculate_model_matrix; }
 	void set_should_recalculate_model_matrix(bool should) { m_should_recalculate_model_matrix = should; }
@@ -37,7 +38,6 @@ public:
 	void move(const glm::vec3&);
 
 private:
-
 	friend class WorldObject;
 
 	GameObject();
@@ -46,11 +46,11 @@ private:
 
 	bool m_constant_model{ false };
 	glm::mat4 m_constant_model_matrix{ glm::mat4(1.0f) };
+	glm::mat4 m_model{1.0f};
+	
 	glm::vec3 m_scale{1.0f};
 	glm::vec3 m_location{0.0f};
-	glm::vec4 m_rotation{0.0f};
-	glm::mat4 m_model{1.0f};
-
+	glm::vec3 m_rotation{0.0f};
 };
 
 class WorldObject {

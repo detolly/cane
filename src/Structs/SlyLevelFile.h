@@ -131,6 +131,24 @@ public:
 		ez_stream stream(m_buffer, m_buffer_len);
 		parse_textures(stream);
 		parse_meshes(stream);
+		find_near_float(5446.0f, -779.0f, 2151.0f, 25.0f);
+	}
+
+	//TODO REMOVE DEBUG
+	void find_near_float(float x, float y, float z, float allowed_difference) {
+		for (int i = 0; i < m_buffer_len; i++) {
+			float* ptr1 = (float*)((size_t)m_buffer + i);
+			float* ptr2 = (float*)((size_t)m_buffer + i + 4);
+			float* ptr3 = (float*)((size_t)m_buffer + i + 8);
+			if (std::fabs(*ptr1 - x) < allowed_difference) {
+				//dbgprint("Found X. (0x%08x) %f %f %f\n", i, *ptr1, *ptr2, *ptr3);
+				if (std::fabs(*ptr2 - y) < allowed_difference) {
+					if (std::fabs(*ptr3 - z) < allowed_difference) {
+						dbgprint("FOUND @ 0x%08x\n", i);
+					}
+				}
+			}
+		}
 	}
 
 	void parse_textures(ez_stream& stream)
@@ -265,7 +283,7 @@ public:
 	std::vector<SlyMesh>& meshes() { return m_meshes; }
 
 private:
-	const char* m_buffer{nullptr};
+	const char* m_buffer{ nullptr };
 	size_t m_buffer_len{0};
 
 	std::vector<SlyMesh> m_meshes;

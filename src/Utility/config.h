@@ -10,7 +10,7 @@ public:
 	struct {
 		bool renderer{true};
 		bool debug_information{true};
-		bool mesh_browser{ false };
+		bool model_browser{ false };
 	} windows;
 	struct {
 		bool wireframe { false };

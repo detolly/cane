@@ -113,7 +113,6 @@ struct vertex_data_t
         stream.seek(mesh_header_start+vertex_hdr.vertex_data_offset);
         for (int i = 0; i < vertex_hdr.vertex_count; i++) {
             vertices[i] = std::move(vertex_t(stream));
-            /* TODO: REMEMBER WHEN EXPORTING */
         }
         stream.seek(mesh_header_start + vertex_hdr.index_header_offset);
         index_hdr = index_data_t(stream, mesh_header_start);
