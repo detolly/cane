@@ -51,6 +51,9 @@ struct normal_t {
 struct vertex_t
 {
     vertex_t() {}
+    ~vertex_t() = default;
+    vertex_t(vertex_t&&) = default;
+    vertex_t& operator=(vertex_t&& o) = default;
     vertex_t(ez_stream& stream) {
         pos = stream.read_sly_vec();
         normal = stream.read<normal_t>();
@@ -75,6 +78,9 @@ struct index_header_t
 struct index_data_t
 {
     index_data_t() {}
+    ~index_data_t() = default;
+    index_data_t(index_data_t&&) = default;
+    index_data_t& operator=(index_data_t&& o) = default;
     index_data_t(ez_stream& stream, int mesh_header_index) {
         index_hdr = stream.read<index_header_t>();
         stream.seek(mesh_header_index + index_hdr.index_data_offset_0);
@@ -106,6 +112,9 @@ struct vertex_header_t
 struct vertex_data_t
 {
     vertex_data_t() {}
+    ~vertex_data_t() = default;
+    vertex_data_t(vertex_data_t&&) = default;
+    vertex_data_t& operator=(vertex_data_t&& o) = default;
     vertex_data_t(ez_stream& stream, int mesh_header_start)
     {
         vertex_hdr = stream.read<vertex_header_t>();
@@ -140,6 +149,9 @@ struct szms_header_t
 struct mesh_header_t
 {
     mesh_header_t() {}
+    ~mesh_header_t() = default;
+    mesh_header_t(mesh_header_t&&) = default;
+    mesh_header_t& operator=(mesh_header_t&& o) = default;
     mesh_header_t(ez_stream& stream) {
         unknown_0x00 = stream.read<uint32_t>();
         unknown_0x04 = stream.read<uint16_t>();
@@ -159,6 +171,9 @@ struct mesh_header_t
 struct szme_header2_t {
 
     szme_header2_t() {}
+    ~szme_header2_t() = default;
+    szme_header2_t(szme_header2_t&&) = default;
+    szme_header2_t& operator=(szme_header2_t&& o) = default;
     szme_header2_t(ez_stream& stream, uint16_t flags) {
         magic = stream.read<uint32_t>();
         if (flags & 2) {
@@ -227,7 +242,11 @@ struct szme_header2_t {
 };
 
 struct szme_vertex_data_t : public SingleColoredWorldObject {
+public:
     szme_vertex_data_t() {}
+    ~szme_vertex_data_t() = default;
+    szme_vertex_data_t(szme_vertex_data_t&&) = default;
+    szme_vertex_data_t& operator=(szme_vertex_data_t&& o) = default;
     szme_vertex_data_t(ez_stream& stream) {
         unk_vec = stream.read_sly_vec();
         unk_float = stream.read<float>();
@@ -283,10 +302,15 @@ struct szme_vertex_data_t : public SingleColoredWorldObject {
         render_properties = { vao, vbo };
 
         glBindBuffer(GL_ARRAY_BUFFER, vbo);
-        glBufferData(GL_ARRAY_BUFFER, positions.size()*sizeof(vector3_t), positions.data(), GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, positions.size()*sizeof(glm::vec3), positions.data(), GL_STATIC_DRAW);
 
         glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
         glEnableVertexAttribArray(0);
+    }
+
+    void free_gl_buffers() {
+        glDeleteBuffers(1, &render_properties.vbo);
+        glDeleteVertexArrays(1, &render_properties.vao);
     }
 
     void render(Camera& cam, glm::mat4& proj) override {
@@ -324,7 +348,10 @@ struct szme_vertex_data_t : public SingleColoredWorldObject {
 
 struct mesh_data_t
 {
-    mesh_data_t() {}
+    mesh_data_t() = default;
+    ~mesh_data_t() = default;
+    mesh_data_t(mesh_data_t&&) = default;
+    mesh_data_t& operator=(mesh_data_t&& o) = default;
     mesh_data_t(ez_stream& stream) {
         flags = stream.read<uint16_t>();
         if (~flags & 1) {
@@ -371,7 +398,7 @@ struct mesh_data_t
         szme_header2_t szme_hdr;
 
         struct render_properties {
-            GLuint vao, vbo, ebo;
+            GLuint vao, ebo, vbo;
         };
 
         std::vector<vertex_data_t> vertex_data;

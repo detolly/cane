@@ -81,3 +81,11 @@ add_library(imgui STATIC ${IMGUI_SOURCES} ${IMGUI_HEADERS} ${IMGUI_BACKEND_SOURC
 target_include_directories(imgui PUBLIC lib/glad/include lib/glfw/include)
 target_link_libraries(imgui glad)
 target_link_libraries(cane imgui)
+
+add_library(imguifilepicker STATIC include/ImGuiFileDialog/ImGuiFileDialog.cpp)
+add_library(dirent STATIC include/dirent/dirent.h include/dirent/dirent.cpp)
+set_target_properties(dirent PROPERTIES LINKER_LANGUAGE CXX)
+
+target_include_directories(imguifilepicker PUBLIC include/dirent)
+target_link_libraries(imguifilepicker dirent)
+target_link_libraries(cane imguifilepicker)

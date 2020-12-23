@@ -16,6 +16,9 @@ public:
 		return ret;
 	}
 
+	const char* buffer() const { return m_buffer; }
+	const unsigned int size() const { return m_len; }
+
 	template <unsigned int size = sizeof(glm::vec3)>
 	const glm::vec3 read_sly_vec() {
 		glm::vec3 ret = read<glm::vec3>();

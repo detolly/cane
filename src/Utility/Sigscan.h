@@ -15,7 +15,7 @@ namespace detolly {
 		return true;
 	}
 
-	static inline int sigscan(const char* buffer, int start, int size, const char* sig, const char* mask, size_t offset)
+	static inline int sigscan(const char* buffer, int start, int size, const char* sig, const char* mask, int offset)
 	{
 		for (int i = 0; i < size; i++) {
 			int advance_count = 0;
@@ -24,6 +24,6 @@ namespace detolly {
 			}
 			i += advance_count;
 		}
-		return false;
+		return -1;
 	}
 }

@@ -9,7 +9,7 @@ void ModelBrowser::render()
 {
 	ImGui::Begin("Model Browser", &config::the().windows.model_browser);
 	ImGui::BeginGroup();
-	for (Thumbnail t : m_thumbnails) {
+	for (Thumbnail& t : m_thumbnails) {
 		if (ImGui::GetContentRegionAvail().x < 128)
 			ImGui::NewLine();
 		if (ImGui::ImageButton((ImTextureID)t.texture(), { 128, 128 }, { 0, 1 }, { 1, 0 })) {
@@ -22,12 +22,13 @@ void ModelBrowser::render()
 }
 
 void ModelBrowser::make_thumbnails() {
+	m_thumbnails.clear();
 	auto* level = Editor::the().level_file();
 	for (int i = 0; i < level->meshes().size(); i++) {
 		auto& mesh = level->meshes()[i];
 		Thumbnail b(i);
 		b.render(mesh);
-		m_thumbnails.push_back(b);
+		m_thumbnails.push_back(std::move(b));
 	}
 }
 

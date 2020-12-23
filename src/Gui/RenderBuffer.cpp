@@ -3,13 +3,19 @@
 #include <glad/glad.h>
 #include <Utility/dbgprint.h>
 
-void TexturedRenderBuffer::resize_buffer(int width, int height) {
-	static int msaa = 4;
+void TexturedRenderBuffer::free_buffer()
+{
 	if (is_allocated()) {
 		glDeleteRenderbuffers(1, &m_depthbuffer);
 		glDeleteTextures(1, &m_texture);
 		glDeleteFramebuffers(1, &m_fbo);
+		m_allocated = false;
 	}
+}
+
+void TexturedRenderBuffer::resize_buffer(int width, int height) {
+	static int msaa = 4;
+	free_buffer();
 
 	glGenFramebuffers(1, &m_fbo);
 	glBindFramebuffer(GL_FRAMEBUFFER, m_fbo);

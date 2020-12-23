@@ -20,6 +20,11 @@ class SlyMesh : public SingleColoredSlyWorldObject {
 public:
 	texture_table_t& m_texture_table;
 
+	SlyMesh() = delete;
+	~SlyMesh() = default;
+	SlyMesh(const SlyMesh & o) = default;
+	SlyMesh(SlyMesh&& o) = default;
+	SlyMesh& operator=(SlyMesh && o) = default;
 	SlyMesh(ez_stream& stream, texture_table_t& texture_table) : m_texture_table(texture_table) {
 		parse(stream);
 		//set_color(glm::vec3{
@@ -33,6 +38,7 @@ public:
 		make_gl_buffers();
 		//game_object().set_scale({ 1.f/100.f, 1.f/100.f, 1.f/100.f });
 	}
+
 
 	void parse(ez_stream& stream) {
 		mesh_data = std::move(mesh_data_t(stream));
@@ -75,6 +81,11 @@ public:
 		}
 	}
 
+	void free_gl_buffers()
+	{
+
+	}
+
 	void render(Camera& cam, glm::mat4x4& proj) override
 	{
 		if (mesh_data.flags & 1)
@@ -84,10 +95,11 @@ public:
 
 		for (int i = 0; i < mesh_data.not_flags_and_1.mesh_hdr.mesh_count; i++) {
 			int t_id = 0;
-			if (mesh_data.not_flags_and_1.szme_data.size() >= i+1)
+			if (mesh_data.not_flags_and_1.szme_data.size() >= i + 1)
 				if (mesh_data.not_flags_and_1.szme_data[i].texture_id < m_texture_table.texture.size())
 					if (m_texture_table.texture[mesh_data.not_flags_and_1.szme_data[i].texture_id].is_initialized())
 						glBindTexture(GL_TEXTURE_2D, m_texture_table.texture[mesh_data.not_flags_and_1.szme_data[i].texture_id].gl_texture);
+					else glBindTexture(GL_TEXTURE_2D, 0);
 			glBindVertexArray(mesh_data.not_flags_and_1.render_properties_vector[i].vao);
 			glDrawElements(GL_TRIANGLES, mesh_data.not_flags_and_1.vertex_data[i].index_hdr.triangle_data.size(), GL_UNSIGNED_SHORT, 0);
 			//glBindVertexArray(0);
@@ -103,12 +115,28 @@ public:
 
 	SlyLevelFile(const char* level_file) {
 		FileReader reader(level_file);
-		m_buffer = reader.read();
-		m_buffer_len = reader.length();
-		construct();
+		const auto* bf = reader.read();
+		const auto sz = reader.length();
+		ez_stream stream(bf, sz);
+		parse_textures(stream);
+		parse_meshes(stream);
 	}
 
-	~SlyLevelFile() {}
+	~SlyLevelFile() {
+		for (auto& mesh : meshes()) {
+			for (auto& rp : mesh.mesh_data.not_flags_and_1.render_properties_vector) {
+				glDeleteBuffers(1, &rp.ebo);
+				glDeleteBuffers(1, &rp.vbo);
+				glDeleteVertexArrays(1, &rp.vao);
+			}
+			for (auto& md : mesh.mesh_data.not_flags_and_1.szme_data) {
+				md.free_gl_buffers();
+			}
+		}
+		for (auto& tex_record : m_texture_table.texture) {
+			glDeleteTextures(1, &tex_record.gl_texture);
+		}
+	}
 
 	static int find(const char* b, const char* lf, int start, size_t len) {
 		int already_found = 0;
@@ -128,18 +156,14 @@ public:
 
 	void construct()
 	{
-		ez_stream stream(m_buffer, m_buffer_len);
-		parse_textures(stream);
-		parse_meshes(stream);
-		find_near_float(5446.0f, -779.0f, 2151.0f, 25.0f);
 	}
 
 	//TODO REMOVE DEBUG
-	void find_near_float(float x, float y, float z, float allowed_difference) {
-		for (int i = 0; i < m_buffer_len; i++) {
-			float* ptr1 = (float*)((size_t)m_buffer + i);
-			float* ptr2 = (float*)((size_t)m_buffer + i + 4);
-			float* ptr3 = (float*)((size_t)m_buffer + i + 8);
+	void find_near_float(ez_stream& stream, float x, float y, float z, float allowed_difference) {
+		for (int i = 0; i < stream.size(); i++) {
+			float* ptr1 = (float*)(stream.buffer() + i);
+			float* ptr2 = (float*)(stream.buffer() + i + 4);
+			float* ptr3 = (float*)(stream.buffer() + i + 8);
 			if (std::fabs(*ptr1 - x) < allowed_difference) {
 				//dbgprint("Found X. (0x%08x) %f %f %f\n", i, *ptr1, *ptr2, *ptr3);
 				if (std::fabs(*ptr2 - y) < allowed_difference) {
@@ -155,7 +179,7 @@ public:
 	{
 		size_t finding_texture_table = 0;
 		int s = 0;
-		while ((s = find(m_buffer, "FK$Dcrmtaunt07", s + 4, m_buffer_len)) != -1)
+		while ((s = find(stream.buffer(), "FK$Dcrmtaunt07", s + 4, stream.size())) != -1)
 			finding_texture_table = s;
 		finding_texture_table += 32;
 		stream.seek(finding_texture_table);
@@ -176,9 +200,9 @@ public:
 		}
 
 		int offset = detolly::sigscan(
-			m_buffer,
+			stream.buffer(),
 			0,
-			m_buffer_len,
+			stream.size(),
 			" aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80", "aaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaax",
 			0
 		);
@@ -196,13 +220,13 @@ public:
 			if (is1Img1Pal) {
 				for (int i = 0; i < texture_record.clut_index.size(); i++) {
 					if (i == ((texture_record.clut_index.size() / 2)))
-						make_texture(texture_record, texture_record.clut_index[i], texture_record.image_index[i]);
+						make_texture(stream.buffer(), texture_record, texture_record.clut_index[i], texture_record.image_index[i]);
 				}
 			}
 			else if (is1ImgManyPal) {
 				for (int i = 0; i < texture_record.clut_index.size(); i++) {
 					if (i == ((texture_record.clut_index.size() / 2)))
-						make_texture(texture_record, texture_record.clut_index[i], texture_record.image_index[0]);
+						make_texture(stream.buffer(), texture_record, texture_record.clut_index[i], texture_record.image_index[0]);
 				}
 			}
 			else if (isManyImgManyPal) {
@@ -213,7 +237,7 @@ public:
 				for (int i = 0; i < texture_record.clut_index.size(); ++i) {
 					int imgIndex = i / divPalImg;
 					if (i == ((texture_record.clut_index.size() / 2)))
-						make_texture(texture_record, texture_record.clut_index[i], texture_record.image_index[imgIndex]);
+						make_texture(stream.buffer(), texture_record, texture_record.clut_index[i], texture_record.image_index[imgIndex]);
 				}
 			}
 			else {
@@ -227,7 +251,7 @@ public:
 	{
 		int total = 0;
 		size_t current_szme_index{ 0 };
-		while ((current_szme_index = find(m_buffer, "SZMS", current_szme_index + 4, m_buffer_len)) != -1) {
+		while ((current_szme_index = find(stream.buffer(), "SZMS", current_szme_index + 4, stream.size())) != -1) {
 			stream.seek(current_szme_index - 2);
 			total++;
 			//dbgprint("Found another object.. Total: %d\r\n", total);
@@ -241,7 +265,7 @@ public:
 		}
 	}
 
-	void make_texture(texture_record_t& tex, int clutIndex, int imageIndex) {
+	void make_texture(const char* buffer, texture_record_t& tex, int clutIndex, int imageIndex) {
 		if (clutIndex >= m_clut_meta_table.record.size()) {
 			//dbgprint("warn: clutIndex(%d) out of bounds, skipping\n", clutIndex);
 			return;
@@ -260,8 +284,8 @@ public:
 			const int paletteBuf = m_TEX_PALETTE_BASE + clutMeta.dataOffset;
 			const int imageBuf = m_TEX_PALETTE_BASE + imageMeta.dataOffset;
 			tex.make_texture(
-				(uint8_t*)(m_buffer + paletteBuf),
-				(uint8_t*)(m_buffer + imageBuf),
+				(uint8_t*)(buffer + paletteBuf),
+				(uint8_t*)(buffer + imageBuf),
 				width,
 				height,
 				csm1ClutIndices);
@@ -283,8 +307,6 @@ public:
 	std::vector<SlyMesh>& meshes() { return m_meshes; }
 
 private:
-	const char* m_buffer{ nullptr };
-	size_t m_buffer_len{0};
 
 	std::vector<SlyMesh> m_meshes;
 

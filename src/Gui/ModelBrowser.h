@@ -18,6 +18,8 @@ public:
 
 	void render();
 	void make_thumbnails();
+	void on_load() { make_thumbnails(); }
+	void on_close() { m_thumbnails.clear(); }
 
 	glm::mat4& projection() { if (m_should_recalculate_projection) calculate_projection_matrix(); return m_projection; };
 	Camera& camera() { return m_camera; }
@@ -43,6 +45,10 @@ private:
 class Thumbnail : public TexturedRenderBuffer {
 public:
 	Thumbnail(int index_into_buffer) : m_index_into_buffer(index_into_buffer) { resize_buffer(128, 128); }
+	~Thumbnail() = default;
+	Thumbnail(const Thumbnail&) = delete;
+	Thumbnail& operator=(Thumbnail&&) = default;
+	Thumbnail(Thumbnail&& thumb) = default;
 
 	void render(SlyMesh& mesh);
 	const int index() const { return m_index_into_buffer; }

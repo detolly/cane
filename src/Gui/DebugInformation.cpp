@@ -9,7 +9,7 @@ void DebugInformation::render()
 	const auto currently_selected_mesh = Editor::the().renderer()->currently_selected_mesh();
 	ImGui::Begin("Debug Information", &config::the().windows.debug_information);
 	ImGui::TextWrapped("Selected Mesh: ");
-	if (currently_selected_mesh > -1) {
+	if (Editor::the().has_file_loaded() && currently_selected_mesh > -1) {
 		auto& mesh = Editor::the().level_file()->meshes()[currently_selected_mesh];
 		ImGui::DragFloat3("World Coords", (float*)&mesh.game_object().raw_location(), 0.1f, 0.0f, 0.0f, "%.3f", 1.0f);
 		ImGui::DragFloat3("Model Rotation", (float*)&mesh.game_object().raw_rotation(), 0.1f, 0.0f, 360.0f, "%.3f", 1.0f);
@@ -62,4 +62,12 @@ void DebugInformation::render()
 		mesh.game_object().set_should_recalculate_model_matrix(true);
 	}
 	ImGui::End();
+}
+
+void DebugInformation::on_load()
+{
+}
+
+void DebugInformation::on_close()
+{
 }

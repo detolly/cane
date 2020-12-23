@@ -25,6 +25,7 @@ public:
 	const bool can_resize() const { return m_can_resize; }
 
 	void open(const char* file);
+	void close();
 	bool has_file_loaded() { return m_level != nullptr; }
 
 	void size_callback(int width, int height);

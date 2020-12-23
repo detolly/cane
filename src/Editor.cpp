@@ -18,7 +18,21 @@ void Editor::open(const char* file)
 	if (has_file_loaded())
 		delete m_level;
 	m_level = new SlyLevelFile(file);
-	model_browser()->make_thumbnails();
+	debug_window()->on_load();
+	renderer()->on_load();
+	model_browser()->on_load();
+	model_viewer()->on_load();
+}
+
+void Editor::close()
+{
+	if (has_file_loaded())
+		delete m_level;
+	m_level = nullptr;
+	debug_window()->on_close();
+	renderer()->on_close();
+	model_browser()->on_close();
+	model_viewer()->on_close();
 }
 
 void Editor::size_callback(int width, int height)

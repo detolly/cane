@@ -26,26 +26,27 @@ void RendererWindow::render()
 	m_render_location.x += vMin.x;
 	m_render_location.y += vMin.y;
 
-	glBindFramebuffer(GL_FRAMEBUFFER, fbo());
-	glViewport(0, 0, m_render_size.x, m_render_size.y);
+	if (Editor::the().has_file_loaded()) {
+		glBindFramebuffer(GL_FRAMEBUFFER, fbo());
+		glViewport(0, 0, m_render_size.x, m_render_size.y);
 
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glClearColor(0.2f, 0.4f, 0.6f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glClearColor(0.2f, 0.4f, 0.6f, 1.0f);
 
-	editor.level_file()->render(m_camera, projection());
+		editor.level_file()->render(m_camera, projection());
 
-	const auto selected_mesh = m_currently_selected_mesh;
-	if (selected_mesh != -1) {
-		auto& mesh = Editor::the().level_file()->meshes()[selected_mesh];
-		if (~mesh.mesh_data.flags & 1) {
-			auto& na = mesh.mesh_data.not_flags_and_1;
-			for (int i = 0; i < na.szme_data.size(); i++) {
-				na.szme_data[i].render(m_camera, projection());
+		const auto selected_mesh = m_currently_selected_mesh;
+		if (selected_mesh != -1) {
+			auto& mesh = Editor::the().level_file()->meshes()[selected_mesh];
+			if (~mesh.mesh_data.flags & 1) {
+				auto& na = mesh.mesh_data.not_flags_and_1;
+				for (int i = 0; i < na.szme_data.size(); i++) {
+					na.szme_data[i].render(m_camera, projection());
+				}
 			}
 		}
 	}
 
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	if (ImGui::BeginPopupContextItem()) {
 		if (ImGui::BeginMenu("View")) {
@@ -105,8 +106,25 @@ void RendererWindow::handle_input(void* a_window, float delta_time)
 	}
 }
 
+void RendererWindow::on_load()
+{
+	m_currently_selected_mesh = -1;
+}
+
+void RendererWindow::on_close()
+{
+	m_currently_selected_mesh = -1;
+	glBindFramebuffer(GL_FRAMEBUFFER, fbo());
+	glViewport(0, 0, m_render_size.x, m_render_size.y);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
+
+}
+
 void RendererWindow::select(double mouse_x, double mouse_y, bool ctrl_modifier)
 {
+	if (!Editor::the().has_file_loaded())
+		return;
 	glm::vec3 ray = clickray(mouse_x, mouse_y, render_size().x, render_size().y, projection(), camera());
 	std::vector<SlyMesh>& meshes = Editor::the().level_file()->meshes();
 	int mesh = -1;

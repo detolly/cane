@@ -86,7 +86,7 @@ int main(int argc, char* argv[]) {
 	style.TabRounding = 0.0f;
 
 	Editor::init();
-	Editor::the().open("level.bin");
+	//Editor::the().open("level.bin");
 	
 	//int index = 0;
 	//int num = t.size();
@@ -112,6 +112,25 @@ int main(int argc, char* argv[]) {
 		ImGui::Begin("root", nullptr, wf::ImGuiWindowFlags_NoCollapse | wf::ImGuiWindowFlags_NoTitleBar | wf::ImGuiWindowFlags_NoMove | wf::ImGuiWindowFlags_NoResize | wf::ImGuiWindowFlags_NoBringToFrontOnFocus | wf::ImGuiWindowFlags_NoInputs | wf::ImGuiWindowFlags_MenuBar);
 		if (ImGui::BeginMainMenuBar())
 		{
+			if (ImGui::BeginMenu("File"))
+			{
+				if (ImGui::MenuItem("Open")) {
+					igfd::ImGuiFileDialog::Instance()->OpenDialog("choose_file", "Choose File", ".decompressed,.bin", "");
+				}
+				bool disabled = !Editor::the().has_file_loaded();
+				if (disabled) {
+					ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+					ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
+				}
+				if (ImGui::MenuItem("Close")) {
+					Editor::the().close();
+				}
+				if (disabled) {
+					ImGui::PopItemFlag();
+					ImGui::PopStyleVar();
+				}
+				ImGui::EndMenu();
+			}
 			if (ImGui::BeginMenu("Windows"))
 			{
 				ImGui::MenuItem("Renderer", nullptr, &config::the().windows.renderer);
@@ -129,6 +148,17 @@ int main(int argc, char* argv[]) {
 				ImGui::EndMenu();
 			}
 			ImGui::EndMainMenuBar();
+		}
+
+		if (igfd::ImGuiFileDialog::Instance()->FileDialog("choose_file"))
+		{
+			if (igfd::ImGuiFileDialog::Instance()->IsOk == true)
+			{
+				std::string file_path = igfd::ImGuiFileDialog::Instance()->GetFilePathName();
+				Editor::the().open(file_path.c_str());
+			}
+
+			igfd::ImGuiFileDialog::Instance()->CloseDialog("choose_file");
 		}
 
 		ImGuiDockNodeFlags dockspaceFlags = ImGuiDockNodeFlags_NoCloseButton;
@@ -199,7 +229,8 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 	static bool last_left_click_was_inside_renderer{false};
 	if (config::the().windows.renderer && last_left_click_was_inside_renderer && button == GLFW_MOUSE_BUTTON_LEFT && current_cursor_mode == GLFW_CURSOR_NORMAL && action == GLFW_RELEASE
 		&& mouse_x > location.x && mouse_y > location.y
-		&& mouse_x < location.x + render_size.x && mouse_y < location.y + render_size.y) {
+		&& mouse_x < location.x + render_size.x && mouse_y < location.y + render_size.y)
+	{
 		Editor::the().renderer()->select(mouse_x - location.x, mouse_y - location.y, mods & GLFW_MOD_CONTROL);
 	}
 	if (config::the().windows.renderer && button == GLFW_MOUSE_BUTTON_LEFT && current_cursor_mode == GLFW_CURSOR_NORMAL && action == GLFW_PRESS && mouse_x > location.x && mouse_y > location.y

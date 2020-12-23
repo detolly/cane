@@ -15,6 +15,8 @@ public:
 
 	void render();
 	void handle_input(void* window, float delta_time);
+	void on_load();
+	void on_close();
 
 	const ImVec2 render_location() const { return m_render_location; }
 	const ImVec2 render_size() const { return m_render_size; }
@@ -27,6 +29,7 @@ public:
 
 	void set_should_recalculate_projection(bool value) { m_should_recalculate_projection = value; }
 	bool should_recalculate_projection() { return m_should_recalculate_projection; }
+
 
 private:
 	void calculate_projection_matrix();
