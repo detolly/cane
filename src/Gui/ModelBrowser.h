@@ -44,7 +44,9 @@ private:
 
 class Thumbnail : public TexturedRenderBuffer {
 public:
-	Thumbnail(int index_into_buffer) : m_index_into_buffer(index_into_buffer) { resize_buffer(128, 128); }
+	Thumbnail(int index_into_buffer) : m_index_into_buffer(index_into_buffer) {
+		resize_buffer(128, 128);
+	}
 	~Thumbnail() = default;
 	Thumbnail(const Thumbnail&) = delete;
 	Thumbnail& operator=(Thumbnail&&) = default;

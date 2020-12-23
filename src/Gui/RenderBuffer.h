@@ -5,14 +5,17 @@ typedef unsigned int GLuint;
 class TexturedRenderBuffer {
 public:
 	TexturedRenderBuffer() {}
+	virtual ~TexturedRenderBuffer() {
+		free_buffer();
+	}
+	TexturedRenderBuffer(const TexturedRenderBuffer&) = delete;
 	TexturedRenderBuffer(TexturedRenderBuffer&& buffer) noexcept :
 		m_fbo(buffer.m_fbo), m_depthbuffer(buffer.m_depthbuffer), m_texture(buffer.m_texture)
 	{
-		buffer.m_allocated = false;
-	}
-	TexturedRenderBuffer(const TexturedRenderBuffer&) = delete;
-	virtual ~TexturedRenderBuffer() {
-		free_buffer();
+		if (buffer.m_allocated) {
+			buffer.m_allocated = false;
+			m_allocated = true;
+		}
 	}
 
 	void free_buffer();

@@ -3,6 +3,7 @@
 class ez_stream {
 public:
 	ez_stream(const char* buffer, unsigned int len) : m_buffer(buffer), m_len(len) {}
+	~ez_stream() = default;
 
 	void seek(unsigned int index) { m_index = index; }
 	[[nodiscard]] const inline unsigned int tell() { return m_index; }

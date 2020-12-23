@@ -2,7 +2,8 @@
 
 struct config {
 private:
-	config() {}
+	config() = default;
+	~config() = default;
 	static config c;
 public:
 	static config& the() { return c; }

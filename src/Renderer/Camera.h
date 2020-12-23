@@ -12,6 +12,7 @@ public:
 	Camera() {
 		calculate_view_matrix();
 	}
+	~Camera() = default;
 
 	const glm::mat4 view() { if (m_should_recalculate_view_matrix) calculate_view_matrix(); return m_view; }
 	const glm::vec3 location() const { return m_location; } 

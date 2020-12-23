@@ -8,7 +8,8 @@ class ModelViewer;
 
 class Editor {
 private:
-	Editor() {}
+	Editor() = default;
+	~Editor() = default;
 public:
 	static Editor& the() { return g_editor; };
 	static void init();
