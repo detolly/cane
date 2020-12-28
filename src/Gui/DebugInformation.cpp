@@ -49,7 +49,7 @@ void DebugInformation::render()
 				sprintf(buf, "SZME Data #%d", i);
 				if (ImGui::CollapsingHeader(buf)) {
 					ImGui::Indent();
-					ImGui::TextWrapped("position_count %03d\trotation_count %03d\tuc3 %03d\ttexcoords_count %03d\tlighing_count %03d", na.szme_data[i].vertex_count, na.szme_data[i].normal_count, na.szme_data[i].unk_count3, na.szme_data[i].texcoords_count, na.szme_data[i].index_count);
+					ImGui::TextWrapped("vertex_count %03d\tnormal_count %03d\tvertex_color_count %03d\ttexcoords_count %03d\tindex_count %03d", na.szme_data[i].vertex_count, na.szme_data[i].normal_count, na.szme_data[i].unk_count3, na.szme_data[i].texcoords_count, na.szme_data[i].index_count);
 					if (ImGui::CollapsingHeader("Vertices")) {
 						for (int j = 0; j < na.szme_data[i].vertices.size(); j++) {
 							ImGui::TextWrapped("%f %f %f", na.szme_data[i].vertices[j].x, na.szme_data[i].vertices[j].y, na.szme_data[i].vertices[j].z);
