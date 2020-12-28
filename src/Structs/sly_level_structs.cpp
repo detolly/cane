@@ -1,6 +1,7 @@
 #include "sly_level_structs.h"
 #include <Structs/SlyLevelFile.h>
 
+#pragma optimize("f", on)
 mesh_data_t::mesh_data_t(ez_stream& stream)
 {
     flags = stream.read<uint16_t>();
@@ -57,27 +58,30 @@ szme_vertex_data_t::szme_vertex_data_t(ez_stream& stream, uint16_t flags)
     for (int i = 0; i < vertex_count; i++)
         vertices[i] = stream.read_sly_vec();
     for (int i = 0; i < normal_count; i++)
-        normals[i] = normal_t(stream);
+        normals[i] = stream.read<normal_t>();
     for (int i = 0; i < unk_count3; i++)
         unk_color[i] = stream.read<uint32_t>();
     for (int i = 0; i < texcoords_count; i++)
-        texcoords[i] = texcoord_t(stream);
+        texcoords[i] = stream.read<texcoord_t>();
     for (int i = 0; i < index_count; i++)
         indices[i] = stream.read<index_t>();
 
     //TODO: handle special case
     try {
+        gl_vertices.resize(indices.size());
         for (int i = 0; i < indices.size(); i++) {
             vertex_t vertex;
             vertex.pos = vertices.at(indices.at(i).vertex_index);
             vertex.normal = std::move(normals.at(indices.at(i).normal_index));
             vertex.tex_coords = std::move(texcoords.at(indices.at(i).texcoords_index));
             vertex.unk_0x20 = (uint32_t)indices.at(i).unk;
-            gl_vertices.push_back(std::move(vertex));
+            gl_vertices[i] = std::move(vertex);
         }
     }
     catch (std::out_of_range& e) {
         //dbgprint("Failed parsing mesh with flags 0x%04x\n", flags);
+        gl_vertices.clear();
+        gl_vertices.resize(0);
         m_initialized = false;
     }
 
@@ -232,3 +236,4 @@ mesh_header_t::mesh_header_t(ez_stream& stream)
         mesh_offsets[i] = stream.read<uint32_t>();
     }
 }
+#pragma optimize("f", off)

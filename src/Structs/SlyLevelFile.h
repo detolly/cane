@@ -31,7 +31,7 @@ public:
 class SlyLevelFile : public RenderedWorldObject
 {
 private:
-	SlyLevelFile() {}
+	SlyLevelFile() = delete;
 public:
 
 	SlyLevelFile(const char* level_file);

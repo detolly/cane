@@ -9,7 +9,6 @@
 #include <cstddef>
 #include <glad/glad.h>
 
-#pragma optimize("f", on)
 namespace {
 typedef unsigned char byte;
 }
@@ -17,8 +16,10 @@ typedef unsigned char byte;
 struct texcoord_t {
     texcoord_t() = default;
     ~texcoord_t() = default;
+    texcoord_t(const texcoord_t&) = default;
     texcoord_t(texcoord_t&&) = default;
     texcoord_t& operator=(texcoord_t&& o) = default;
+    texcoord_t& operator=(const texcoord_t& o) = default;
     texcoord_t(ez_stream& stream) {
         u = stream.read<float>();
         v = stream.read<float>();
@@ -30,7 +31,9 @@ struct normal_t {
     normal_t() {}
     ~normal_t() = default;
     normal_t(normal_t&&) = default;
+    normal_t(const normal_t&) = default;
     normal_t& operator=(normal_t&& o) = default;
+    normal_t& operator=(const normal_t& o) = default;
     normal_t(ez_stream& stream) {
         x = stream.read<float>();
         y = stream.read<float>();
@@ -45,7 +48,9 @@ struct vertex_t
     vertex_t() = default;
     ~vertex_t() = default;
     vertex_t(vertex_t&&) = default;
+    vertex_t(const vertex_t&) = default;
     vertex_t& operator=(vertex_t&& o) = default;
+    vertex_t& operator=(const vertex_t& o) = default;
     vertex_t(ez_stream& stream) {
         pos = stream.read_sly_vec();
         normal = normal_t(stream);

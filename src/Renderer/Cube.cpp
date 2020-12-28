@@ -30,8 +30,7 @@ void Cube::make_gl_buffers()
 }
 
 void Cube::free_gl_buffers() {
-	//glFreeObjectBufferATI(m_vertex_buffer_id);
-	//glFreeObjectBufferATI(m_vao);
+
 }
 
 void Cube::render(Camera& cam, glm::mat4& proj)
