@@ -48,14 +48,41 @@ void DebugInformation::render()
 				char buf[32];
 				sprintf(buf, "SZME Data #%d", i);
 				if (ImGui::CollapsingHeader(buf)) {
-					ImGui::TextWrapped("unk_u8_1 %03x (%03d)", na.szme_data[i].unk_u8_1, na.szme_data[i].unk_u8_1);
-					ImGui::TextWrapped("unk_u8_2 %03x (%03d)", na.szme_data[i].unk_u8_2, na.szme_data[i].unk_u8_2);
-					ImGui::TextWrapped("UnkVec %.4f %.4f %.4f", na.szme_data[i].unk_vec.x, na.szme_data[i].unk_vec.y, na.szme_data[i].unk_vec.z);
-					ImGui::TextWrapped("position_count %03d\trotation_count %03d\tuc3 %03d\ttexcoords_count %03d\tlighing_count %03d", na.szme_data[i].position_count, na.szme_data[i].rotation_count, na.szme_data[i].unk_count3, na.szme_data[i].texcoords_count, na.szme_data[i].lighing_count);
-					ImGui::TextWrapped("Positions information: ");
-					for (int j = 0; j < na.szme_data[i].positions.size(); j++) {
-						ImGui::TextWrapped("%f %f %f", na.szme_data[i].positions[j].x, na.szme_data[i].positions[j].y, na.szme_data[i].positions[j].z);
+					ImGui::Indent();
+					ImGui::TextWrapped("position_count %03d\trotation_count %03d\tuc3 %03d\ttexcoords_count %03d\tlighing_count %03d", na.szme_data[i].vertex_count, na.szme_data[i].normal_count, na.szme_data[i].unk_count3, na.szme_data[i].texcoords_count, na.szme_data[i].index_count);
+					if (ImGui::CollapsingHeader("Vertices")) {
+						for (int j = 0; j < na.szme_data[i].vertices.size(); j++) {
+							ImGui::TextWrapped("%f %f %f", na.szme_data[i].vertices[j].x, na.szme_data[i].vertices[j].y, na.szme_data[i].vertices[j].z);
+						}
 					}
+					if (ImGui::CollapsingHeader("Normals")) {
+						for (int j = 0; j < na.szme_data[i].normals.size(); j++) {
+							ImGui::TextWrapped("%f %f %f", na.szme_data[i].normals[j].x, na.szme_data[i].normals[j].y, na.szme_data[i].normals[j].z);
+						}
+					}
+					if (ImGui::CollapsingHeader("Texcoords")) {
+						for (int j = 0; j < na.szme_data[i].texcoords.size(); j++) {
+							ImGui::TextWrapped("%f %f", na.szme_data[i].texcoords[j].u, na.szme_data[i].texcoords[j].v);
+						}
+					}
+					if (ImGui::CollapsingHeader("Indices")) {
+						for (int j = 0; j < na.szme_data[i].indices.size(); j++) {
+							ImGui::TextWrapped("Position: %d Normal: %d Texcoords: %d Unk: %d", na.szme_data[i].indices[j].vertex_index, na.szme_data[i].indices[j].normal_index, na.szme_data[i].indices[j].texcoords_index, na.szme_data[i].indices[j].unk);
+						}
+					}
+					if (ImGui::CollapsingHeader("Other Information")) {
+						ImGui::TextWrapped("unk_u8_1 %03x (%03d)", na.szme_data[i].unk_u8_1, na.szme_data[i].unk_u8_1);
+						ImGui::TextWrapped("unk_u8_2 %03x (%03d)", na.szme_data[i].unk_u8_2, na.szme_data[i].unk_u8_2);
+						ImGui::TextWrapped("unk_vec3 %.4f %.4f %.4f", na.szme_data[i].unk_vec.x, na.szme_data[i].unk_vec.y, na.szme_data[i].unk_vec.z);
+						ImGui::TextWrapped("Texture Id: %d", na.szme_data[i].texture_id);
+						if (na.szme_data[i].texture_id < Editor::the().level_file()->texture_table().texture.size())
+							ImGui::Image(
+								(ImTextureID)Editor::the().level_file()->texture_table().texture[na.szme_data[i].texture_id].gl_texture,
+								{ 256.0f, 256.0f },
+								{ 0.0f, 1.0f }, { 1.0f, 0.0f }
+							);
+					}
+					ImGui::Unindent();
 				}
 			}
 		}

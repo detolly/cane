@@ -9,10 +9,10 @@
 
 class Shader {
 public:
-	Shader(const char* vertex_loc, const char* fragment_loc) : m_vs(vertex_loc), m_fs(fragment_loc)
-	{}
+	Shader() = delete;
+	Shader(const char* vertex_loc, const char* fragment_loc) : m_vs(vertex_loc), m_fs(fragment_loc) {}
+	~Shader() = default;
 
-	template<bool raw=false>
 	static void init_shader(Shader& shader) {
 		const char* vs = read_from_file(shader.m_vs, &shader.m_vertex_size);
 		const char* fs = read_from_file(shader.m_fs, &shader.m_fragment_size);
@@ -20,10 +20,6 @@ public:
 		delete[] vs;
 		delete[] fs;
 	}
-
-	Shader() = delete;
-
-	~Shader() {}
 
 	void use();
 	inline unsigned int program() { return m_program; }

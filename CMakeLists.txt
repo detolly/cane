@@ -24,8 +24,10 @@ add_executable(cane
 	src/Gui/ModelViewer.h
 	src/Gui/ModelViewer.cpp
 	src/Structs/sly_level_structs.h
+	src/Structs/sly_level_structs.cpp
 	src/Structs/sly_texture_structs.h
 	src/Structs/SlyLevelFile.h
+	src/Structs/SlyLevelFile.cpp
 	src/Renderer/Camera.h
 	src/Renderer/Camera.cpp
 	src/Renderer/Cube.h
