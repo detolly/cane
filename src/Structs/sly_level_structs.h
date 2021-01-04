@@ -191,7 +191,7 @@ public:
     };
 
     struct {
-        GLuint vao, vbo;
+        GLuint vao, vbo, ebo;
     } render_properties;
 
     bool m_initialized{ true };
@@ -200,7 +200,7 @@ public:
     float unk_float;
     unsigned char vertex_count;
     unsigned char normal_count;
-    unsigned char unk_count3;
+    unsigned char vertex_color_count;
     unsigned char texcoords_count;
     unsigned char index_count;
 
@@ -208,7 +208,7 @@ public:
 
     std::vector<glm::vec3> vertices;
     std::vector<normal_t> normals;
-    std::vector<uint32_t> unk_color;
+    std::vector<uint32_t> vertex_colors;
     std::vector<texcoord_t> texcoords;
     std::vector<index_t> indices;
 

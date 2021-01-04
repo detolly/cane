@@ -273,7 +273,7 @@ static void cursor_position_callback(GLFWwindow*, double x, double y) {
 	if (current_cursor_mode == GLFW_CURSOR_DISABLED) {
 		double x_diff = x - lastX;
 		double y_diff = y - lastY;
-		//todo more abstraction
+		// TODO: more abstraction
 		Editor::the().renderer()->camera().set_yaw_pitch(
 			Editor::the().renderer()->camera().yaw() + x_diff * 0.1,
 			Editor::the().renderer()->camera().pitch() - y_diff * 0.1

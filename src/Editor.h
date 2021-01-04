@@ -14,7 +14,6 @@ public:
 	static Editor& the() { return g_editor; };
 	static void init();
 
-
 	inline RendererWindow* renderer() { return m_renderer_window; }
 	inline DebugInformation* debug_window() { return m_debug_window;  }
 	inline ModelBrowser* model_browser() { return m_model_browser; }

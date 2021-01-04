@@ -57,8 +57,8 @@ public:
 	void find_near_float(ez_stream& stream, float x, float y, float z, float allowed_difference);
 
 	void parse_meshes(ez_stream& stream);
-	void make_texture(const char* buffer, texture_record_t& tex, int clutIndex, int imageIndex);
 	void parse_textures(ez_stream& stream);
+	void make_texture(const char* buffer, texture_record_t& tex, int clutIndex, int imageIndex);
 
 	void render(Camera& cam, glm::mat4& matrix) override;
 

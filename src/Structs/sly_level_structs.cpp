@@ -42,7 +42,7 @@ szme_vertex_data_t::szme_vertex_data_t(ez_stream& stream, uint16_t flags)
     unk_float = stream.read<float>();
     vertex_count = stream.read<unsigned char>();
     normal_count = stream.read<unsigned char>();
-    unk_count3 = stream.read<unsigned char>();
+    vertex_color_count = stream.read<unsigned char>();
     texcoords_count = stream.read<unsigned char>();
     index_count = stream.read<unsigned char>();
 
@@ -52,15 +52,15 @@ szme_vertex_data_t::szme_vertex_data_t(ez_stream& stream, uint16_t flags)
 
     vertices.resize(vertex_count);
     normals.resize(normal_count);
-    unk_color.resize(unk_count3);
+    vertex_colors.resize(vertex_color_count);
     texcoords.resize(texcoords_count);
     indices.resize(index_count);
     for (int i = 0; i < vertex_count; i++)
         vertices[i] = stream.read_sly_vec();
     for (int i = 0; i < normal_count; i++)
         normals[i] = stream.read<normal_t>();
-    for (int i = 0; i < unk_count3; i++)
-        unk_color[i] = stream.read<uint32_t>();
+    for (int i = 0; i < vertex_color_count; i++)
+        vertex_colors[i] = stream.read<uint32_t>();
     for (int i = 0; i < texcoords_count; i++)
         texcoords[i] = stream.read<texcoord_t>();
     for (int i = 0; i < index_count; i++)
@@ -150,7 +150,7 @@ void szme_vertex_data_t::render(Camera& cam, glm::mat4& proj)
 
     //glPointSize(8.0f);
     //glLineWidth(8.0f);
-    glDrawArrays(GL_TRIANGLES, 0, gl_vertices.size()/3);
+    glDrawArrays(GL_LINE_STRIP_ADJACENCY, 0, gl_vertices.size());
 }
 
 szme_header2_t::szme_header2_t(ez_stream& stream, uint16_t flags)
