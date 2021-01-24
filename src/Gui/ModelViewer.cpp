@@ -1,7 +1,7 @@
 #include "ModelViewer.h"
 #include <imgui/imgui.h>
 #include <glad/glad.h>
-#include <Utility/Config.h>
+#include <Utility/config.h>
 #include <Renderer/Camera.h>
 #include <Editor.h>
 #include <Structs/SlyLevelFile.h>

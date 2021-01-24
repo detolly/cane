@@ -2,7 +2,7 @@
 
 #include <glad/glad.h>
 #include <imgui/imgui.h>
-#include <Utility/Config.h>
+#include <Utility/config.h>
 #include <Gui/RenderBuffer.h>
 #include <string>
 #include <glm/mat4x4.hpp>
