@@ -30,9 +30,8 @@ mkdir build && cd build && cmake .. && cmake --build --config Release .
 ```
 
 Run
-```bash
-./cane
-```
+
+Run cane.exe
 
 ## Getting Started - Linux (Ubuntu/Debian)
 
