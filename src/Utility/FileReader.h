@@ -2,6 +2,7 @@
 
 #include <fstream>
 #include <filesystem>
+#include <cstring>
 
 class FileReader {
 public:

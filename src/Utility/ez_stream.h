@@ -1,5 +1,7 @@
 #pragma once
 
+#include <stdexcept>
+
 class ez_stream {
 public:
 	ez_stream(const char* buffer, unsigned int len) : m_buffer(buffer), m_len(len) {}
@@ -13,7 +15,7 @@ public:
 		T ret = *(T*)((const char*)m_buffer + m_index);
 		m_index += size;
 		if (m_index > m_len)
-			throw std::exception("ur doing it wrong");
+			throw std::out_of_range("ur doing it wrong");
 		return ret;
 	}
 
