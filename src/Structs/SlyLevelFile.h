@@ -28,6 +28,25 @@ public:
 	mesh_data_t mesh_data;
 };
 
+struct unknown_vector_array : public SingleColoredWorldObject {
+
+    void make_gl_buffers();
+    void free_gl_buffers();
+
+    void render(Camera& cam, glm::mat4& proj) override;
+
+    enum class draw_function {
+        triangles,
+        lines,
+        points
+    } draw_func { draw_function::points };
+    struct {
+        GLuint vao, vbo;
+    } render_properties;
+    std::vector<float> array;
+    bool should_draw{ false };
+};
+
 class SlyLevelFile : public RenderedWorldObject
 {
 private:
@@ -55,6 +74,7 @@ public:
 
 	//TODO REMOVE DEBUG (or integrate)
 	void find_near_float(ez_stream& stream, float x, float y, float z, float allowed_difference);
+	void find_and_populate_coord_arrays(ez_stream& stream);
 
 	void parse_meshes(ez_stream& stream);
 	void parse_textures(ez_stream& stream);
@@ -66,11 +86,13 @@ public:
 	clut_meta_table_t const& clut_meta_table() { return m_clut_meta_table; }
 	texture_table_t const& texture_table() { return m_texture_table; }
 	std::vector<SlyMesh>& meshes() { return m_meshes; }
+	std::vector<unknown_vector_array>& unknown_vector_arrays() { return m_unknown_vector_arrays; }
 
 private:
 
 	std::vector<SlyMesh> m_meshes;
 
+    std::vector<unknown_vector_array> m_unknown_vector_arrays;
 	int m_TEX_PALETTE_BASE{ 0 };
 	uint8_t csm1ClutIndices[256];
 	clut_meta_table_t m_clut_meta_table;

@@ -1,16 +1,15 @@
 #include "Editor.h"
 #include <Gui/DebugInformation.h>
-#include <Gui/RendererWindow.h>
+#include <Gui/Renderer.h>
 #include <Gui/ModelBrowser.h>
 #include <Gui/ModelViewer.h>
+#include <Gui/RendererOptions.h>
 #include <Structs/SlyLevelFile.h>
 
 void Editor::init()
 {
-	Editor::the().m_renderer_window = new RendererWindow();
-	Editor::the().m_debug_window = new DebugInformation();
-	Editor::the().m_model_browser = new ModelBrowser();
-	Editor::the().m_model_viewer = new ModelViewer();
+    ModelBrowser::the().init();
+    ModelViewer::the().init();
 }
 
 void Editor::open(const char* file)
@@ -18,10 +17,11 @@ void Editor::open(const char* file)
 	if (has_file_loaded())
 		delete m_level;
 	m_level = new SlyLevelFile(file);
-	debug_window()->on_load();
-	renderer()->on_load();
-	model_browser()->on_load();
-	model_viewer()->on_load();
+	RendererOptions::the().on_load();
+	DebugInformation::the().on_load();
+	Renderer::the().on_load();
+	ModelBrowser::the().on_load();
+	ModelViewer::the().on_load();
 }
 
 void Editor::close()
@@ -29,15 +29,16 @@ void Editor::close()
 	if (has_file_loaded())
 		delete m_level;
 	m_level = nullptr;
-	debug_window()->on_close();
-	renderer()->on_close();
-	model_browser()->on_close();
-	model_viewer()->on_close();
+    RendererOptions::the().on_close();
+    DebugInformation::the().on_close();
+    Renderer::the().on_close();
+    ModelBrowser::the().on_close();
+    ModelViewer::the().on_close();
 }
 
 void Editor::size_callback(int width, int height)
 {
-	renderer()->set_should_recalculate_projection(true);
+	Renderer::the().set_should_recalculate_projection(true);
 }
 
 Editor Editor::g_editor;

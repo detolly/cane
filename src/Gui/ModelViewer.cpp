@@ -7,8 +7,8 @@
 #include <Structs/SlyLevelFile.h>
 #include <cmath>
 
-ModelViewer::ModelViewer() {
-	resize_buffer(512, 512);
+void ModelViewer::init() {
+    resize_buffer(512, 512);
 }
 
 void ModelViewer::render()

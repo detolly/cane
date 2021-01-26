@@ -10,6 +10,7 @@ public:
 
 	struct {
 		bool renderer			{ true };
+        bool renderer_options   { true };
 		bool debug_information	{ true };
 		bool model_browser		{ true };
 		bool model_viewer		{ true };

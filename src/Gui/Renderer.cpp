@@ -1,9 +1,9 @@
-#include <Gui/RendererWindow.h>
+#include <Gui/Renderer.h>
 #include <Editor.h>
 #include <glm/mat4x4.hpp>
 #include <Structs/SlyLevelFile.h>
 
-void RendererWindow::render()
+void Renderer::render()
 {
 	auto& editor = Editor::the();
 	using wf = ImGuiWindowFlags_;
@@ -75,7 +75,7 @@ void RendererWindow::render()
 	ImGui::End();
 }
 
-void RendererWindow::handle_input(void* a_window, float delta_time) 
+void Renderer::handle_input(void* a_window, float delta_time)
 {
 	const auto window = (GLFWwindow*)a_window;
 	const auto move_speed = config::the().renderer.move_speed;
@@ -106,12 +106,12 @@ void RendererWindow::handle_input(void* a_window, float delta_time)
 	}
 }
 
-void RendererWindow::on_load()
+void Renderer::on_load()
 {
 	m_currently_selected_mesh = -1;
 }
 
-void RendererWindow::on_close()
+void Renderer::on_close()
 {
 	m_currently_selected_mesh = -1;
 	glBindFramebuffer(GL_FRAMEBUFFER, fbo());
@@ -121,7 +121,7 @@ void RendererWindow::on_close()
 
 }
 
-void RendererWindow::select(double mouse_x, double mouse_y, bool ctrl_modifier)
+void Renderer::select(double mouse_x, double mouse_y, bool ctrl_modifier)
 {
 	if (!Editor::the().has_file_loaded())
 		return;
@@ -161,7 +161,7 @@ void RendererWindow::select(double mouse_x, double mouse_y, bool ctrl_modifier)
 	m_currently_selected_mesh = has_found ? mesh : -1;
 }
 
-void RendererWindow::calculate_projection_matrix()
+void Renderer::calculate_projection_matrix()
 {
 	if (is_allocated())
 	{

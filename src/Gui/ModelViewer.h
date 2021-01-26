@@ -1,11 +1,14 @@
 #pragma once
 
 #include <Gui/RenderBuffer.h>
+#include <Utility/Singleton.h>
 
-class ModelViewer : TexturedRenderBuffer
+class ModelViewer : TexturedRenderBuffer, public Singleton<ModelViewer>
 {
 public:
-	ModelViewer();
+	ModelViewer() {}
+
+	void init();
 
 	void render();
 	void on_load() { m_selected = -1; }

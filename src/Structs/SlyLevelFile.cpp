@@ -101,6 +101,7 @@ SlyLevelFile::SlyLevelFile(const char* level_file)
 	ez_stream stream(bf, sz);
 	parse_textures(stream);
 	parse_meshes(stream);
+	find_and_populate_coord_arrays(stream);
 }
 
 SlyLevelFile::~SlyLevelFile()
@@ -214,6 +215,10 @@ void SlyLevelFile::render(Camera& cam, glm::mat4& matrix)
 	for (int i = 0; i < m_meshes.size(); i++) {
 		m_meshes[i].render(cam, matrix);
 	}
+	for(int i = 0; i < unknown_vector_arrays().size(); i++) {
+	    if (unknown_vector_arrays()[i].should_draw)
+	        unknown_vector_arrays()[i].render(cam, matrix);
+	}
 }
 
 void SlyLevelFile::parse_meshes(ez_stream& stream)
@@ -264,4 +269,73 @@ void SlyLevelFile::make_texture(const char* buffer, texture_record_t& tex, int c
 	else {
 		//dbgprint("UNSUPPORTED TEXTURE\n");
 	}
+}
+
+void SlyLevelFile::find_and_populate_coord_arrays(ez_stream& stream) {
+    stream.seek(0);
+    int index_at_first_find = -1;
+    int found = 0;
+    std::vector<float> floats;
+    while(stream.tell() < stream.size() - sizeof(float)) {
+        auto before = stream.tell();
+        float f = stream.read<float>();
+        //TODO: change to use stream.read_sly_vec(); asap (gotta catch up with PR so leaving this unfinished)
+        if (f != 0.0f) {
+            if ((-100000.f < f && f < -10.0f) || (f > 10.0f && f < 100000.f)) {
+                floats.push_back(f);
+                found++;
+            } else {
+                //conclude current array
+                if (found >= 12) {
+                    //we consider it a valid array
+                    unknown_vector_array array;
+                    array.array = floats;
+                    array.make_gl_buffers();
+                    array.set_color({1.0f, 1.0f, 1.0f});
+                    m_unknown_vector_arrays.push_back(array);
+                } else {
+                    //not a valid array, but could be something else that we can look into in the future.
+                }
+                found = 0;
+                floats.clear();
+            }
+        }
+    }
+}
+
+void unknown_vector_array::free_gl_buffers() {
+    glDeleteBuffers(1, &render_properties.vbo);
+    glDeleteBuffers(1, &render_properties.vao);
+}
+
+void unknown_vector_array::make_gl_buffers() {
+    GLuint vao, vbo;
+    glGenVertexArrays(1, &vao);
+    glBindVertexArray(vao);
+    glGenBuffers(1, &vbo);
+
+    render_properties = { vao, vbo };
+
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBufferData(GL_ARRAY_BUFFER, array.size() * sizeof(float), array.data(), GL_STATIC_DRAW);
+
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float), (void*)0);
+}
+
+void unknown_vector_array::render(Camera &cam, glm::mat4 &proj)
+{
+    SingleColoredWorldObject::render(cam, proj);
+    glBindVertexArray(render_properties.vao);
+    switch(draw_func) {
+        case draw_function::lines:
+            glDrawArrays(GL_LINES, 0, array.size()-1);
+            break;
+        case draw_function::points:
+            glDrawArrays(GL_POINTS, 0, array.size());
+            break;
+        case draw_function::triangles:
+            glDrawArrays(GL_TRIANGLES, 0, array.size()/3);
+            break;
+    }
 }

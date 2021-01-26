@@ -1,12 +1,12 @@
 #include "DebugInformation.h"
-#include <Gui/RendererWindow.h>
+#include <Gui/Renderer.h>
 #include <Structs/SlyLevelFile.h>
 #include <Editor.h>
 #include <imgui/imgui.h>
 
 void DebugInformation::render()
 {
-	const auto currently_selected_mesh = Editor::the().renderer()->currently_selected_mesh();
+	int currently_selected_mesh = Renderer::the().currently_selected_mesh();
 	ImGui::Begin("Debug Information", &config::the().windows.debug_information);
 	ImGui::TextWrapped("Selected Mesh: ");
 	if (Editor::the().has_file_loaded() && currently_selected_mesh > -1) {

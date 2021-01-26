@@ -8,10 +8,11 @@
 #include <glm/mat4x4.hpp>
 #include <imgui/imgui.h>
 #include <Renderer/Camera.h>
+#include <Utility/Singleton.h>
 
-class RendererWindow : public TexturedRenderBuffer {
+class Renderer : public TexturedRenderBuffer, public Singleton<Renderer> {
 public:
-	RendererWindow() {}
+	Renderer() {}
 
 	void render();
 	void handle_input(void* window, float delta_time);

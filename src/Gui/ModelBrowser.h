@@ -5,15 +5,18 @@
 #include <Gui/RenderBuffer.h>
 #include <Utility/Config.h>
 #include <vector>
+#include <Utility/Singleton.h>
 
 class SlyMesh;
 class Editor;
 class Thumbnail;
-class ModelBrowser : public TexturedRenderBuffer {
+class ModelBrowser : public TexturedRenderBuffer, public Singleton<ModelBrowser> {
 public:
-	ModelBrowser() {
-		resize_buffer(width, height); 
-		calculate_projection_matrix();
+	ModelBrowser() {}
+
+	void init() {
+        resize_buffer(width, height);
+        calculate_projection_matrix();
 	}
 
 	void render();

@@ -1,6 +1,12 @@
 
 #include "main.h"
 
+#include <Gui/RendererOptions.h>
+#include <Gui/Renderer.h>
+#include <Gui/DebugInformation.h>
+#include <Gui/ModelViewer.h>
+#include <Gui/ModelBrowser.h>
+
 static GLFWwindow* g_window;
 static float g_delta_time{ 0.0f };
 static float g_width = 1600;
@@ -136,6 +142,7 @@ int main(int argc, char* argv[]) {
 			if (ImGui::BeginMenu("Windows"))
 			{
 				ImGui::MenuItem("Renderer", nullptr, &config::the().windows.renderer);
+                ImGui::MenuItem("Renderer Options", nullptr, &config::the().windows.renderer_options);
 				ImGui::MenuItem("Debug Information", nullptr, &config::the().windows.debug_information);
 				ImGui::MenuItem("Model Browser", nullptr, &config::the().windows.model_browser);
 				ImGui::MenuItem("Model Viewer", nullptr, &config::the().windows.model_viewer);
@@ -170,19 +177,22 @@ int main(int argc, char* argv[]) {
 		ImGui::DockSpace(dockspaceID, ImVec2(0.0f, 0.0f), dockspaceFlags);
 		if (config::the().windows.debug_information) {
 			//ImGui::SetNextWindowDockID(dockspaceID, ImGuiCond_FirstUseEver);
-			Editor::the().debug_window()->render();
+			DebugInformation::the().render();
 		}
 		if (config::the().windows.renderer) {
 			//ImGui::SetNextWindowDockID(dockspaceID, ImGuiCond_FirstUseEver);
-			Editor::the().renderer()->render();
+			Renderer::the().render();
 		}
 		if (config::the().windows.model_browser) {
 			//ImGui::SetNextWindowDockID(dockspaceID, ImGuiCond_FirstUseEver);
-			Editor::the().model_browser()->render();
+			ModelBrowser::the().render();
 		}
 		if (config::the().windows.model_viewer) {
-			Editor::the().model_viewer()->render();
+			ModelViewer::the().render();
 		}
+        if (config::the().windows.renderer_options) {
+            RendererOptions::the().render();
+        }
 		if (config::the().windows.examples) {
 			ImGui::ShowDemoWindow(&config::the().windows.examples);
 		}
@@ -205,7 +215,7 @@ int main(int argc, char* argv[]) {
 
 static void handle_input() {
 	if (current_cursor_mode != GLFW_CURSOR_NORMAL) {
-		Editor::the().renderer()->handle_input(g_window, g_delta_time);
+		Renderer::the().handle_input(g_window, g_delta_time);
 	}
 }
 
@@ -226,14 +236,14 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 	//TODO: Ctrl+click should select multiple objects for exporting into one mesh / moving and so on
 	double mouse_x, mouse_y;
 	glfwGetCursorPos(window, &mouse_x, &mouse_y);
-	const auto location = Editor::the().renderer()->render_location();
-	const auto render_size = Editor::the().renderer()->render_size();
+	const auto location = Renderer::the().render_location();
+	const auto render_size = Renderer::the().render_size();
 	static bool last_left_click_was_inside_renderer{false};
 	if (config::the().windows.renderer && last_left_click_was_inside_renderer && button == GLFW_MOUSE_BUTTON_LEFT && current_cursor_mode == GLFW_CURSOR_NORMAL && action == GLFW_RELEASE
 		&& mouse_x > location.x && mouse_y > location.y
 		&& mouse_x < location.x + render_size.x && mouse_y < location.y + render_size.y)
 	{
-		Editor::the().renderer()->select(mouse_x - location.x, mouse_y - location.y, mods & GLFW_MOD_CONTROL);
+        Renderer::the().select(mouse_x - location.x, mouse_y - location.y, mods & GLFW_MOD_CONTROL);
 	}
 	if (config::the().windows.renderer && button == GLFW_MOUSE_BUTTON_LEFT && current_cursor_mode == GLFW_CURSOR_NORMAL && action == GLFW_PRESS && mouse_x > location.x && mouse_y > location.y
 		&& mouse_x < location.x + render_size.x && mouse_y < location.y + render_size.y)
@@ -274,10 +284,11 @@ static void cursor_position_callback(GLFWwindow*, double x, double y) {
 		double x_diff = x - lastX;
 		double y_diff = y - lastY;
 		// TODO: more abstraction
-		Editor::the().renderer()->camera().set_yaw_pitch(
-			Editor::the().renderer()->camera().yaw() + x_diff * 0.1,
-			Editor::the().renderer()->camera().pitch() - y_diff * 0.1
+        Renderer::the().camera().set_yaw_pitch(
+                Renderer::the().camera().yaw() + x_diff * 0.1,
+                Renderer::the().camera().pitch() - y_diff * 0.1
 		);
 	}
-	lastX = x; lastY = y;
+	lastX = x;
+	lastY = y;
 }

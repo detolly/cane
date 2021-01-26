@@ -13,7 +13,7 @@ void ModelBrowser::render()
 		if (ImGui::GetContentRegionAvail().x < 128)
 			ImGui::NewLine();
 		if (ImGui::ImageButton((ImTextureID)t.texture(), { 128, 128 }, { 0, 1 }, { 1, 0 })) {
-			Editor::the().model_viewer()->set_selected(t.index());
+			ModelViewer::the().set_selected(t.index());
 		}
 		ImGui::SameLine();
 	}

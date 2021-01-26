@@ -1,7 +1,8 @@
 #pragma once
+#include <Utility/Singleton.h>
 
 class Editor;
-class DebugInformation {
+class DebugInformation : public Singleton<DebugInformation> {
 
 public:
 	void render();

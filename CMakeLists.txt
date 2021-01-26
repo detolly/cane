@@ -2,44 +2,29 @@ cmake_minimum_required(VERSION 3.10)
 project(cane)
 
 add_executable(cane
-	src/main.h
-	src/main.cpp
-	src/Editor.h
-	src/Editor.cpp
+	src/main.h src/main.cpp
+	src/Editor.h src/Editor.cpp
 	src/Utility/ez_stream.h
 	src/Utility/FileReader.h
 	src/Utility/Sigscan.h
-	src/Utility/math.h
-	src/Utility/math.cpp
-	src/Utility/config.h
-	src/Utility/config.cpp
-	src/Gui/RenderBuffer.h
-	src/Gui/RenderBuffer.cpp
-	src/Gui/DebugInformation.h
-	src/Gui/DebugInformation.cpp
-	src/Gui/RendererWindow.h
-	src/Gui/RendererWindow.cpp
-	src/Gui/ModelBrowser.h
-	src/Gui/ModelBrowser.cpp
-	src/Gui/ModelViewer.h
-	src/Gui/ModelViewer.cpp
+	src/Utility/math.h src/Utility/math.cpp
+	src/Utility/config.h src/Utility/config.cpp
+	src/Gui/RenderBuffer.h src/Gui/RenderBuffer.cpp
+	src/Gui/DebugInformation.h src/Gui/DebugInformation.cpp
+	src/Gui/Renderer.h src/Gui/Renderer.cpp
+	src/Gui/ModelBrowser.h src/Gui/ModelBrowser.cpp
+	src/Gui/ModelViewer.h src/Gui/ModelViewer.cpp
 	src/Structs/sly_level_structs.h
 	src/Structs/sly_level_structs.cpp
 	src/Structs/sly_texture_structs.h
-	src/Structs/SlyLevelFile.h
-	src/Structs/SlyLevelFile.cpp
-	src/Renderer/Camera.h
-	src/Renderer/Camera.cpp
-	src/Renderer/Cube.h
-	src/Renderer/Cube.cpp
-	src/Renderer/LightingProperties.h
-	src/Renderer/Object.h
-	src/Renderer/Object.cpp
-	src/Renderer/OBJModel.h
-	src/Renderer/OBJModel.cpp
-	src/Renderer/Shader.h
-	src/Renderer/Shader.cpp
-)
+	src/Structs/SlyLevelFile.h src/Structs/SlyLevelFile.cpp
+	src/Renderer/Camera.h src/Renderer/Camera.cpp
+	src/Renderer/Cube.h src/Renderer/Cube.cpp
+	src/Renderer/LightingProperties.h src/Renderer/Object.h src/Renderer/Object.cpp
+	src/Renderer/OBJModel.h src/Renderer/OBJModel.cpp
+	src/Renderer/Shader.h src/Renderer/Shader.cpp
+	src/Gui/RendererOptions.cpp src/Gui/RendererOptions.h
+	src/Utility/Singleton.h src/Utility/Singleton.cpp)
 
 target_include_directories(cane PUBLIC include)
 target_include_directories(cane PRIVATE src)

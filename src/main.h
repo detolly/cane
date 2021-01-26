@@ -39,7 +39,7 @@
 #include <Structs/SlyLevelFile.h>
 
 #include <Gui/DebugInformation.h>
-#include <Gui/RendererWindow.h>
+#include <Gui/Renderer.h>
 #include <Gui/ModelBrowser.h>
 #include <Gui/ModelViewer.h>
 
