@@ -216,14 +216,14 @@ namespace igfd
 	private:
 		std::string dlg_key;
 		std::string dlg_name;
-		const char *dlg_filters{};
+		const char *dlg_filters;
 		std::string dlg_path;
 		std::string dlg_defaultFileName;
 		std::string dlg_defaultExt;
 		std::function<void(std::string, UserDatas, bool*)> dlg_optionsPane;
 		size_t dlg_optionsPaneWidth = 0;
 		std::string searchTag;
-		UserDatas dlg_userDatas{};
+		UserDatas dlg_userDatas;
 		size_t dlg_countSelectionMax = 1; // 0 for infinite
 		bool dlg_modal = false;
 
