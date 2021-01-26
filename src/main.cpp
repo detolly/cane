@@ -26,12 +26,14 @@ int main(int argc, char* argv[]) {
 #endif
 
 	glfwSetErrorCallback(error_callback);
+	//glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 1);
+    //glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 	//glfwWindowHint(GLFW_SAMPLES, 4);
 
 	if (!glfwInit()) {
 		dbgprint("ERROR INIT WINDOW");
 	}
-
 	//glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 1);
 	//glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
 
