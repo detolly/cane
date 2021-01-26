@@ -19,7 +19,7 @@ Install CMake for Windows from [here](https://cmake.org/download/) (cmake.org)
 
 1. Open Powershell or cmd in the directory you want your cane folder to be.
 2. Run the following commands:  
-```powershell
+```
 git clone --recurse-submodules https://github.com/detolly/cane.git
 cd cane
 ```
