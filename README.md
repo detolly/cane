@@ -1,12 +1,43 @@
 # cane
-To-be Sly cooper level editor
+## Project Description
+
+This project is a work in progress level editor for the Sly Cooper games.
+
+Cane supports building on Windows and Linux.
 
 Prerequisites:
  * cmake
  * git
 
-How to build:
+## Getting Started - Linux (Ubuntu/Debian)
 
-1. ```git clone --recurse-submodules https://github.com/detolly/cane/```
-2. open terminal / cmd or something
-3. ```mkdir build && cd build && cmake .. && cmake --build --config Release .```
+Install Packages and Init Repository
+```bash
+sudo apt-get install cmake git build-essential
+```
+
+Compile
+```bash
+mkdir build && cd build && cmake .. && cmake --build --config Release
+```
+
+Run
+```bash
+./cane
+```
+
+## Getting Started - Linux (Arch)
+Install Packages and Init Repository
+```bash
+pacman -S cmake git base-devel
+```
+
+Compile
+```bash
+mkdir build && cd build && cmake .. && cmake --build . --config Release
+```
+
+Run
+```bash
+./cane
+```
