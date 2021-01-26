@@ -3,7 +3,7 @@
 #include <glm/mat4x4.hpp>
 #include <Renderer/Camera.h>
 #include <Gui/RenderBuffer.h>
-#include <Utility/Config.h>
+#include <Utility/config.h>
 #include <vector>
 #include <Utility/Singleton.h>
 

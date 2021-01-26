@@ -6,6 +6,7 @@
 #include <Structs/sly_texture_structs.h>
 
 #include <vector>
+#include <cstring>
 
 class SlyMesh : public SingleColoredSlyWorldObject {
 

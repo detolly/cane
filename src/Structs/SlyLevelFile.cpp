@@ -1,7 +1,6 @@
 #include "SlyLevelFile.h"
 
 #include <glad/glad.h>
-#include <gl/GL.h>
 #include <Renderer/Object.h>
 #include <Renderer/Camera.h>
 #include <Structs/sly_level_structs.h>

@@ -2,6 +2,7 @@
 
 #include <glad/glad.h>
 #include <memory>
+#include <cstring>
 
 void Shader::make_gl_shader(Shader& shader, const char* vs, const char* fs)
 {

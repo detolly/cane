@@ -151,19 +151,15 @@ struct szme_header2_t {
         float unk_float3{0.0f};
         float unk_float4{0.0f};
         float unk_float5{0.0f};
-        struct {
-            glm::vec3 unk_vec3;
-            glm::vec4 unk_vec4;
-        };
-        struct {
-            glm::vec3 position;
-            float unk_0x14;
-            uint16_t unk_0x16_ignore;
-            byte unk_0x1A;
-            byte unk_0x1B;
-            byte unk_0x1C;
-            uint16_t mesh_count;
-        };
+        glm::vec3 unk_vec3;
+        glm::vec4 unk_vec4;
+        glm::vec3 position;
+        float unk_0x14;
+        uint16_t unk_0x16_ignore;
+        byte unk_0x1A;
+        byte unk_0x1B;
+        byte unk_0x1C;
+        uint16_t mesh_count;
     } m;
 };
 
