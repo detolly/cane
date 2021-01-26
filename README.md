@@ -12,20 +12,32 @@ Prerequisites:
 ## Getting Started - Linux (Ubuntu/Debian)
 
 Install Packages and Init Repository
-1. ```sudo apt-get install cmake git build-essential```
+```bash
+sudo apt-get install cmake git build-essential
+```
 
 Compile
-1. ```mkdir build && cd build && cmake .. && cmake --build --config Release```
+```bash
+mkdir build && cd build && cmake .. && cmake --build --config Release
+```
 
 Run
-1. ```./cane```
+```bash
+./cane
+```
 
 ## Getting Started - Linux (Arch)
 Install Packages and Init Repository
-1. ```pacman -S cmake git base-devel```
+```bash
+pacman -S cmake git base-devel
+```
 
 Compile
-1. ```mkdir build && cd build && cmake .. && cmake --build . --config Release```
+```bash
+mkdir build && cd build && cmake .. && cmake --build . --config Release
+```
 
 Run
-1. ```./cane```
+```bash
+./cane
+```
