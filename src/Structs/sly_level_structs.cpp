@@ -1,5 +1,6 @@
 #include "sly_level_structs.h"
 #include <Structs/SlyLevelFile.h>
+#include <Editor.h>
 
 #pragma optimize("f", on)
 mesh_data_t::mesh_data_t(ez_stream& stream)

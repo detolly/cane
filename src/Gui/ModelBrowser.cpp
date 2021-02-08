@@ -1,4 +1,5 @@
 #include "ModelBrowser.h"
+#include <Gui/ModelViewer.h>
 #include <imgui/imgui.h>
 #include <Utility/config.h>
 #include <Editor.h>

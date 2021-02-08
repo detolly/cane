@@ -11,6 +11,6 @@ inline static void dbgprint(const char* a, T ...args) {
 
 inline static void dbgprintf(const char* a) {
 #ifndef NDEBUG
-	printf(a);
+	printf("%s", a);
 #endif
 }

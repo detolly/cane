@@ -1,18 +1,29 @@
 
 #include "main.h"
 
+#ifdef WIN32
+#include <windows.h>
+#endif
+
+#include <glad/glad.h>
+
+#define GLFW_INCLUDE_NONE
+#include <GLFW/glfw3.h>
+
+#include <chrono>
+
 #include <Gui/RendererOptions.h>
 #include <Gui/Renderer.h>
-#include <Gui/DebugInformation.h>
-#include <Gui/ModelViewer.h>
-#include <Gui/ModelBrowser.h>
 
-static GLFWwindow* g_window;
-static float g_delta_time{ 0.0f };
-static float g_width = 1600;
-static float g_height = 900;
+#include <imgui_internal.h>
+#include <imgui/backends/imgui_impl_opengl3.h>
+#include <imgui/backends/imgui_impl_glfw.h>
+#include <ImGuiFileDialog/ImGuiFileDialog.h>
 
-static ImGuiIO* io;
+#include <Utility/dbgprint.h>
+#include <Renderer/OBJModel.h>
+#include <Structs/SlyLevelFile.h>
+#include <Editor.h>
 
 int main(int argc, char* argv[]) {
 #ifdef WIN32
@@ -29,35 +40,29 @@ int main(int argc, char* argv[]) {
 	//glfwWindowHint(GLFW_SAMPLES, 4);
 
 	if (!glfwInit()) {
-		dbgprint("ERROR INIT WINDOW");
+		dbgprint("%s", "ERROR INIT WINDOW");
 	}
 
 	//glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 1);
 	//glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
 
-	g_window = glfwCreateWindow(g_width, g_height, "OpenGL Testing", NULL, NULL);
-	glfwSetWindowTitle(g_window, "cane");
+	//Create the OpenGL context window
+	Editor::the().create_window();
 
-	if (!g_window) {
-		glfwTerminate();
-		dbgprint("ERROR CREATE WINDOW");
-	}
-
-	//glfwSetInputMode(g_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-	current_cursor_mode = GLFW_CURSOR_NORMAL;
-
-	glfwSetKeyCallback(g_window, key_callback);
-	glfwSetCursorPosCallback(g_window, cursor_position_callback);
-	glfwSetFramebufferSizeCallback(g_window, size_callback);
-	glfwSetScrollCallback(g_window, scroll_callback);
-	glfwSetMouseButtonCallback(g_window, mouse_button_callback);
-
-	glfwMakeContextCurrent(g_window);
-	glfwSetKeyCallback(g_window, key_callback);
+    glfwSetKeyCallback(Editor::the().window(), key_callback);
+    glfwSetCursorPosCallback(Editor::the().window(), cursor_position_callback);
+    glfwSetFramebufferSizeCallback(Editor::the().window(), size_callback);
+    glfwSetScrollCallback(Editor::the().window(), scroll_callback);
+    glfwSetMouseButtonCallback(Editor::the().window(), mouse_button_callback);
+    glfwSetKeyCallback(Editor::the().window(), key_callback);
+    glfwMakeContextCurrent(Editor::the().window());
 
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
-		dbgprint("ERROR INIT GLAD\n");
+		dbgprint("%s", "ERROR INIT GLAD\n");
 	}
+
+	//Init the Editor after establishing a container
+	Editor::the().init();
 
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_MULTISAMPLE);
@@ -71,12 +76,13 @@ int main(int argc, char* argv[]) {
 	Shader::init_shader(SingleColoredWorldObject::shader());
 	Shader::init_shader(SingleColoredSlyWorldObject::shader());
 
+
 	// Setup Dear ImGui context
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
-	io = &ImGui::GetIO();
+	auto* io = &ImGui::GetIO();
 	//io->ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
-	ImGui_ImplGlfw_InitForOpenGL(g_window, true);
+	ImGui_ImplGlfw_InitForOpenGL(Editor::the().window(), true);
 	ImGui_ImplOpenGL3_Init("#version 330 core");
 	ImGui::StyleColorsDark();
 
@@ -93,20 +99,15 @@ int main(int argc, char* argv[]) {
 	style.ScrollbarRounding = 0.0f;
 	style.TabRounding = 0.0f;
 
-	Editor::init();
-	//Editor::the().open("level.bin");
-	
-	//int index = 0;
-	//int num = t.size();
-	//for(int i = index; i < index+num; i++)
-	//	lodepng::encode("textures/texture " + std::to_string(i) + ".png", t[i].bitmap().data(), t[i].width(), t[i].height());
 
 	glfwSwapInterval(1);
 	auto last_time = std::chrono::high_resolution_clock::now();
-	while (!glfwWindowShouldClose(g_window))
+	while (!glfwWindowShouldClose(Editor::the().window()))
 	{
 		auto last = last_time;
-		g_delta_time = ((last_time = std::chrono::high_resolution_clock::now()) - last).count() / 1000000.0f;
+		float delta_time = ((last_time = std::chrono::high_resolution_clock::now()) - last).count() / 1000000.0f;
+
+		Editor::the().frame(delta_time);
 
 		handle_input();
 
@@ -114,158 +115,36 @@ int main(int argc, char* argv[]) {
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
 
-		using wf = ImGuiWindowFlags_;
-		ImGui::SetNextWindowSize({ (float)g_width, (float)g_height }, ImGuiCond_::ImGuiCond_Always);
-		ImGui::SetNextWindowPos({ 0, 0 });
-		ImGui::Begin("root", nullptr, wf::ImGuiWindowFlags_NoCollapse | wf::ImGuiWindowFlags_NoTitleBar | wf::ImGuiWindowFlags_NoMove | wf::ImGuiWindowFlags_NoResize | wf::ImGuiWindowFlags_NoBringToFrontOnFocus | wf::ImGuiWindowFlags_NoInputs | wf::ImGuiWindowFlags_MenuBar);
-		if (ImGui::BeginMainMenuBar())
-		{
-			if (ImGui::BeginMenu("File"))
-			{
-				if (ImGui::MenuItem("Open")) {
-					igfd::ImGuiFileDialog::Instance()->OpenDialog("choose_file", "Choose File", ".decompressed,.bin", "");
-				}
-				bool disabled = !Editor::the().has_file_loaded();
-				if (disabled) {
-					ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
-					ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
-				}
-				if (ImGui::MenuItem("Close")) {
-					Editor::the().close();
-				}
-				if (disabled) {
-					ImGui::PopItemFlag();
-					ImGui::PopStyleVar();
-				}
-				ImGui::EndMenu();
-			}
-			if (ImGui::BeginMenu("Windows"))
-			{
-				ImGui::MenuItem("Renderer", nullptr, &config::the().windows.renderer);
-                ImGui::MenuItem("Renderer Options", nullptr, &config::the().windows.renderer_options);
-				ImGui::MenuItem("Debug Information", nullptr, &config::the().windows.debug_information);
-				ImGui::MenuItem("Model Browser", nullptr, &config::the().windows.model_browser);
-				ImGui::MenuItem("Model Viewer", nullptr, &config::the().windows.model_viewer);
-				ImGui::MenuItem("Examples", nullptr, &config::the().windows.examples);
-				ImGui::EndMenu();
-			}
-			if (ImGui::BeginMenu("Options"))
-			{
-				if (ImGui::MenuItem("Preferences")) {
-
-				}
-				ImGui::EndMenu();
-			}
-			ImGui::EndMainMenuBar();
-		}
-
-		if (igfd::ImGuiFileDialog::Instance()->FileDialog("choose_file"))
-		{
-			if (igfd::ImGuiFileDialog::Instance()->IsOk == true)
-			{
-				std::string file_path = igfd::ImGuiFileDialog::Instance()->GetFilePathName();
-				Editor::the().open(file_path.c_str());
-			}
-
-			igfd::ImGuiFileDialog::Instance()->CloseDialog("choose_file");
-		}
-
-		ImGuiDockNodeFlags dockspaceFlags = ImGuiDockNodeFlags_NoCloseButton;
-		ImGuiID dockspaceID = ImGui::GetID("dock");
-		//ImGui::SetNextWindowSize(ImGui::GetContentRegionAvail());
-		ImGui::SetNextWindowSize({ (float)g_width, (float)g_height });
-		ImGui::DockSpace(dockspaceID, ImVec2(0.0f, 0.0f), dockspaceFlags);
-		if (config::the().windows.debug_information) {
-			//ImGui::SetNextWindowDockID(dockspaceID, ImGuiCond_FirstUseEver);
-			DebugInformation::the().render();
-		}
-		if (config::the().windows.renderer) {
-			//ImGui::SetNextWindowDockID(dockspaceID, ImGuiCond_FirstUseEver);
-			Renderer::the().render();
-		}
-		if (config::the().windows.model_browser) {
-			//ImGui::SetNextWindowDockID(dockspaceID, ImGuiCond_FirstUseEver);
-			ModelBrowser::the().render();
-		}
-		if (config::the().windows.model_viewer) {
-			ModelViewer::the().render();
-		}
-        if (config::the().windows.renderer_options) {
-            RendererOptions::the().render();
-        }
-		if (config::the().windows.examples) {
-			ImGui::ShowDemoWindow(&config::the().windows.examples);
-		}
-
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		glViewport(0, 0, g_width, g_height);
-
-		ImGui::End();
+		Editor::the().render();
 
 		ImGui::Render();
 		ImGui::UpdatePlatformWindows();
 		ImGui::RenderPlatformWindowsDefault();
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
-		glfwSwapBuffers(g_window);
+		glfwSwapBuffers(Editor::the().window());
 		glfwPollEvents();
 	}
 
 }
 
-static void handle_input() {
-	if (current_cursor_mode != GLFW_CURSOR_NORMAL) {
-		Renderer::the().handle_input(g_window, g_delta_time);
-	}
+static void handle_input()
+{
+    Editor::the().handle_input();
 }
 
 static void scroll_callback(GLFWwindow* window, double xoff, double yoff)
 {
-	if (current_cursor_mode != GLFW_CURSOR_NORMAL) {
-		config::the().renderer.move_speed += (((float)yoff) - (yoff < 0.0f ? -0.995f : 0.995f));
-		config::the().renderer.move_speed = std::min(std::max(config::the().renderer.move_speed, 0.0f), .2f);
-	}
+	Editor::the().scroll_callback(xoff, yoff);
 }
 
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 {
-	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
-		Editor::the().set_can_resize(false);
-	else if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE)
-		Editor::the().set_can_resize(true);
-	//TODO: Ctrl+click should select multiple objects for exporting into one mesh / moving and so on
-	double mouse_x, mouse_y;
-	glfwGetCursorPos(window, &mouse_x, &mouse_y);
-	const auto location = Renderer::the().render_location();
-	const auto render_size = Renderer::the().render_size();
-	static bool last_left_click_was_inside_renderer{false};
-	if (config::the().windows.renderer && last_left_click_was_inside_renderer && button == GLFW_MOUSE_BUTTON_LEFT && current_cursor_mode == GLFW_CURSOR_NORMAL && action == GLFW_RELEASE
-		&& mouse_x > location.x && mouse_y > location.y
-		&& mouse_x < location.x + render_size.x && mouse_y < location.y + render_size.y)
-	{
-        Renderer::the().select(mouse_x - location.x, mouse_y - location.y, mods & GLFW_MOD_CONTROL);
-	}
-	if (config::the().windows.renderer && button == GLFW_MOUSE_BUTTON_LEFT && current_cursor_mode == GLFW_CURSOR_NORMAL && action == GLFW_PRESS && mouse_x > location.x && mouse_y > location.y
-		&& mouse_x < location.x + render_size.x && mouse_y < location.y + render_size.y)
-		last_left_click_was_inside_renderer = true;
-	else
-		last_left_click_was_inside_renderer = false;
+    Editor::the().mouse_button_callback(button, action, mods);
 }
 
 static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
-	if (key == GLFW_KEY_V && action == GLFW_PRESS) {
-		if (current_cursor_mode != GLFW_CURSOR_DISABLED) {
-			glfwSetInputMode(g_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-			current_cursor_mode = GLFW_CURSOR_DISABLED;
-			ImGui::SetMouseCursor(ImGuiMouseCursor_None);
-			io->ConfigFlags |= ImGuiConfigFlags_NoMouse;
-		}
-		else {
-			glfwSetInputMode(g_window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-			current_cursor_mode = GLFW_CURSOR_NORMAL;
-			io->ConfigFlags = io->ConfigFlags & ~(1<<4);
-		}
-	}
+	Editor::the().key_callback(key, scancode, action, mods);
 }
 
 static void error_callback(int id, const char* desc) {
@@ -274,21 +153,8 @@ static void error_callback(int id, const char* desc) {
 
 static void size_callback(GLFWwindow* window, int width, int height) {
 	Editor::the().size_callback(width, height);
-	g_width = width;
-	g_height = height;
 }
 
 static void cursor_position_callback(GLFWwindow*, double x, double y) {
-	static double lastX, lastY;
-	if (current_cursor_mode == GLFW_CURSOR_DISABLED) {
-		double x_diff = x - lastX;
-		double y_diff = y - lastY;
-		// TODO: more abstraction
-        Renderer::the().camera().set_yaw_pitch(
-                Renderer::the().camera().yaw() + x_diff * 0.1,
-                Renderer::the().camera().pitch() - y_diff * 0.1
-		);
-	}
-	lastX = x;
-	lastY = y;
+    Editor::the().cursor_position_callback(x, y);
 }

@@ -2,6 +2,7 @@
 #include <Editor.h>
 #include <glm/mat4x4.hpp>
 #include <Structs/SlyLevelFile.h>
+#include <Utility/math.h>
 
 void Renderer::render()
 {

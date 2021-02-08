@@ -216,7 +216,7 @@ namespace igfd
 	private:
 		std::string dlg_key;
 		std::string dlg_name;
-		const char *dlg_filters{};
+		const char* dlg_filters{};
 		std::string dlg_path;
 		std::string dlg_defaultFileName;
 		std::string dlg_defaultExt;
