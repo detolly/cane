@@ -80,41 +80,25 @@ int main(int argc, char* argv[]) {
 	// Setup Dear ImGui context
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
-	auto* io = &ImGui::GetIO();
 	//io->ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
 	ImGui_ImplGlfw_InitForOpenGL(Editor::the().window(), true);
 	ImGui_ImplOpenGL3_Init("#version 330 core");
 	ImGui::StyleColorsDark();
 
-	io->ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-	io->ConfigDockingWithShift = false;
-	//io->ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
-
-	ImGuiStyle& style = ImGui::GetStyle();
-	style.FrameRounding = 0.0f;
-	style.GrabRounding = 0.0f;
-	style.ChildRounding = 0.0f;
-	style.PopupRounding = 0.0f;
-	style.WindowRounding = 0.0f;
-	style.ScrollbarRounding = 0.0f;
-	style.TabRounding = 0.0f;
-
+	Editor::the().imgui_init();
 
 	glfwSwapInterval(1);
 	auto last_time = std::chrono::high_resolution_clock::now();
 	while (!glfwWindowShouldClose(Editor::the().window()))
 	{
-		auto last = last_time;
-		float delta_time = ((last_time = std::chrono::high_resolution_clock::now()) - last).count() / 1000000.0f;
-
-		Editor::the().frame(delta_time);
-
-		handle_input();
-
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
 
+		const auto last = last_time;
+		float delta_time = ((last_time = std::chrono::high_resolution_clock::now()) - last).count() / 1000000.0f;
+		Editor::the().frame(delta_time);
+		handle_input();
 		Editor::the().render();
 
 		ImGui::Render();

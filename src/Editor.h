@@ -13,12 +13,14 @@ class ModelViewer;
 class RendererOptions;
 
 class Editor : public Singleton<Editor> {
-//private:
-    //Editor() = default;
-    //~Editor() = default;
+    friend class Singleton<Editor>;
+private:
+    Editor() = default;
+    ~Editor() = default;
 public:
 
 	void init();
+	void imgui_init();
 	void create_window();
 
 	SlyLevelFile* level_file() const { return m_level; }

@@ -231,3 +231,20 @@ void Editor::cursor_position_callback(double x, double y)
     lastX = x;
     lastY = y;
 }
+
+void Editor::imgui_init()
+{
+    m_io = &ImGui::GetIO();
+    io()->ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+    io()->ConfigDockingWithShift = false;
+    //io->ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
+
+    ImGuiStyle& style = ImGui::GetStyle();
+    style.FrameRounding = 0.0f;
+    style.GrabRounding = 0.0f;
+    style.ChildRounding = 0.0f;
+    style.PopupRounding = 0.0f;
+    style.WindowRounding = 0.0f;
+    style.ScrollbarRounding = 0.0f;
+    style.TabRounding = 0.0f;
+}

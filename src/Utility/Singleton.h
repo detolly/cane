@@ -7,6 +7,8 @@
 
 template<typename T>
 class Singleton {
+private:
+    friend T;
 
 protected:
     static T m_static_instance;

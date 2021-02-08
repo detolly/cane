@@ -1,4 +1,7 @@
 # cane
+
+![screenshot of cane](resources/screenshot.PNG)
+
 ## Project Description
 
 This project is a work in progress level editor for the Sly Cooper games.
