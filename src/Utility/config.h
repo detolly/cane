@@ -2,11 +2,16 @@
 
 struct config {
 private:
-	config() = default;
-	~config() = default;
+	config() { deserialize(DEFAULT_CONFIG_NAME); };
+	~config() { serialize(DEFAULT_CONFIG_NAME); };
 	static config c;
+	constexpr static const char* DEFAULT_CONFIG_NAME = "config.opt";
+
 public:
 	static config& the() { return c; }
+
+	static void serialize(const char* filename=DEFAULT_CONFIG_NAME);
+	static void deserialize(const char* filename=DEFAULT_CONFIG_NAME);
 
 	struct {
 		bool renderer			{ true };

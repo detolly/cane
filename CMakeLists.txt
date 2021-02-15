@@ -24,7 +24,13 @@ add_executable(cane
 	src/Renderer/OBJModel.h src/Renderer/OBJModel.cpp
 	src/Renderer/Shader.h src/Renderer/Shader.cpp
 	src/Gui/RendererOptions.cpp src/Gui/RendererOptions.h
-	src/Utility/Singleton.h src/Utility/Singleton.cpp)
+	src/Utility/Singleton.h src/Utility/Singleton.cpp src/Utility/FileWriter.h)
+
+if(WIN32)
+	set_target_properties(cane PROPERTIES COMPILE_FLAGS "-W4")
+else()
+	set_target_properties(cane PROPERTIES COMPILE_FLAGS "-Wall")
+endif()
 
 target_include_directories(cane PUBLIC include)
 target_include_directories(cane PRIVATE src)

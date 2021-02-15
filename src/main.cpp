@@ -26,6 +26,8 @@
 #include <Editor.h>
 
 int main(int argc, char* argv[]) {
+    (void)argc;
+    (void)argv;
 #ifdef WIN32
 #ifdef NDEBUG
 	CloseHandle(GetStdHandle((DWORD)stdin));
@@ -117,28 +119,33 @@ static void handle_input()
     Editor::the().handle_input();
 }
 
-static void scroll_callback(GLFWwindow* window, double xoff, double yoff)
+static void scroll_callback(GLFWwindow*, double xoff, double yoff)
 {
 	Editor::the().scroll_callback(xoff, yoff);
 }
 
-void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
+void mouse_button_callback(GLFWwindow*, int button, int action, int mods)
 {
     Editor::the().mouse_button_callback(button, action, mods);
 }
 
-static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
+static void key_callback(GLFWwindow*, int key, int scancode, int action, int mods)
+{
 	Editor::the().key_callback(key, scancode, action, mods);
 }
 
-static void error_callback(int id, const char* desc) {
+static void error_callback(int id, const char* desc)
+{
+    (void)id;
 	dbgprint("%s\n", desc);
 }
 
-static void size_callback(GLFWwindow* window, int width, int height) {
-	Editor::the().size_callback(width, height);
+static void size_callback(GLFWwindow*, int width, int height)
+{
+    Editor::the().size_callback(width, height);
 }
 
-static void cursor_position_callback(GLFWwindow*, double x, double y) {
+static void cursor_position_callback(GLFWwindow*, double x, double y)
+{
     Editor::the().cursor_position_callback(x, y);
 }

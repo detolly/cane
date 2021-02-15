@@ -25,7 +25,7 @@ const glm::vec3 Camera::forward_xy() const {
 	return direction();
 }
 
-const glm::vec3 Camera::up() const {
+const glm::vec3 Camera::up() {
 	return glm::vec3(0.0f, 1.0f, 0.0f);
 }
 

@@ -1,14 +1,9 @@
 #include "SlyLevelFile.h"
 
-#include <glad/glad.h>
-#include <Renderer/Object.h>
 #include <Renderer/Camera.h>
-#include <Structs/sly_level_structs.h>
-#include <Structs/sly_texture_structs.h>
 #include <memory>
 
 #include <Utility/dbgprint.h>
-#include <Utility/ez_stream.h>
 #include <Utility/Sigscan.h>
 #include <Utility/FileReader.h>
 
@@ -78,8 +73,7 @@ void SlyMesh::render(Camera& cam, glm::mat4x4& proj)
 	//SingleColoredWorldObject::render(cam, proj);
 	SingleColoredSlyWorldObject::render(cam, proj);
 
-	for (int i = 0; i < mesh_data.not_flags_and_1.mesh_hdr.mesh_count; i++) {
-		int t_id = 0;
+	for (size_t i = 0; i < mesh_data.not_flags_and_1.mesh_hdr.mesh_count; i++) {
 		if (mesh_data.not_flags_and_1.szme_data.size() >= i + 1
 			&& mesh_data.not_flags_and_1.szme_data[i].texture_id < m_texture_table.texture.size()
 			&& m_texture_table.texture[mesh_data.not_flags_and_1.szme_data[i].texture_id].is_initialized()
@@ -122,7 +116,7 @@ SlyLevelFile::~SlyLevelFile()
 
 void SlyLevelFile::find_near_float(ez_stream& stream, float x, float y, float z, float allowed_difference)
 {
-	for (int i = 0; i < stream.size(); i++) {
+	for (size_t i = 0; i < stream.size(); i++) {
 		float* ptr1 = (float*)(stream.buffer() + i);
 		float* ptr2 = (float*)(stream.buffer() + i + 4);
 		float* ptr3 = (float*)(stream.buffer() + i + 8);
@@ -152,12 +146,12 @@ void SlyLevelFile::parse_textures(ez_stream& stream)
 		unk_table[i] = stream.read<UNK_TABLE_t>();
 	}
 
-	for (int i = 0; i < 0x100; i += 0x20) {
-		for (int j = i; j < i + 8; j++) {
-			csm1ClutIndices[j] = j;
-			csm1ClutIndices[j + 8] = j + 0x10;
-			csm1ClutIndices[j + 0x10] = j + 0x8;
-			csm1ClutIndices[j + 0x18] = j + 0x18;
+	for (uint16_t i = 0; i < 0x100; i += 0x20) {
+		for (uint16_t j = i; j < i + 8; j++) {
+			csm1ClutIndices[j] = static_cast<uint8_t>(j);
+			csm1ClutIndices[j + 8] = static_cast<uint8_t>(j) + 0x10;
+			csm1ClutIndices[j + 0x10] = static_cast<uint8_t>(j) + 0x8;
+			csm1ClutIndices[j + 0x18] = static_cast<uint8_t>(j) + 0x18;
 		}
 	}
 
@@ -180,13 +174,13 @@ void SlyLevelFile::parse_textures(ez_stream& stream)
 		const bool isManyImgManyPal = !is1Img1Pal && (texture_record.image_index.size() > 1) && (texture_record.clut_index.size() > 1);
 
 		if (is1Img1Pal) {
-			for (int i = 0; i < texture_record.clut_index.size(); i++) {
+			for (size_t i = 0; i < texture_record.clut_index.size(); i++) {
 				if (i == ((texture_record.clut_index.size() / 2)))
 					make_texture(stream.buffer(), texture_record, texture_record.clut_index[i], texture_record.image_index[i]);
 			}
 		}
 		else if (is1ImgManyPal) {
-			for (int i = 0; i < texture_record.clut_index.size(); i++) {
+			for (size_t i = 0; i < texture_record.clut_index.size(); i++) {
 				if (i == ((texture_record.clut_index.size() / 2)))
 					make_texture(stream.buffer(), texture_record, texture_record.clut_index[i], texture_record.image_index[0]);
 			}
@@ -196,7 +190,7 @@ void SlyLevelFile::parse_textures(ez_stream& stream)
 			//	console.log(`WARN: nonint m2m ${ texEntryIdx } ${ texEntry.clutIndices.length } ${ texEntry.imageIndices.length }`);
 			//}
 			const auto divPalImg = texture_record.clut_index.size() / texture_record.image_index.size();
-			for (int i = 0; i < texture_record.clut_index.size(); ++i) {
+			for (size_t i = 0; i < texture_record.clut_index.size(); ++i) {
 				int imgIndex = i / divPalImg;
 				if (i == ((texture_record.clut_index.size() / 2)))
 					make_texture(stream.buffer(), texture_record, texture_record.clut_index[i], texture_record.image_index[imgIndex]);
@@ -211,10 +205,10 @@ void SlyLevelFile::parse_textures(ez_stream& stream)
 
 void SlyLevelFile::render(Camera& cam, glm::mat4& matrix)
 {
-	for (int i = 0; i < m_meshes.size(); i++) {
+	for (size_t i = 0; i < m_meshes.size(); i++) {
 		m_meshes[i].render(cam, matrix);
 	}
-	for(int i = 0; i < unknown_vector_arrays().size(); i++) {
+	for(size_t i = 0; i < unknown_vector_arrays().size(); i++) {
 	    if (unknown_vector_arrays()[i].should_draw)
 	        unknown_vector_arrays()[i].render(cam, matrix);
 	}
@@ -239,13 +233,13 @@ void SlyLevelFile::parse_meshes(ez_stream& stream)
 	}
 }
 
-void SlyLevelFile::make_texture(const char* buffer, texture_record_t& tex, int clutIndex, int imageIndex)
+void SlyLevelFile::make_texture(const char* buffer, texture_record_t& tex, size_t clutIndex, size_t imageIndex)
 {
 	if (clutIndex >= m_clut_meta_table.record.size()) {
 		//dbgprint("warn: clutIndex(%d) out of bounds, skipping\n", clutIndex);
 		return;
 	}
-	if (imageIndex >= m_image_meta_table.header.numRecords) {
+	if (imageIndex >= static_cast<size_t>(m_image_meta_table.header.numRecords)) {
 		//dbgprint("warn: imageIndex(%d) out of bounds, skipping\n", imageIndex);
 		return;
 	}
@@ -272,11 +266,9 @@ void SlyLevelFile::make_texture(const char* buffer, texture_record_t& tex, int c
 
 void SlyLevelFile::find_and_populate_coord_arrays(ez_stream& stream) {
     stream.seek(0);
-    int index_at_first_find = -1;
-    int found = 0;
+    size_t found = 0;
     std::vector<float> floats;
     while(stream.tell() < stream.size() - sizeof(float)) {
-        auto before = stream.tell();
         float f = stream.read<float>();
         //TODO: change to use stream.read_sly_vec(); asap (gotta catch up with PR so leaving this unfinished)
         if (f != 0.0f) {
@@ -288,7 +280,8 @@ void SlyLevelFile::find_and_populate_coord_arrays(ez_stream& stream) {
                 if (found >= 12) {
                     //we consider it a valid array
                     unknown_vector_array array;
-                    array.array = floats;
+                    array.array = std::move(floats);
+                    floats = std::vector<float>();
                     array.make_gl_buffers();
                     array.set_color({1.0f, 1.0f, 1.0f});
                     m_unknown_vector_arrays.push_back(array);

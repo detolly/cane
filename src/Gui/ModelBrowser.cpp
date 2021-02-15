@@ -25,7 +25,7 @@ void ModelBrowser::render()
 void ModelBrowser::make_thumbnails() {
 	m_thumbnails.clear();
 	auto* level = Editor::the().level_file();
-	for (int i = 0; i < level->meshes().size(); i++) {
+	for (size_t i = 0; i < level->meshes().size(); i++) {
 		auto& mesh = level->meshes()[i];
 		Thumbnail b(i);
 		b.render(mesh);

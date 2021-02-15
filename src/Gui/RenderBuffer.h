@@ -4,7 +4,7 @@ typedef unsigned int GLuint;
 
 class TexturedRenderBuffer {
 public:
-	TexturedRenderBuffer() {}
+	explicit TexturedRenderBuffer() = default;
 	virtual ~TexturedRenderBuffer() {
 		free_buffer();
 	}
@@ -21,7 +21,9 @@ public:
 
 	void free_buffer();
 	void resize_buffer(int width, int height);
-	const bool is_allocated() const { return m_allocated; }
+    void resize_buffer(float width, float height);
+
+	bool is_allocated() const { return m_allocated; }
 	GLuint fbo() const { return m_fbo; }
 	GLuint depth_buffer() const { return m_depthbuffer; }
 	GLuint texture() const { return m_texture; }

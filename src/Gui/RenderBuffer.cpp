@@ -2,6 +2,7 @@
 #include <Gui/RenderBuffer.h>
 #include <glad/glad.h>
 #include <Utility/dbgprint.h>
+#include <cassert>
 
 void TexturedRenderBuffer::free_buffer()
 {
@@ -13,7 +14,13 @@ void TexturedRenderBuffer::free_buffer()
 	}
 }
 
-void TexturedRenderBuffer::resize_buffer(int width, int height) {
+void TexturedRenderBuffer::resize_buffer(float width, float height)
+{
+    resize_buffer((int)width, (int)height);
+}
+
+void TexturedRenderBuffer::resize_buffer(int width, int height)
+{
 	static int msaa = 4;
 	free_buffer();
 
@@ -47,6 +54,9 @@ void TexturedRenderBuffer::resize_buffer(int width, int height) {
 	case GL_RENDERBUFFER_SAMPLES:							dbgprint("GL_RENDERBUFFER_SAMPLES\n"); break;
 	case GL_FRAMEBUFFER_INCOMPLETE_VIEW_TARGETS_OVR:		dbgprint("GL_FRAMEBUFFER_INCOMPLETE_VIEW_TARGETS_OVR\n"); break;
 	case GL_FRAMEBUFFER_ATTACHMENT_OBJECT_TYPE:				dbgprint("GL_FRAMEBUFFER_ATTACHMENT_OBJECT_TYPE\n"); break;
+	default:
+        dbgprintf("Unexpected GL_FRAMEBUFFER_STATUS result.\n");
+    break;
 	}
 
 	if (result != GL_FRAMEBUFFER_COMPLETE) {

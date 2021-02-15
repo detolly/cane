@@ -139,7 +139,7 @@ void Editor::render()
     }
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    glViewport(0, 0, width(), height());
+    glViewport(0, 0, (GLsizei)width(), (GLsizei)height());
 
     ImGui::End();
 }
@@ -159,9 +159,8 @@ void Editor::handle_input()
     }
 }
 
-void Editor::scroll_callback(double xoff, double yoff)
+void Editor::scroll_callback(double, double yoff)
 {
-
     const auto max = [](auto a, auto b) {
         return a > b ? a : b;
     };
@@ -203,6 +202,8 @@ void Editor::mouse_button_callback(int button, int action, int mods)
 
 void Editor::key_callback(int key, int scancode, int action, int mods)
 {
+    (void)mods;
+    (void)scancode;
     if (key == GLFW_KEY_V && action == GLFW_PRESS) {
         if (cursor_mode() != GLFW_CURSOR_DISABLED) {
             set_cursor_mode(GLFW_CURSOR_DISABLED);

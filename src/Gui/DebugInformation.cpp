@@ -44,29 +44,29 @@ void DebugInformation::render()
 			ImGui::TextWrapped("~Flag & 0x100\t unk_byte_1B1C: %04x (%05d)", *ptr2, *ptr2);
 
 			ImGui::TextWrapped("SZME Data: ");
-			for (int i = 0; i < na.szme_data.size(); i++) {
+			for (size_t i = 0; i < na.szme_data.size(); i++) {
 				char buf[32];
-				sprintf(buf, "SZME Data #%d", i);
+				sprintf_s(buf, 32, "SZME Data #%d", i);
 				if (ImGui::CollapsingHeader(buf)) {
 					ImGui::Indent();
 					ImGui::TextWrapped("vertex_count %03d\tnormal_count %03d\tvertex_color_count %03d\ttexcoords_count %03d\tindex_count %03d", na.szme_data[i].vertex_count, na.szme_data[i].normal_count, na.szme_data[i].vertex_color_count, na.szme_data[i].texcoords_count, na.szme_data[i].index_count);
 					if (ImGui::CollapsingHeader("Vertices")) {
-						for (int j = 0; j < na.szme_data[i].vertices.size(); j++) {
+						for (size_t j = 0; j < na.szme_data[i].vertices.size(); j++) {
 							ImGui::TextWrapped("%f %f %f", na.szme_data[i].vertices[j].x, na.szme_data[i].vertices[j].y, na.szme_data[i].vertices[j].z);
 						}
 					}
 					if (ImGui::CollapsingHeader("Normals")) {
-						for (int j = 0; j < na.szme_data[i].normals.size(); j++) {
+						for (size_t j = 0; j < na.szme_data[i].normals.size(); j++) {
 							ImGui::TextWrapped("%f %f %f", na.szme_data[i].normals[j].x, na.szme_data[i].normals[j].y, na.szme_data[i].normals[j].z);
 						}
 					}
 					if (ImGui::CollapsingHeader("Texcoords")) {
-						for (int j = 0; j < na.szme_data[i].texcoords.size(); j++) {
+						for (size_t j = 0; j < na.szme_data[i].texcoords.size(); j++) {
 							ImGui::TextWrapped("%f %f", na.szme_data[i].texcoords[j].u, na.szme_data[i].texcoords[j].v);
 						}
 					}
 					if (ImGui::CollapsingHeader("Indices")) {
-						for (int j = 0; j < na.szme_data[i].indices.size(); j++) {
+						for (size_t j = 0; j < na.szme_data[i].indices.size(); j++) {
 							ImGui::TextWrapped("Position: %d Normal: %d Texcoords: %d Unk: %d", na.szme_data[i].indices[j].vertex_index, na.szme_data[i].indices[j].normal_index, na.szme_data[i].indices[j].texcoords_index, na.szme_data[i].indices[j].unk);
 						}
 					}

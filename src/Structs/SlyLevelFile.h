@@ -60,9 +60,7 @@ public:
 	static int find(const char* b, const char* lf, int start, size_t len) {
 		int already_found = 0;
 		int look_len = std::strlen(lf);
-		bool found{ false };
-		for (int current_index = 0; (current_index + start) < len; current_index++) {
-			const char* current = b + start + current_index - already_found;
+		for (size_t current_index = 0; (current_index + start) < len; current_index++) {
 			if (b[start + current_index] == lf[already_found])
 				already_found++;
 			else
@@ -79,7 +77,7 @@ public:
 
 	void parse_meshes(ez_stream& stream);
 	void parse_textures(ez_stream& stream);
-	void make_texture(const char* buffer, texture_record_t& tex, int clutIndex, int imageIndex);
+	void make_texture(const char* buffer, texture_record_t& tex, size_t clutIndex, size_t imageIndex);
 
 	void render(Camera& cam, glm::mat4& matrix) override;
 

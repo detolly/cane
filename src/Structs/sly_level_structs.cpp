@@ -1,8 +1,8 @@
 #include "sly_level_structs.h"
 #include <Structs/SlyLevelFile.h>
 #include <Editor.h>
+#include <Utility/dbgprint.h>
 
-#pragma optimize("f", on)
 mesh_data_t::mesh_data_t(ez_stream& stream)
 {
     flags = stream.read<uint16_t>();
@@ -29,8 +29,8 @@ mesh_data_t::mesh_data_t(ez_stream& stream)
         }
 
         const auto& p = not_flags_and_1.szme_hdr.m.position;
-        for (int i = 0; i < not_flags_and_1.mesh_hdr.mesh_count; i++) {
-            for (int j = 0; j < not_flags_and_1.vertex_data[i].vertices.size(); j++) {
+        for (uint16_t i = 0; i < not_flags_and_1.mesh_hdr.mesh_count; i++) {
+            for (size_t j = 0; j < not_flags_and_1.vertex_data[i].vertices.size(); j++) {
                 not_flags_and_1.vertex_data[i].vertices[j].pos = (not_flags_and_1.vertex_data[i].vertices[j].pos - p);
             }
         }
@@ -39,6 +39,7 @@ mesh_data_t::mesh_data_t(ez_stream& stream)
 
 szme_vertex_data_t::szme_vertex_data_t(ez_stream& stream, uint16_t flags)
 {
+    (void)flags;
     unk_vec = stream.read_sly_vec();
     unk_float = stream.read<float>();
     vertex_count = stream.read<unsigned char>();
@@ -70,7 +71,7 @@ szme_vertex_data_t::szme_vertex_data_t(ez_stream& stream, uint16_t flags)
     //TODO: handle special case
     try {
         gl_vertices.resize(indices.size());
-        for (int i = 0; i < indices.size(); i++) {
+        for (size_t i = 0; i < indices.size(); i++) {
             vertex_t vertex;
             vertex.pos = vertices.at(indices.at(i).vertex_index);
             vertex.normal = std::move(normals.at(indices.at(i).normal_index));
@@ -80,7 +81,7 @@ szme_vertex_data_t::szme_vertex_data_t(ez_stream& stream, uint16_t flags)
         }
     }
     catch (std::out_of_range& e) {
-        //dbgprint("Failed parsing mesh with flags 0x%04x\n", flags);
+        dbgprint("Failed parsing mesh with flags 0x%04x\nException: %s\n", flags, e.what());
         gl_vertices.clear();
         gl_vertices.resize(0);
         m_initialized = false;
@@ -237,4 +238,3 @@ mesh_header_t::mesh_header_t(ez_stream& stream)
         mesh_offsets[i] = stream.read<uint32_t>();
     }
 }
-#pragma optimize("f", off)

@@ -29,7 +29,8 @@ void Cube::make_gl_buffers()
 	glEnableVertexAttribArray(0);
 }
 
-void Cube::free_gl_buffers() {
+void Cube::free_gl_buffers()
+{
 
 }
 
