@@ -8,14 +8,14 @@ public:
 	~ez_stream() = default;
 
 	void seek(unsigned int index) { m_index = index; }
-	[[nodiscard]] const inline unsigned int tell() { return m_index; }
+	[[nodiscard]] const inline size_t tell() { return m_index; }
 
 	template <typename T, unsigned int size = sizeof(T)>
 	[[nodiscard]] const T read() {
+        if (m_index + size > m_len)
+            throw std::out_of_range("ur doing it wrong");
 		T ret = *(T*)((const char*)m_buffer + m_index);
 		m_index += size;
-		if (m_index > m_len)
-			throw std::out_of_range("ur doing it wrong");
 		return ret;
 	}
 
@@ -35,6 +35,6 @@ public:
 
 private:
 	const char* m_buffer{ nullptr };
-	unsigned int m_index{ 0 };
-	unsigned int  m_len{};
+	size_t  m_index{ 0 };
+	size_t  m_len{};
 };

@@ -19,9 +19,9 @@ void RendererOptions::render() {
                 sprintf_s(buf, 50, "Unknown Array %d", i++);
                 if (ImGui::CollapsingHeader(buf)) {
                     ImGui::Indent();
-                    ImGui::Checkbox("Should Render", &unknown_vector_array.should_draw);
+                    ImGui::Checkbox("Should Render", &unknown_vector_array.m_should_draw);
                     const char* const items[] = { "Triangles", "Lines", "Points" };
-                    ImGui::ListBox("Render Function", (int*)&unknown_vector_array.draw_func, items, IM_ARRAYSIZE(items));
+                    ImGui::ListBox("Render Function", (int*)&unknown_vector_array.m_draw_func, items, IM_ARRAYSIZE(items));
                     ImGui::Unindent();
                 }
             }

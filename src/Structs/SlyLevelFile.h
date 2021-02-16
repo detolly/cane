@@ -29,23 +29,47 @@ public:
 	mesh_data_t mesh_data;
 };
 
-struct unknown_vector_array : public SingleColoredWorldObject {
+class unknown_vector_array : public SingleColoredWorldObject {
 
+    friend class RendererOptions;
+public:
+    explicit unknown_vector_array(const std::vector<glm::vec3>&& floats) : m_points(std::vector<glm::vec3>(floats)) {}
+    explicit unknown_vector_array(unknown_vector_array&& arr)
+    {
+        m_points = std::move(arr.m_points);
+        render_properties = arr.render_properties;
+        arr.m_should_delete = false;
+    }
+    ~unknown_vector_array()
+    {
+        if (m_should_delete)
+            free_gl_buffers();
+    }
+    void render(Camera& cam, glm::mat4& proj) override;
     void make_gl_buffers();
     void free_gl_buffers();
 
-    void render(Camera& cam, glm::mat4& proj) override;
-
+private:
     enum class draw_function {
         triangles,
         lines,
         points
-    } draw_func { draw_function::points };
+    } m_draw_func { draw_function::points };
+
+public:
+    const draw_function draw_func() const { return m_draw_func; }
+    const std::vector<glm::vec3>& points() const { return m_points; }
+    bool should_draw() const { return m_should_draw; }
+    void set_should_draw(bool b) { m_should_draw = b; }
+
+private:
     struct {
         GLuint vao, vbo;
     } render_properties;
-    std::vector<float> array;
-    bool should_draw{ false };
+
+    bool m_should_delete { true };
+    std::vector<glm::vec3> m_points;
+    bool m_should_draw{ true };
 };
 
 class SlyLevelFile : public RenderedWorldObject

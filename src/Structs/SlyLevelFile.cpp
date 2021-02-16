@@ -209,7 +209,7 @@ void SlyLevelFile::render(Camera& cam, glm::mat4& matrix)
 		m_meshes[i].render(cam, matrix);
 	}
 	for(size_t i = 0; i < unknown_vector_arrays().size(); i++) {
-	    if (unknown_vector_arrays()[i].should_draw)
+	    if (unknown_vector_arrays()[i].should_draw())
 	        unknown_vector_arrays()[i].render(cam, matrix);
 	}
 }
@@ -266,32 +266,26 @@ void SlyLevelFile::make_texture(const char* buffer, texture_record_t& tex, size_
 
 void SlyLevelFile::find_and_populate_coord_arrays(ez_stream& stream) {
     stream.seek(0);
-    size_t found = 0;
-    std::vector<float> floats;
-    while(stream.tell() < stream.size() - sizeof(float)) {
-        float f = stream.read<float>();
-        //TODO: change to use stream.read_sly_vec(); asap (gotta catch up with PR so leaving this unfinished)
-        if (f != 0.0f) {
-            if ((-100000.f < f && f < -10.0f) || (f > 10.0f && f < 100000.f)) {
-                floats.push_back(f);
-                found++;
-            } else {
-                //conclude current array
-                if (found >= 12) {
-                    //we consider it a valid array
-                    unknown_vector_array array;
-                    array.array = std::move(floats);
-                    floats = std::vector<float>();
-                    array.make_gl_buffers();
-                    array.set_color({1.0f, 1.0f, 1.0f});
-                    m_unknown_vector_arrays.push_back(array);
-                } else {
-                    //not a valid array, but could be something else that we can look into in the future.
-                }
-                found = 0;
-                floats.clear();
-            }
+
+    const auto is_valid_vector = [](const glm::vec3& vec) -> bool {
+        const auto is_valid_float = [](const float& f) -> bool {
+            return  -100000.0f < f && f < 100000.0f && (f > 0.1 || f < -0.01) ;
+        };
+        return is_valid_float(vec.x) && is_valid_float(vec.y) && is_valid_float(vec.z);
+    };
+
+    std::vector<glm::vec3> unknowns;
+    while(stream.tell() < stream.size() - sizeof(glm::vec3)) {
+        for (auto vec = stream.read_sly_vec(); is_valid_vector(vec); vec = stream.read_sly_vec()) {
+            unknowns.push_back(vec);
         }
+        //minimum six points
+        if (unknowns.size() > 3) {
+            unknown_vector_arrays().emplace_back(unknown_vector_array(std::move(unknowns)));
+            unknown_vector_arrays().back().set_color({1.0f, 1.0f, 1.0f});
+            unknown_vector_arrays().back().make_gl_buffers();
+        }
+        unknowns.clear();
     }
 }
 
@@ -303,31 +297,32 @@ void unknown_vector_array::free_gl_buffers() {
 void unknown_vector_array::make_gl_buffers() {
     GLuint vao, vbo;
     glGenVertexArrays(1, &vao);
-    glBindVertexArray(vao);
     glGenBuffers(1, &vbo);
+    glBindVertexArray(vao);
 
     render_properties = { vao, vbo };
 
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glBufferData(GL_ARRAY_BUFFER, array.size() * sizeof(float), array.data(), GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, points().size() *  3 * sizeof(float), points().data(), GL_STATIC_DRAW);
 
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float), (void*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, (void*)0);
 }
 
 void unknown_vector_array::render(Camera &cam, glm::mat4 &proj)
 {
     SingleColoredWorldObject::render(cam, proj);
     glBindVertexArray(render_properties.vao);
-    switch(draw_func) {
+    switch(draw_func()) {
         case draw_function::lines:
-            glDrawArrays(GL_LINES, 0, array.size()-1);
+            glDrawArrays(GL_LINES, 0, points().size()-1);
             break;
         case draw_function::points:
-            glDrawArrays(GL_POINTS, 0, array.size());
+            glPointSize(4);
+            glDrawArrays(GL_POINTS, 0, points().size());
             break;
         case draw_function::triangles:
-            glDrawArrays(GL_TRIANGLES, 0, array.size()/3);
+            glDrawArrays(GL_TRIANGLES, 0, points().size()/3);
             break;
     }
 }
