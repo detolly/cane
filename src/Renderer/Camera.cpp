@@ -25,10 +25,6 @@ const glm::vec3 Camera::forward_xy() const {
 	return direction();
 }
 
-constexpr const glm::vec3 Camera::up() {
-	return glm::vec3(0.0f, 1.0f, 0.0f);
-}
-
 const glm::vec3 Camera::direction() const {
 	return glm::normalize(glm::vec3(glm::cos(glm::radians(yaw())) * glm::cos(glm::radians(pitch())), glm::sin(glm::radians(pitch())), glm::sin(glm::radians(yaw())) * glm::cos(glm::radians(pitch()))));
 }

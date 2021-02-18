@@ -26,10 +26,17 @@ add_executable(cane
 	src/Gui/RendererOptions.cpp src/Gui/RendererOptions.h
 	src/Utility/Singleton.h src/Utility/Singleton.cpp src/Utility/FileWriter.h)
 
-if(WIN32)
-	set_target_properties(cane PROPERTIES COMPILE_FLAGS "-W4")
+#if(WIN32)
+#	set_target_properties(cane PROPERTIES COMPILE_FLAGS "-W4")
+#else()
+#	set_target_properties(cane PROPERTIES COMPILE_FLAGS "-Wall")
+#endif()
+
+if (MSVC)
+	target_compile_definitions(cane PRIVATE /W14244 /WX)
 else()
-	set_target_properties(cane PROPERTIES COMPILE_FLAGS "-Wall")
+	#TODO: someone do this on linux
+	#target_compile_definitions(cane PRIVATE -Wall -Wextra -Wpedantic -Werror)
 endif()
 
 target_include_directories(cane PUBLIC include)
