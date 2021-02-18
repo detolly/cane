@@ -51,9 +51,12 @@ public:
 		resize_buffer(128, 128);
 	}
 	~Thumbnail() = default;
+
 	Thumbnail(const Thumbnail&) = delete;
-	Thumbnail& operator=(const Thumbnail&&) = default;
+    Thumbnail& operator=(const Thumbnail&) = delete;
+
 	Thumbnail(Thumbnail&& thumb) = default;
+	Thumbnail& operator=(Thumbnail&&) = default;
 
 	void render(const SlyMesh& mesh) const;
 	int index() const { return m_index_into_buffer; }

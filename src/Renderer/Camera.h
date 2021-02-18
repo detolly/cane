@@ -48,7 +48,7 @@ public:
 	const glm::vec3 right() const;
 	const glm::vec3 back() const;
 	const glm::vec3 back_xy() const;
-	const static glm::vec3 up();
+	constexpr const static glm::vec3 up();
 
 private:
 
