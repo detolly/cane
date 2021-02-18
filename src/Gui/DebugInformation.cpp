@@ -43,8 +43,8 @@ void DebugInformation::render()
 			ImGui::TextWrapped("~Flag & 0x100\t unk_byte_1A: %03x (%03d)", header.m.unk_0x1A, header.m.unk_0x1A);
 			ImGui::TextWrapped("~Flag & 0x100\t unk_byte_1B: %03x (%03d)", header.m.unk_0x1B, header.m.unk_0x1B);
 			ImGui::TextWrapped("~Flag & 0x100\t unk_byte_1C: %03x (%03d)", header.m.unk_0x1C, header.m.unk_0x1C);
-			uint16_t* ptr = (uint16_t*)&header.m.unk_0x1A;
-			uint16_t* ptr2 = (uint16_t*)&header.m.unk_0x1B;
+			auto* ptr = (uint16_t*)&header.m.unk_0x1A;
+			auto* ptr2 = (uint16_t*)&header.m.unk_0x1B;
 			ImGui::TextWrapped("~Flag & 0x100\t unk_byte_1A1B: %04x (%05d)", *ptr, *ptr);
 			ImGui::TextWrapped("~Flag & 0x100\t unk_byte_1B1C: %04x (%05d)", *ptr2, *ptr2);
 
@@ -57,23 +57,23 @@ void DebugInformation::render()
 					ImGui::Indent();
 					ImGui::TextWrapped("vertex_count %03d\tnormal_count %03d\tvertex_color_count %03d\ttexcoords_count %03d\tindex_count %03d", data.vertex_count, data.normal_count, data.vertex_color_count, data.texcoords_count, data.index_count);
 					if (ImGui::CollapsingHeader("Vertices")) {
-						for (size_t j = 0; j < data.vertices.size(); j++) {
-							ImGui::TextWrapped("%f %f %f", data.vertices[j].x, data.vertices[j].y, data.vertices[j].z);
+						for (auto vertex : data.vertices) {
+							ImGui::TextWrapped("%f %f %f", vertex.x, vertex.y, vertex.z);
 						}
 					}
 					if (ImGui::CollapsingHeader("Normals")) {
-						for (size_t j = 0; j < data.normals.size(); j++) {
-							ImGui::TextWrapped("%f %f %f", data.normals[j].x, data.normals[j].y, data.normals[j].z);
+						for (auto normal : data.normals) {
+							ImGui::TextWrapped("%f %f %f", normal.x, normal.y, normal.z);
 						}
 					}
 					if (ImGui::CollapsingHeader("Texcoords")) {
-						for (size_t j = 0; j < data.texcoords.size(); j++) {
-							ImGui::TextWrapped("%f %f", data.texcoords[j].u, data.texcoords[j].v);
+						for (auto texcoord : data.texcoords) {
+							ImGui::TextWrapped("%f %f", texcoord.u, texcoord.v);
 						}
 					}
 					if (ImGui::CollapsingHeader("Indices")) {
-						for (size_t j = 0; j < data.indices.size(); j++) {
-							ImGui::TextWrapped("Position: %d Normal: %d Texcoords: %d Unk: %d", data.indices[j].vertex_index, data.indices[j].normal_index, data.indices[j].texcoords_index, data.indices[j].unk);
+						for (auto index : data.indices) {
+							ImGui::TextWrapped("Position: %d Normal: %d Texcoords: %d Unk: %d", index.vertex_index, index.normal_index, index.texcoords_index, index.unk);
 						}
 					}
 					if (ImGui::CollapsingHeader("Other Information")) {
