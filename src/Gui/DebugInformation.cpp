@@ -10,10 +10,15 @@ void DebugInformation::render()
 	ImGui::Begin("Debug Information", &config::the().windows.debug_information);
 	ImGui::TextWrapped("Selected Mesh: ");
 	if (Editor::the().has_file_loaded() && currently_selected_mesh > -1) {
-		auto& mesh = Editor::the().level_file()->meshes()[currently_selected_mesh];
-		ImGui::DragFloat3("World Coords", (float*)&mesh.game_object().raw_location(), 0.1f, 0.0f, 0.0f, "%.3f", 1.0f);
-		ImGui::DragFloat3("Model Rotation", (float*)&mesh.game_object().raw_rotation(), 0.1f, 0.0f, 360.0f, "%.3f", 1.0f);
-		ImGui::DragFloat3("Model Scale", (float*)&mesh.game_object().raw_scale(), 0.01f, 0.0f, 0.0f, "%.3f", 1.0f);
+		auto& writable_mesh = Editor::the().level_file()->meshes()[currently_selected_mesh];
+		ImGui::DragFloat3("World Coords", (float*)&writable_mesh.game_object().raw_location(), 0.1f, 0.0f, 0.0f, "%.3f", 1.0f);
+		ImGui::DragFloat3("Model Rotation", (float*)&writable_mesh.game_object().raw_rotation(), 0.1f, 0.0f, 360.0f, "%.3f", 1.0f);
+		ImGui::DragFloat3("Model Scale", (float*)&writable_mesh.game_object().raw_scale(), 0.01f, 0.0f, 0.0f, "%.3f", 1.0f);
+		if (Editor::the().io()->WantCaptureMouse) {
+            writable_mesh.game_object().set_should_recalculate_model_matrix(true);
+            writable_mesh.game_object().calculate_model_matrix_if_needed();
+		}
+		const auto& mesh = Editor::the().level_file()->meshes()[currently_selected_mesh];
 		if (~mesh.mesh_data.flags & 1) {
 			ImGui::TextWrapped("Mesh Header:");
 			auto& na = mesh.mesh_data.not_flags_and_1;
@@ -90,7 +95,6 @@ void DebugInformation::render()
 				}
 			}
 		}
-		mesh.game_object().set_should_recalculate_model_matrix(true);
 	}
 	ImGui::End();
 }
