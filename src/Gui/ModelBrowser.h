@@ -55,7 +55,7 @@ public:
 	Thumbnail& operator=(Thumbnail&&) = default;
 	Thumbnail(Thumbnail&& thumb) = default;
 
-	void render(SlyMesh& mesh);
+	void render(const SlyMesh& mesh) const;
 	const int index() const { return m_index_into_buffer; }
 
 private:

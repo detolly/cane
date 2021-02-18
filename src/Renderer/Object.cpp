@@ -17,17 +17,11 @@ void GameObject::set_location(const glm::vec3& vec)
 
 const glm::mat4& GameObject::model()
 {
-	if (should_recalculate_model_matrix()) {
-		m_should_recalculate_model_matrix = false;
-		//TODO THIS IS COMPLETELY WRONG
-		m_model = glm::scale(glm::mat4(1.0f), scale());
-		m_model = glm::translate(m_model, location());
-		m_model = glm::rotate(m_model, glm::radians(m_rotation.x), glm::vec3(0.0f, -1.0f, 0.0f));
-		m_model = glm::rotate(m_model, glm::radians(m_rotation.y), glm::vec3(1.0f, 0.0f, 0.0f));
-		m_model = glm::rotate(m_model, glm::radians(m_rotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
-		//TODO: rotate
-	}
 	return m_model;
+}
+
+const glm::mat4& GameObject::model() const {
+    return m_model;
 }
 
 void GameObject::set_scale(const glm::vec3& scale)
@@ -46,6 +40,18 @@ void GameObject::move(const glm::vec3& vec) {
 	GameObject::set_location(m_location + vec);
 }
 
+void GameObject::calculate_model_matrix_if_needed() {
+    if (should_recalculate_model_matrix()) {
+        m_should_recalculate_model_matrix = false;
+        //TODO THIS IS COMPLETELY WRONG
+        m_model = glm::scale(glm::mat4(1.0f), scale());
+        m_model = glm::translate(m_model, location());
+        m_model = glm::rotate(m_model, glm::radians(m_rotation.x), glm::vec3(0.0f, -1.0f, 0.0f));
+        m_model = glm::rotate(m_model, glm::radians(m_rotation.y), glm::vec3(1.0f, 0.0f, 0.0f));
+        m_model = glm::rotate(m_model, glm::radians(m_rotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
+    }
+}
+
 Shader SingleColoredWorldObject::m_shader{ { Shader("colored_object_shader_vertex.glsl", "colored_object_shader_fragment.glsl") } };
 
 SingleColoredWorldObject::SingleColoredWorldObject()
@@ -60,7 +66,7 @@ SingleColoredWorldObject::SingleColoredWorldObject(glm::vec3 color) :
 	set_color(color);
 }
 
-void SingleColoredWorldObject::render(Camera& camera, glm::mat4& proj)
+void SingleColoredWorldObject::render(const Camera& camera, const glm::mat4& proj) const
 {
 	shader().use();
 	shader().set_vec4("col", m_color);
@@ -69,12 +75,12 @@ void SingleColoredWorldObject::render(Camera& camera, glm::mat4& proj)
 	shader().set_mat4("projection", proj);
 }
 
-void SingleColoredWorldObject::set_color(glm::vec3 color) {
+void SingleColoredWorldObject::set_color(const glm::vec3& color) {
 	m_color = glm::vec4(color, 1.0f);
 	shader().set_vec4("col", m_color);
 }
 
-void SingleColoredSlyWorldObject::render(Camera& camera, glm::mat4 & proj) {
+void SingleColoredSlyWorldObject::render(const Camera& camera, const glm::mat4 & proj) const {
 	shader().use();
 	shader().set_vec4("col", glm::vec4(color(), 1.0f));
 	shader().set_mat4("model", game_object().constant_model() ? game_object().constant_model_matrix() : game_object().model());

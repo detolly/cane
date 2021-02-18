@@ -22,7 +22,7 @@ public:
 	}
 
 	void use();
-	inline unsigned int program() { return m_program; }
+	const inline unsigned int program() const { return m_program; }
 
 	void set_vec3(const char* name, const glm::vec3& v);
 	void set_vec4(const char* name, const glm::vec4& v);

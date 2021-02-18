@@ -24,7 +24,7 @@ public:
 
 	void make_gl_buffers();
 	void free_gl_buffers();
-	void render(Camera& cam, glm::mat4x4& proj) override;
+	void render(const Camera& cam, const glm::mat4x4& proj) const override;
 
 	mesh_data_t mesh_data;
 };
@@ -45,7 +45,7 @@ public:
         if (m_should_delete)
             free_gl_buffers();
     }
-    void render(Camera& cam, glm::mat4& proj) override;
+    void render(const Camera& cam, const glm::mat4& proj) const override;
     void make_gl_buffers();
     void free_gl_buffers();
 
@@ -103,13 +103,20 @@ public:
 	void parse_textures(ez_stream& stream);
 	void make_texture(const char* buffer, texture_record_t& tex, size_t clutIndex, size_t imageIndex);
 
-	void render(Camera& cam, glm::mat4& matrix) override;
+	void render(const Camera& cam, const glm::mat4& matrix) const override;
 
 	image_meta_table_t const& image_image_table() { return m_image_meta_table; }
 	clut_meta_table_t const& clut_meta_table() { return m_clut_meta_table; }
 	texture_table_t const& texture_table() { return m_texture_table; }
-	std::vector<SlyMesh>& meshes() { return m_meshes; }
+    std::vector<SlyMesh>& meshes() { return m_meshes; }
 	std::vector<unknown_vector_array>& unknown_vector_arrays() { return m_unknown_vector_arrays; }
+
+    const image_meta_table_t& image_image_table() const { return m_image_meta_table; }
+    const clut_meta_table_t& clut_meta_table() const { return m_clut_meta_table; }
+    const texture_table_t& texture_table() const { return m_texture_table; }
+    const std::vector<SlyMesh>& meshes() const { return m_meshes; }
+    const std::vector<unknown_vector_array>& unknown_vector_arrays() const { return m_unknown_vector_arrays; }
+
 
 private:
 

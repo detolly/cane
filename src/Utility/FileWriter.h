@@ -27,7 +27,7 @@ public:
         //TODO: exception handling?
     };
 
-    bool was_opened() { return m_was_opened; }
+    bool was_opened() const { return m_was_opened; }
 
 private:
     bool m_was_opened{false};

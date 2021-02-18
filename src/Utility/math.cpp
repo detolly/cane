@@ -36,7 +36,7 @@ bool ray_intersects_triangle(const glm::vec3& ray_origin, const glm::vec3& ray_v
 	if (v < 0.0 || u + v > 1.0)
 		return false;
 	// At this stage we can compute t to find out where the intersection point is on the line.
-	double t = f * glm::dot(edge2, q);
+	const double t = f * glm::dot(edge2, q);
 	if (t > EPSILON) // ray intersection
 	{
 		outIntersectionPoint = ray_origin + ray_vector * static_cast<float>(t);

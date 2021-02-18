@@ -10,7 +10,7 @@ public:
 	Cube();
 	virtual ~Cube() override;
 
-	virtual void render(Camera& c, glm::mat4& proj) override;
+	virtual void render(const Camera& c, const glm::mat4& proj) const override;
 
 private:
 	static constexpr float m_vertex_buffer_data[] = {

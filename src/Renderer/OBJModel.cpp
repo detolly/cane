@@ -62,7 +62,7 @@ void OBJModel::make_gl_buffers()
     glEnableVertexAttribArray(0);
 }
 
-void OBJModel::render(Camera& camera, glm::mat4& proj)
+void OBJModel::render(const Camera& camera, const glm::mat4& proj) const
 {
     shader().set_mvp(game_object().model(), camera.view(), proj);
 

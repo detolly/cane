@@ -9,7 +9,7 @@ public:
 	OBJModel(const char* file_location);
 	~OBJModel() { free_gl_buffer(); }
 
-	virtual void render(Camera& camera, glm::mat4& proj) override;
+	virtual void render(const Camera& camera, const glm::mat4& proj) const override;
 
 private:
 

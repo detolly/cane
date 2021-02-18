@@ -23,7 +23,8 @@ public:
 	void imgui_init();
 	void create_window();
 
-	SlyLevelFile* level_file() const { return m_level; }
+	SlyLevelFile* level_file() { return m_level; }
+	const SlyLevelFile* level_file() const { return m_level; }
 	bool has_file_loaded() const { return m_level != nullptr; }
 
 	void set_can_resize(bool value) { m_can_resize = value; }

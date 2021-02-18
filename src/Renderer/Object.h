@@ -20,10 +20,13 @@ public:
 	inline glm::vec3& raw_location() { return m_location; }
 	inline glm::vec3& raw_rotation() { return m_rotation; }
 
+	void calculate_model_matrix_if_needed();
+
 	const inline bool should_recalculate_model_matrix() const { return m_should_recalculate_model_matrix; }
 	void set_should_recalculate_model_matrix(bool should) { m_should_recalculate_model_matrix = should; }
 	
 	const glm::mat4& model();
+	const glm::mat4& model() const;
 
 	void set_scale(const glm::vec3&);
 	void set_location(const glm::vec3&);
@@ -60,6 +63,7 @@ public:
 	virtual ~WorldObject() = default;
 
 	GameObject& game_object() { return m_game_object; };
+	const GameObject& game_object() const { return m_game_object; }
 
 private:
 
@@ -71,7 +75,7 @@ class RenderedWorldObject : public WorldObject {
 public:
 	RenderedWorldObject() {}
 	virtual ~RenderedWorldObject() override = default;
-	virtual void render(Camera& camera, glm::mat4& proj) = 0;
+	virtual void render(const Camera& camera, const glm::mat4& proj) const = 0;
 
 private:
 
@@ -85,9 +89,9 @@ public:
 	virtual ~SingleColoredWorldObject() override = default;
 
 	static inline Shader& shader() { return m_shader; }
-	virtual void render(Camera& camera, glm::mat4& proj) override;
+	virtual void render(const Camera& camera, const glm::mat4& proj) const override;
 
-	void set_color(glm::vec3);
+	void set_color(const glm::vec3&);
 	const inline glm::vec3 color() const { return m_color; };
 
 private:
@@ -104,7 +108,8 @@ public:
 	virtual ~SingleColoredSlyWorldObject() {}
 
 	static inline Shader& shader() { return m_shader; }
-	virtual void render(Camera& camera, glm::mat4& proj) override;
+
+	virtual void render(const Camera& camera, const glm::mat4& proj) const override;
 private:
 
 	static Shader m_shader;
@@ -116,7 +121,7 @@ class LightedWorldObject : public RenderedWorldObject
 public:
 
 	virtual ~LightedWorldObject() override = default;
-	virtual void render(Camera& camera, glm::mat4& proj) override = 0;
+	virtual void render(const Camera& camera, const glm::mat4& proj) const override = 0;
 
 	const inline LightingProperties lighting_properties() const { return m_lighting_properties; };
 

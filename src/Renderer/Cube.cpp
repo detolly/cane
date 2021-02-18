@@ -34,7 +34,7 @@ void Cube::free_gl_buffers()
 
 }
 
-void Cube::render(Camera& cam, glm::mat4& proj)
+void Cube::render(const Camera& cam, const glm::mat4& proj) const
 {
 	SingleColoredWorldObject::render(cam, proj);
 	

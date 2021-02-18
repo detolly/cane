@@ -24,16 +24,16 @@ void ModelBrowser::render()
 
 void ModelBrowser::make_thumbnails() {
 	m_thumbnails.clear();
-	auto* level = Editor::the().level_file();
+	const auto* level = Editor::the().level_file();
 	for (size_t i = 0; i < level->meshes().size(); i++) {
-		auto& mesh = level->meshes()[i];
+		const auto& mesh = level->meshes()[i];
 		Thumbnail b(i);
 		b.render(mesh);
 		m_thumbnails.push_back(std::move(b));
 	}
 }
 
-void Thumbnail::render(SlyMesh& mesh)
+void Thumbnail::render(const SlyMesh& mesh) const
 {
 	glBindFramebuffer(GL_FRAMEBUFFER, fbo());
 
@@ -45,6 +45,7 @@ void Thumbnail::render(SlyMesh& mesh)
 	cam.set_location(mesh.game_object().location() + 10.0f);
 	cam.set_pitch(-45.0f);
 	cam.set_yaw(-135.0f);
+	cam.calculate_view_matrix_if_needed();
 	static glm::mat4 proj = glm::perspective(90.0f, 1.0f, 0.1f, 50.0f);
 
 	mesh.render(cam, proj);

@@ -14,10 +14,12 @@ public:
 	}
 	~Camera() = default;
 
-	const glm::mat4 view() { if (m_should_recalculate_view_matrix) calculate_view_matrix(); return m_view; }
+	const glm::mat4 view() const { return m_view; }
 	const glm::vec3 location() const { return m_location; } 
 	const glm::vec3& location() { return m_location; }
 	void set_location(glm::vec3 vec) { m_location = vec; m_should_recalculate_view_matrix = true; }
+
+	void calculate_view_matrix_if_needed() { if (m_should_recalculate_view_matrix) calculate_view_matrix(); }
 
 	const float pitch() const { return m_pitch; } 
 	float pitch() { return m_pitch; }
@@ -41,12 +43,12 @@ public:
 
 	const glm::vec3 direction() const;
 	const glm::vec3 forward() const;
+	const glm::vec3 forward_xy() const;
 	const glm::vec3 left() const;
 	const glm::vec3 right() const;
 	const glm::vec3 back() const;
 	const glm::vec3 back_xy() const;
 	const static glm::vec3 up();
-	const glm::vec3 forward_xy() const;
 
 private:
 

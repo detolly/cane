@@ -33,7 +33,8 @@ void Renderer::render()
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glClearColor(0.2f, 0.4f, 0.6f, 1.0f);
 
-		editor.level_file()->render(m_camera, projection());
+		camera().calculate_view_matrix_if_needed();
+		editor.level_file()->render(camera(), projection());
 
 		const auto selected_mesh = m_currently_selected_mesh;
 		if (selected_mesh != -1) {
@@ -127,7 +128,7 @@ void Renderer::select(double mouse_x, double mouse_y, bool ctrl_modifier)
 	if (!Editor::the().has_file_loaded())
 		return;
 	glm::vec3 ray = clickray(mouse_x, mouse_y, render_size().x, render_size().y, projection(), camera());
-	std::vector<SlyMesh>& meshes = Editor::the().level_file()->meshes();
+	const std::vector<SlyMesh>& meshes = Editor::the().level_file()->meshes();
 	int mesh = -1;
 	bool has_found = false;
 	float lowest_distance = 10000000.0f;

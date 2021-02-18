@@ -173,7 +173,7 @@ public:
 
     void make_gl_buffers();
     void free_gl_buffers();
-    void render(Camera& cam, glm::mat4& proj) override;
+    void render(const Camera& cam, const glm::mat4& proj) const override;
 
     inline bool is_bad_flags(uint16_t flags) {
         return flags & 0x40 || flags & 0x4 || flags == 0;

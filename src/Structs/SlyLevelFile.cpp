@@ -25,6 +25,7 @@ void SlyMesh::parse(ez_stream& stream)
 	mesh_data = std::move(mesh_data_t(stream));
 	auto p = mesh_data.not_flags_and_1.szme_hdr.m.position;
 	game_object().set_location(glm::vec3(p.x, p.y, p.z));
+	game_object().calculate_model_matrix_if_needed();
 }
 
 void SlyMesh::make_gl_buffers()
@@ -65,7 +66,7 @@ void SlyMesh::free_gl_buffers()
 {
 }
 
-void SlyMesh::render(Camera& cam, glm::mat4x4& proj)
+void SlyMesh::render(const Camera& cam, const glm::mat4x4& proj) const
 {
 	if (mesh_data.flags & 1)
 		return;
@@ -203,7 +204,7 @@ void SlyLevelFile::parse_textures(ez_stream& stream)
 	}
 }
 
-void SlyLevelFile::render(Camera& cam, glm::mat4& matrix)
+void SlyLevelFile::render(const Camera& cam, const glm::mat4& matrix) const
 {
 	for (size_t i = 0; i < m_meshes.size(); i++) {
 		m_meshes[i].render(cam, matrix);
@@ -309,7 +310,7 @@ void unknown_vector_array::make_gl_buffers() {
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, (void*)0);
 }
 
-void unknown_vector_array::render(Camera &cam, glm::mat4 &proj)
+void unknown_vector_array::render(const Camera &cam, const glm::mat4 &proj) const
 {
     SingleColoredWorldObject::render(cam, proj);
     glBindVertexArray(render_properties.vao);

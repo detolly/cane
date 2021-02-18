@@ -136,7 +136,7 @@ void szme_vertex_data_t::free_gl_buffers()
     glDeleteVertexArrays(1, &render_properties.vao);
 }
 
-void szme_vertex_data_t::render(Camera& cam, glm::mat4& proj)
+void szme_vertex_data_t::render(const Camera& cam, const glm::mat4& proj) const
 {
     if (!m_initialized)
         return;

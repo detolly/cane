@@ -45,42 +45,46 @@ void DebugInformation::render()
 
 			ImGui::TextWrapped("SZME Data: ");
 			for (size_t i = 0; i < na.szme_data.size(); i++) {
+			    const auto& data = na.szme_data[i];
 				char buf[32];
 				sprintf_s(buf, 32, "SZME Data #%d", i);
 				if (ImGui::CollapsingHeader(buf)) {
 					ImGui::Indent();
-					ImGui::TextWrapped("vertex_count %03d\tnormal_count %03d\tvertex_color_count %03d\ttexcoords_count %03d\tindex_count %03d", na.szme_data[i].vertex_count, na.szme_data[i].normal_count, na.szme_data[i].vertex_color_count, na.szme_data[i].texcoords_count, na.szme_data[i].index_count);
+					ImGui::TextWrapped("vertex_count %03d\tnormal_count %03d\tvertex_color_count %03d\ttexcoords_count %03d\tindex_count %03d", data.vertex_count, data.normal_count, data.vertex_color_count, data.texcoords_count, data.index_count);
 					if (ImGui::CollapsingHeader("Vertices")) {
-						for (size_t j = 0; j < na.szme_data[i].vertices.size(); j++) {
-							ImGui::TextWrapped("%f %f %f", na.szme_data[i].vertices[j].x, na.szme_data[i].vertices[j].y, na.szme_data[i].vertices[j].z);
+						for (size_t j = 0; j < data.vertices.size(); j++) {
+							ImGui::TextWrapped("%f %f %f", data.vertices[j].x, data.vertices[j].y, data.vertices[j].z);
 						}
 					}
 					if (ImGui::CollapsingHeader("Normals")) {
-						for (size_t j = 0; j < na.szme_data[i].normals.size(); j++) {
-							ImGui::TextWrapped("%f %f %f", na.szme_data[i].normals[j].x, na.szme_data[i].normals[j].y, na.szme_data[i].normals[j].z);
+						for (size_t j = 0; j < data.normals.size(); j++) {
+							ImGui::TextWrapped("%f %f %f", data.normals[j].x, data.normals[j].y, data.normals[j].z);
 						}
 					}
 					if (ImGui::CollapsingHeader("Texcoords")) {
-						for (size_t j = 0; j < na.szme_data[i].texcoords.size(); j++) {
-							ImGui::TextWrapped("%f %f", na.szme_data[i].texcoords[j].u, na.szme_data[i].texcoords[j].v);
+						for (size_t j = 0; j < data.texcoords.size(); j++) {
+							ImGui::TextWrapped("%f %f", data.texcoords[j].u, data.texcoords[j].v);
 						}
 					}
 					if (ImGui::CollapsingHeader("Indices")) {
-						for (size_t j = 0; j < na.szme_data[i].indices.size(); j++) {
-							ImGui::TextWrapped("Position: %d Normal: %d Texcoords: %d Unk: %d", na.szme_data[i].indices[j].vertex_index, na.szme_data[i].indices[j].normal_index, na.szme_data[i].indices[j].texcoords_index, na.szme_data[i].indices[j].unk);
+						for (size_t j = 0; j < data.indices.size(); j++) {
+							ImGui::TextWrapped("Position: %d Normal: %d Texcoords: %d Unk: %d", data.indices[j].vertex_index, data.indices[j].normal_index, data.indices[j].texcoords_index, data.indices[j].unk);
 						}
 					}
 					if (ImGui::CollapsingHeader("Other Information")) {
-						ImGui::TextWrapped("unk_u8_1 %03x (%03d)", na.szme_data[i].unk_u8_1, na.szme_data[i].unk_u8_1);
-						ImGui::TextWrapped("unk_u8_2 %03x (%03d)", na.szme_data[i].unk_u8_2, na.szme_data[i].unk_u8_2);
-						ImGui::TextWrapped("unk_vec3 %.4f %.4f %.4f", na.szme_data[i].unk_vec.x, na.szme_data[i].unk_vec.y, na.szme_data[i].unk_vec.z);
-						ImGui::TextWrapped("Texture Id: %d", na.szme_data[i].texture_id);
-						if (na.szme_data[i].texture_id < Editor::the().level_file()->texture_table().texture.size())
+						ImGui::TextWrapped("unk_u8_1 %03x (%03d)", data.unk_u8_1, data.unk_u8_1);
+						ImGui::TextWrapped("unk_u8_2 %03x (%03d)", data.unk_u8_2, data.unk_u8_2);
+						ImGui::TextWrapped("unk_vec3 %.4f %.4f %.4f", data.unk_vec.x, data.unk_vec.y, data.unk_vec.z);
+						ImGui::TextWrapped("Texture Id: %d", data.texture_id);
+						const auto* const_level = Editor::the().level_file();
+						if (data.texture_id < const_level->texture_table().texture.size())
 							ImGui::Image(
-								(ImTextureID)Editor::the().level_file()->texture_table().texture[na.szme_data[i].texture_id].gl_texture,
+								(ImTextureID)const_level->texture_table().texture[data.texture_id].gl_texture,
 								{ 256.0f, 256.0f },
 								{ 0.0f, 1.0f }, { 1.0f, 0.0f }
 							);
+						else
+						    ImGui::TextWrapped("TextureID is invalid (%d outside the bounds of array)", data.texture_id);
 					}
 					ImGui::Unindent();
 				}
