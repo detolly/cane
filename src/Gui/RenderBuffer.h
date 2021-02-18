@@ -5,7 +5,7 @@ typedef unsigned int GLuint;
 class TexturedRenderBuffer {
 public:
 	explicit TexturedRenderBuffer() = default;
-	virtual ~TexturedRenderBuffer() {
+	~TexturedRenderBuffer() {
 		free_buffer();
 	}
 

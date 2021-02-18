@@ -12,7 +12,7 @@ class Editor;
 class Thumbnail;
 class ModelBrowser : public TexturedRenderBuffer, public Singleton<ModelBrowser> {
 public:
-	ModelBrowser() {}
+	ModelBrowser() = default;
 
 	void init() {
         resize_buffer(width, height);
@@ -47,16 +47,16 @@ private:
 
 class Thumbnail : public TexturedRenderBuffer {
 public:
-	Thumbnail(int index_into_buffer) : m_index_into_buffer(index_into_buffer) {
+	explicit Thumbnail(int index_into_buffer) : m_index_into_buffer(index_into_buffer) {
 		resize_buffer(128, 128);
 	}
 	~Thumbnail() = default;
 	Thumbnail(const Thumbnail&) = delete;
-	Thumbnail& operator=(Thumbnail&&) = default;
+	Thumbnail& operator=(const Thumbnail&&) = default;
 	Thumbnail(Thumbnail&& thumb) = default;
 
 	void render(const SlyMesh& mesh) const;
-	const int index() const { return m_index_into_buffer; }
+	int index() const { return m_index_into_buffer; }
 
 private:
 	int m_index_into_buffer;
