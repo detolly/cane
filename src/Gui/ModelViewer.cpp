@@ -22,9 +22,9 @@ void ModelViewer::render()
 	glClearColor(rgba.r, rgba.g, rgba.b, rgba.a);
 
 	if (m_selected != -1) {
-		auto& mesh = Editor::the().level_file()->meshes()[m_selected];
+		const auto& mesh = Editor::the().level_file()->meshes()[m_selected];
 
-		static glm::mat4 proj = glm::perspective(90.0f, 1.0f, 0.1f, 100.0f);
+		const static glm::mat4 proj = glm::perspective(90.0f, 1.0f, 0.1f, 100.0f);
 		static Camera cam{};
 		cam.set_location(mesh.game_object().location() + 10.0f);
 		cam.set_pitch(-45.0f);
