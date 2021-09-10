@@ -36,7 +36,6 @@ SOFTWARE.
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <stdio.h>
-#include <map>
 #include <errno.h>
 #if defined(__WIN32__) || defined(_WIN32)
 #ifndef WIN32

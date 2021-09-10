@@ -15,18 +15,22 @@ static float g_height = 900;
 static ImGuiIO* io;
 
 int main(int argc, char* argv[]) {
+#ifdef WIN32
+#ifdef NDEBUG
+	CloseHandle(GetStdHandle((DWORD)stdin));
+	CloseHandle(GetStdHandle((DWORD)stderr));
+	CloseHandle(GetStdHandle((DWORD)stdout));
+	PostMessage(GetConsoleWindow(), WM_CLOSE, 0, 0);
+	FreeConsole();
+#endif
+#endif
+
+	glfwSetErrorCallback(error_callback);
+	//glfwWindowHint(GLFW_SAMPLES, 4);
+
 	if (!glfwInit()) {
 		dbgprint("ERROR INIT WINDOW");
 	}
-
-
-
-	glfwSetErrorCallback(error_callback);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-	//glfwWindowHint(GLFW_SAMPLES, 4);
-
 
 	//glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 1);
 	//glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
@@ -73,7 +77,7 @@ int main(int argc, char* argv[]) {
 	io = &ImGui::GetIO();
 	//io->ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
 	ImGui_ImplGlfw_InitForOpenGL(g_window, true);
-	ImGui_ImplOpenGL3_Init("#version 320 core");
+	ImGui_ImplOpenGL3_Init("#version 330 core");
 	ImGui::StyleColorsDark();
 
 	io->ConfigFlags |= ImGuiConfigFlags_DockingEnable;
