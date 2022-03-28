@@ -41,3 +41,4 @@ void Cube::render(const Camera& cam, const glm::mat4& proj) const
 	glBindVertexArray(m_vao);
 	glDrawArrays(GL_TRIANGLES, 0, sizeof(m_vertex_buffer_data) / sizeof(float) / 3);
 }
+

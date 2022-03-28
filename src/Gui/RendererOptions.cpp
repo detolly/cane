@@ -39,3 +39,4 @@ void RendererOptions::on_close()
 {
 
 }
+

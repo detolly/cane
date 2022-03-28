@@ -20,3 +20,4 @@ public:
 private:
 	int m_selected{ -1 };
 };
+

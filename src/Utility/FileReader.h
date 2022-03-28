@@ -37,3 +37,4 @@ private:
 	size_t m_len{0};
 	bool m_should_give_ownership;
 };
+

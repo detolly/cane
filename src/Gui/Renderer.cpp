@@ -37,15 +37,15 @@ void Renderer::render()
 		editor.level_file()->render(camera(), projection());
 
 		const auto selected_mesh = m_currently_selected_mesh;
-		if (selected_mesh != -1) {
-			auto& mesh = Editor::the().level_file()->meshes()[selected_mesh];
-			if (~mesh.mesh_data.flags & 1) {
-				auto& na = mesh.mesh_data.not_flags_and_1;
-				for (size_t i = 0; i < na.szme_data.size(); i++) {
-					na.szme_data[i].render(m_camera, projection());
-				}
-			}
-		}
+		//if (selected_mesh != -1) {
+		//	const auto& mesh = Editor::the().level_file()->meshes()[selected_mesh];
+        //    if (~mesh.data.flags & 1) {
+        //        auto& na = mesh.data.szme;
+        //        for (size_t i = 0; i < na.flags_not_and_1.szme_data.size(); i++) {
+        //            na.flags_not_and_1.szme_data[i].render(m_camera, projection());
+        //        }
+        //    }
+		//}
 	}
 
 
@@ -128,37 +128,38 @@ void Renderer::select(double mouse_x, double mouse_y, bool ctrl_modifier)
 	if (!Editor::the().has_file_loaded())
 		return;
 	glm::vec3 ray = clickray(mouse_x, mouse_y, render_size().x, render_size().y, projection(), camera());
-	const std::vector<SlyMesh>& meshes = Editor::the().level_file()->meshes();
+	const auto& meshes = Editor::the().level_file()->meshes();
 	int mesh = -1;
 	bool has_found = false;
 	float lowest_distance = 10000000.0f;
 	glm::vec3 intersection_point;
 	for (size_t i = 0; i < meshes.size(); i++) {
-		if (~meshes[i].mesh_data.flags & 1)
-			for (int j = 0; j < meshes[i].mesh_data.not_flags_and_1.mesh_hdr.mesh_count; j++) {
-				const auto& triangles = meshes[i].mesh_data.not_flags_and_1.vertex_data[j].index_hdr.triangle_data;
-				const auto& vertices = meshes[i].mesh_data.not_flags_and_1.vertex_data[j].vertices;
-				for (size_t tri = 0; tri < triangles.size(); tri += 3) {
-					const auto v1 = meshes[i].game_object().model() * glm::vec4(vertices[triangles[tri]].pos, 1.0f);
-					const auto v2 = meshes[i].game_object().model() * glm::vec4(vertices[triangles[tri + 1]].pos, 1.0f);
-					const auto v3 = meshes[i].game_object().model() * glm::vec4(vertices[triangles[tri + 2]].pos, 1.0f);
-					if (ray_intersects_triangle(
-						camera().location(),
-						ray,
-						v1,
-						v2,
-						v3,
-						intersection_point
-					)) {
-						float len = glm::length(camera().location() - intersection_point);
-						if (len < lowest_distance) {
-							has_found = true;
-							mesh = i;
-							lowest_distance = len;
-						}
-					}
-				}
-			}
+        const auto& current_mesh = *meshes[i];
+        if (~current_mesh.data().flags & 1)
+            for (int j = 0; j < current_mesh.data().not_flags_and_1.mesh_hdr.mesh_count; j++) {
+                const auto& triangles = current_mesh.data().not_flags_and_1.vertex_data[j].index_hdr.triangle_data;
+                const auto& vertices = current_mesh.data().not_flags_and_1.vertex_data[j].vertices;
+                for (size_t tri = 0; tri < triangles.size(); tri += 3) {
+                    const auto v1 = current_mesh.game_object().model() * glm::vec4(vertices[triangles[tri]].pos, 1.0f);
+                    const auto v2 = current_mesh.game_object().model() * glm::vec4(vertices[triangles[tri + 1]].pos, 1.0f);
+                    const auto v3 = current_mesh.game_object().model() * glm::vec4(vertices[triangles[tri + 2]].pos, 1.0f);
+                    if (ray_intersects_triangle(
+                        camera().location(),
+                        ray,
+                        v1,
+                        v2,
+                        v3,
+                        intersection_point
+                    )) {
+                        float len = glm::length(camera().location() - intersection_point);
+                        if (len < lowest_distance) {
+                            has_found = true;
+                            mesh = i;
+                            lowest_distance = len;
+                        }
+                    }
+                }
+        }
 	}
 	m_currently_selected_mesh = has_found ? mesh : -1;
 }
@@ -171,3 +172,4 @@ void Renderer::calculate_projection_matrix()
 		set_should_recalculate_projection(false);
 	}
 }
+

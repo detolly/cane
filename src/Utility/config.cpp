@@ -19,6 +19,7 @@ void config::deserialize(const char *filename) {
 
         if (len != sizeof(config)){
             dbgprint("Config file is newer/older or corrupted. Ignoring.");
+            return;
         }
 
         config::the() = *(config*)buffer;

@@ -34,4 +34,5 @@ private:
     const char* m_loc{nullptr};
 };
 
-#endif CANE_FILEWRITER_H
+#endif // CANE_FILEWRITER_H
+

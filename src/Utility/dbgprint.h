@@ -6,6 +6,15 @@ namespace {
 template<typename ...T> void sink(const T& ...) {}
 }
 
+inline static void dbgprint(const char* a) {
+#ifndef NDEBUG
+	printf("%s", a);
+#endif
+#ifdef NDEBUG
+    (void)(a);
+#endif
+}
+
 template <typename... T>
 inline static void dbgprint(const char* a, const T& ...args) {
 #ifndef NDEBUG
@@ -17,11 +26,3 @@ inline static void dbgprint(const char* a, const T& ...args) {
 #endif
 }
 
-inline static void dbgprintf(const char* a) {
-#ifndef NDEBUG
-	printf("%s", a);
-#endif
-#ifdef NDEBUG
-    (void)(a);
-#endif
-}

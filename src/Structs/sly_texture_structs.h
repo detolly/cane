@@ -82,7 +82,7 @@ struct image_meta_table_t {
 	image_meta_table_t(ez_stream& stream) {
 		header = stream.read<image_meta_header_t>();
 		for (int i = 0; i < header.numRecords; i++) {
-			texture.push_back(image_record_t(stream));
+			texture.emplace_back(stream);
 		}
 	}
 
@@ -210,7 +210,7 @@ struct texture_table_t {
 		header = stream.read<texture_header_t>();
 		texture.reserve(header.numTextures);
 		for (int i = 0; i < header.numTextures; i++) {
-			texture.push_back(texture_record_t(stream));
+			texture.emplace_back(stream);
 		}
 	}
 
@@ -221,3 +221,4 @@ struct texture_table_t {
 
 	std::vector<texture_record_t> texture;
 };
+

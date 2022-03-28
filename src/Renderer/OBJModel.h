@@ -25,3 +25,4 @@ private:
 	std::vector<glm::vec3> m_buffer_data;
 	size_t m_count{0};
 };
+

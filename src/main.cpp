@@ -42,7 +42,7 @@ int main(int argc, char* argv[]) {
 	//glfwWindowHint(GLFW_SAMPLES, 4);
 
 	if (!glfwInit()) {
-		dbgprint("%s", "ERROR INIT WINDOW");
+		dbgprint("ERROR INIT WINDOW");
 	}
 
 	//glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 1);
@@ -60,10 +60,10 @@ int main(int argc, char* argv[]) {
     glfwMakeContextCurrent(Editor::the().window());
 
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
-		dbgprint("%s", "ERROR INIT GLAD\n");
+		dbgprint("ERROR INIT GLAD\n");
 	}
 
-	//Init the Editor after establishing a container
+	//Init the Editor after establishing a container and linking opengl
 	Editor::the().init();
 
 	glEnable(GL_DEPTH_TEST);

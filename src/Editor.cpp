@@ -118,7 +118,7 @@ void Editor::render()
     ImGui::DockSpace(dockspaceID, ImVec2(0.0f, 0.0f), dockspaceFlags);
     if (config::the().windows.debug_information) {
         //ImGui::SetNextWindowDockID(dockspaceID, ImGuiCond_FirstUseEver);
-        DebugInformation::the().render();
+        //DebugInformation::the().render();
     }
     if (config::the().windows.renderer) {
         //ImGui::SetNextWindowDockID(dockspaceID, ImGuiCond_FirstUseEver);

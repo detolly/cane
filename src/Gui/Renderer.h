@@ -43,3 +43,4 @@ private:
 	bool m_should_recalculate_projection{ true };
 	int m_currently_selected_mesh { -1 };
 };
+

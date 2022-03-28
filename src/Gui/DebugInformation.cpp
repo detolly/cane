@@ -8,6 +8,7 @@ void DebugInformation::render()
 {
 	int currently_selected_mesh = Renderer::the().currently_selected_mesh();
 	ImGui::Begin("Debug Information", &config::the().windows.debug_information);
+#if 0
 	ImGui::TextWrapped("Selected Mesh: ");
 	if (Editor::the().has_file_loaded() && currently_selected_mesh > -1) {
 		auto& writable_mesh = Editor::the().level_file()->meshes()[currently_selected_mesh];
@@ -96,6 +97,7 @@ void DebugInformation::render()
 			}
 		}
 	}
+#endif
 	ImGui::End();
 }
 
@@ -106,3 +108,4 @@ void DebugInformation::on_load()
 void DebugInformation::on_close()
 {
 }
+

@@ -14,19 +14,28 @@ public:
 	texture_table_t& m_texture_table;
 
 	SlyMesh() = delete;
-	~SlyMesh() = default;
-	SlyMesh(const SlyMesh & o) = default;
+	~SlyMesh();
 	SlyMesh(SlyMesh&& o) = default;
-	SlyMesh& operator=(SlyMesh && o) = default;
-	SlyMesh(ez_stream& stream, texture_table_t& texture_table);
-
-	void parse(ez_stream& stream);
+	SlyMesh& operator=(SlyMesh && o) = delete;
+	SlyMesh(const SlyMesh & o) = delete;
+	SlyMesh(std::shared_ptr<mesh_data_t> the_data, std::shared_ptr<mesh_data_t> data_to_render, texture_table_t& texture_table);
 
 	void make_gl_buffers();
+
+    void make_vertex_buffer_gl_buffers();
+    void make_szme_buffer_gl_buffers();
+
 	void free_gl_buffers();
+
 	void render(const Camera& cam, const glm::mat4x4& proj) const override;
 
-	mesh_data_t mesh_data;
+
+    mesh_data_t& data() { return *the_data; }
+    const mesh_data_t& data() const { return *the_data; }
+    const mesh_data_t& data_to_render() const { return *the_data_to_render; }
+
+	std::shared_ptr<mesh_data_t> the_data;
+    std::shared_ptr<mesh_data_t> the_data_to_render;
 };
 
 class unknown_vector_array : public SingleColoredWorldObject {
@@ -53,7 +62,8 @@ private:
     enum class draw_function {
         triangles,
         lines,
-        points
+        points,
+        polygon
     } m_draw_func { draw_function::points };
 
 public:
@@ -69,7 +79,7 @@ private:
 
     bool m_should_delete { true };
     std::vector<glm::vec3> m_points;
-    bool m_should_draw{ true };
+    bool m_should_draw{ false };
 };
 
 class SlyLevelFile : public RenderedWorldObject
@@ -81,16 +91,15 @@ public:
 	SlyLevelFile(const char* level_file);
 	~SlyLevelFile();
 
-	static int find(const char* b, const char* lf, int start, size_t len) {
+	static std::size_t find(const char* b, std::string_view lf, int start, size_t len) {
 		int already_found = 0;
-		int look_len = std::strlen(lf);
 		for (size_t current_index = 0; (current_index + start) < len; current_index++) {
 			if (b[start + current_index] == lf[already_found])
 				already_found++;
 			else
 				already_found = 0;
-			if (already_found == look_len)
-				return start + current_index - look_len + 1;
+			if (already_found == lf.size())
+				return start + current_index - lf.size() + 1;
 		}
 		return -1;
 	}
@@ -108,19 +117,19 @@ public:
 	image_meta_table_t const& image_image_table() { return m_image_meta_table; }
 	clut_meta_table_t const& clut_meta_table() { return m_clut_meta_table; }
 	texture_table_t const& texture_table() { return m_texture_table; }
-    std::vector<SlyMesh>& meshes() { return m_meshes; }
+    std::vector<std::unique_ptr<SlyMesh>>& meshes() { return m_meshes; }
 	std::vector<unknown_vector_array>& unknown_vector_arrays() { return m_unknown_vector_arrays; }
 
     const image_meta_table_t& image_image_table() const { return m_image_meta_table; }
     const clut_meta_table_t& clut_meta_table() const { return m_clut_meta_table; }
     const texture_table_t& texture_table() const { return m_texture_table; }
-    const std::vector<SlyMesh>& meshes() const { return m_meshes; }
+    const std::vector<std::unique_ptr<SlyMesh>>& meshes() const { return m_meshes; }
     const std::vector<unknown_vector_array>& unknown_vector_arrays() const { return m_unknown_vector_arrays; }
 
 
 private:
 
-	std::vector<SlyMesh> m_meshes;
+	std::vector<std::unique_ptr<SlyMesh>> m_meshes;
 
     std::vector<unknown_vector_array> m_unknown_vector_arrays;
 	int m_TEX_PALETTE_BASE{ 0 };

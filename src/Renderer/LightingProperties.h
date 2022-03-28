@@ -6,3 +6,4 @@ struct LightingProperties {
 	float specular_power;
 
 };
+

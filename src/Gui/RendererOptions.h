@@ -17,3 +17,4 @@ public:
 
 
 #endif //CANE_RENDEREROPTIONS_H
+

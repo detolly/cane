@@ -110,3 +110,4 @@ void Shader::set_mvp(glm::mat4 model, glm::mat4 view, glm::mat4 projection)
     set_mat4("view", view);
     set_mat4("projection", projection);
 }
+

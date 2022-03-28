@@ -26,7 +26,7 @@ void ModelBrowser::make_thumbnails() {
 	m_thumbnails.clear();
 	const auto* level = Editor::the().level_file();
 	for (size_t i = 0; i < level->meshes().size(); i++) {
-		const auto& mesh = level->meshes()[i];
+		const auto& mesh = *level->meshes()[i];
 		Thumbnail b(i);
 		b.render(mesh);
 		m_thumbnails.push_back(std::move(b));
@@ -50,3 +50,4 @@ void Thumbnail::render(const SlyMesh& mesh) const
 
 	mesh.render(cam, proj);
 }
+

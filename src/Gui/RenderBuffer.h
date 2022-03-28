@@ -1,5 +1,7 @@
 #pragma once
 
+#include <memory>
+
 typedef unsigned int GLuint;
 
 class TexturedRenderBuffer {
@@ -10,13 +12,20 @@ public:
 	}
 
 	TexturedRenderBuffer(const TexturedRenderBuffer&) = delete;
-	TexturedRenderBuffer(TexturedRenderBuffer&& buffer) noexcept :
-		m_fbo(buffer.m_fbo), m_depthbuffer(buffer.m_depthbuffer), m_texture(buffer.m_texture)
+	TexturedRenderBuffer(TexturedRenderBuffer&& buffer) noexcept
 	{
-		if (buffer.m_allocated) {
-			buffer.m_allocated = false;
-			m_allocated = true;
-		}
+	    *this = std::move(buffer);
+	}
+	TexturedRenderBuffer& operator=(TexturedRenderBuffer&& buffer)
+    {
+        m_fbo = buffer.m_fbo;
+        m_depthbuffer = buffer.m_depthbuffer;
+        m_texture = buffer.m_texture;
+        if (buffer.m_allocated) {
+            buffer.m_allocated = false;
+            m_allocated = true;
+        }
+        return *this;
 	}
 
 	void free_buffer();
@@ -32,3 +41,4 @@ private:
 	GLuint m_fbo{ 0 }, m_depthbuffer{ 0 }, m_texture{ 0 };
 	bool m_allocated{false};
 };
+

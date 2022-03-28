@@ -128,3 +128,4 @@ public:
 private:
 	LightingProperties m_lighting_properties;
 };
+

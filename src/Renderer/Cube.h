@@ -57,3 +57,4 @@ private:
 	void make_gl_buffers();
 	void free_gl_buffers();
 };
+

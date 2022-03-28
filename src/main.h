@@ -9,3 +9,4 @@ static void cursor_position_callback(GLFWwindow*, double, double);
 static void handle_input();
 static void scroll_callback(GLFWwindow*, double, double);
 static void mouse_button_callback(GLFWwindow*, int, int, int);
+

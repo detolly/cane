@@ -22,7 +22,7 @@ void ModelViewer::render()
 	glClearColor(rgba.r, rgba.g, rgba.b, rgba.a);
 
 	if (m_selected != -1) {
-		const auto& mesh = Editor::the().level_file()->meshes()[m_selected];
+		const auto& mesh = *Editor::the().level_file()->meshes()[m_selected];
 
 		const static glm::mat4 proj = glm::perspective(90.0f, 1.0f, 0.1f, 100.0f);
 		static Camera cam{};
@@ -44,3 +44,4 @@ void ModelViewer::set_selected(int value)
 {
 	m_selected = value;
 }
+

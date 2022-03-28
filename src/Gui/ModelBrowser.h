@@ -64,3 +64,4 @@ public:
 private:
 	int m_index_into_buffer;
 };
+

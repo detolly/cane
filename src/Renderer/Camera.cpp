@@ -33,3 +33,4 @@ void Camera::calculate_view_matrix() {
 	m_should_recalculate_view_matrix = false;
 	m_view = glm::lookAt(location(), location() + direction(), up());
 }
+

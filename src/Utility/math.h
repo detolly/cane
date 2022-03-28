@@ -18,3 +18,4 @@ bool ray_intersects_triangle(const glm::vec3& ray_origin,
 	const glm::vec3& ray_vector,
 	const glm::vec3& vertex0, const glm::vec3& vertex1, const glm::vec3& vertex2,
 	glm::vec3& outIntersectionPoint);
+

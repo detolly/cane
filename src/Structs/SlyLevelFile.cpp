@@ -7,10 +7,11 @@
 #include <Utility/Sigscan.h>
 #include <Utility/FileReader.h>
 
-SlyMesh::SlyMesh(ez_stream& stream, texture_table_t& texture_table)
-	: m_texture_table(texture_table)
+#include <Editor.h>
+
+SlyMesh::SlyMesh(std::shared_ptr<mesh_data_t> the_mesh_data, std::shared_ptr<mesh_data_t> data_to_render, texture_table_t& texture_table)
+	: m_texture_table(texture_table), the_data(the_mesh_data), the_data_to_render(data_to_render)
 {
-	parse(stream);
 	//set_color(glm::vec3{
 	//	(float)(stream.tell() / 1 % 255) / 255.0f,
 	//	(float)(stream.tell() / 3 % 255) / 255.0f,
@@ -18,73 +19,162 @@ SlyMesh::SlyMesh(ez_stream& stream, texture_table_t& texture_table)
 	//);
 	set_color({ 0.8f, 0.8f, 0.8f });
 	make_gl_buffers();
-}
+    if (data().flags & 1) {
 
-void SlyMesh::parse(ez_stream& stream)
-{
-	mesh_data = std::move(mesh_data_t(stream));
-	auto p = mesh_data.not_flags_and_1.szme_hdr.m.position;
-	game_object().set_location(glm::vec3(p.x, p.y, p.z));
-	game_object().calculate_model_matrix_if_needed();
+        if (data().flags_and_1.instance_mesh_idx == 0) {
+            game_object().set_constant_model(false);
+            game_object().set_location(data().szme.position);
+        } else {
+            //data().flags_and_1.instance_mat_0 = { data().flags_and_1.instance_mat_0.x, -data().flags_and_1.instance_mat_0.z, data().flags_and_1.instance_mat_0.y };
+            //data().flags_and_1.instance_mat_1 = { data().flags_and_1.instance_mat_1.x, data().flags_and_1.instance_mat_1.z, data().flags_and_1.instance_mat_1.y };
+            //data().flags_and_1.instance_mat_2 = { data().flags_and_1.instance_mat_2.x, data().flags_and_1.instance_mat_2.z, data().flags_and_1.instance_mat_2.y };
+            //data().flags_and_1.instance_mat_3 = { -data().flags_and_1.instance_mat_3.x/100.0f, data().flags_and_1.instance_mat_3.z/100.0f, data().flags_and_1.instance_mat_3.y/100.0f };
+
+            //glm::mat<4, 4, float> asd = {
+            //        glm::vec4 { data().flags_and_1.instance_mat_0, 0.0f },
+            //        glm::vec4 { data().flags_and_1.instance_mat_1, 0.0f },
+            //        glm::vec4 { data().flags_and_1.instance_mat_2, 0.0f },
+            //        glm::vec4 { data().flags_and_1.instance_mat_3, 1.0f }
+            //};
+
+            //const auto new_pos = asd * glm::vec4 { data().szme.position, 1.0f };
+
+            game_object().set_location(data().szme.position);
+            game_object().calculate_model_matrix_if_needed();
+        }
+
+    } else {
+        const auto &p = data().szme.position;
+        game_object().set_location(p);
+        game_object().calculate_model_matrix_if_needed();
+    }
 }
 
 void SlyMesh::make_gl_buffers()
 {
-	if (~mesh_data.flags & 1)
-	{
-		mesh_data.not_flags_and_1.render_properties_vector.resize(mesh_data.not_flags_and_1.mesh_hdr.mesh_count);
-		for (int i = 0; i < mesh_data.not_flags_and_1.mesh_hdr.mesh_count; i++) {
-			GLuint VAO, VBO, EBO;
-			glGenVertexArrays(1, &VAO);
-			glGenBuffers(1, &VBO);
-			glGenBuffers(1, &EBO);
-			glBindVertexArray(VAO);
-			mesh_data.not_flags_and_1.render_properties_vector[i] = { VAO, VBO, EBO };
+    //make_szme_buffer_gl_buffers();
+    make_vertex_buffer_gl_buffers();
+}
 
-			glBindBuffer(GL_ARRAY_BUFFER, VBO);
-			glBufferData(GL_ARRAY_BUFFER, mesh_data.not_flags_and_1.vertex_data[i].vertices.size() * sizeof(vertex_t), mesh_data.not_flags_and_1.vertex_data[i].vertices.data(), GL_STATIC_DRAW);
+void SlyMesh::make_szme_buffer_gl_buffers()
+{
+    for(auto& szme_fragment : data().szme.flags_not_and_1.szme_data) {
+        if (!szme_fragment.m_initialized)
+            continue;
+        GLuint VAO, VBO, EBO;
+        glGenVertexArrays(1, &VAO);
+        glGenBuffers(1, &VBO);
+        glGenBuffers(1, &EBO);
+        glBindVertexArray(VAO);
+        szme_fragment.render_properties = { VAO, VBO, EBO };
 
-			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-			glBufferData(GL_ELEMENT_ARRAY_BUFFER, mesh_data.not_flags_and_1.vertex_data[i].index_hdr.triangle_data.size() * sizeof(uint16_t),
-				mesh_data.not_flags_and_1.vertex_data[i].index_hdr.triangle_data.data(), GL_STATIC_DRAW);
+        glBindBuffer(GL_ARRAY_BUFFER, VBO);
+        glBufferData(GL_ARRAY_BUFFER,
+                     szme_fragment.gl_vertices.size() * sizeof(vertex_t),
+                     szme_fragment.gl_vertices.data(), GL_STATIC_DRAW);
 
-			glEnableVertexAttribArray(0);
-			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(vertex_t), (void*)0);
-			glEnableVertexAttribArray(1);
-			glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(vertex_t), (void*)12);
-			glEnableVertexAttribArray(2);
-			glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(vertex_t), (void*)24);
-			glEnableVertexAttribArray(3);
-			glVertexAttribPointer(3, 1, GL_UNSIGNED_INT, GL_FALSE, sizeof(vertex_t), (void*)32);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER,
+                     szme_fragment.triangle_data.size() * sizeof(uint16_t),
+                     szme_fragment.triangle_data.data(), GL_STATIC_DRAW);
 
-			glBindVertexArray(0);
-		}
-	}
+        glEnableVertexAttribArray(0);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(vertex_t), (void *) 0);
+        glEnableVertexAttribArray(1);
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(vertex_t), (void *) 12);
+        glEnableVertexAttribArray(2);
+        glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(vertex_t), (void *) 24);
+        glEnableVertexAttribArray(3);
+        glVertexAttribPointer(3, 1, GL_UNSIGNED_INT, GL_FALSE, sizeof(vertex_t), (void *) 32);
+
+        glBindVertexArray(0);
+        set_color({ 0.8f, 0.8f, 0.8f });
+    }
+}
+
+void SlyMesh::make_vertex_buffer_gl_buffers()
+{
+    if (~data().flags & 1) {
+        data().not_flags_and_1.render_properties_vector.resize(data().not_flags_and_1.mesh_hdr.mesh_count);
+        for (int i = 0; i < data().not_flags_and_1.mesh_hdr.mesh_count; i++) {
+            GLuint VAO, VBO, EBO;
+            glGenVertexArrays(1, &VAO);
+            glGenBuffers(1, &VBO);
+            glGenBuffers(1, &EBO);
+            glBindVertexArray(VAO);
+            data().not_flags_and_1.render_properties_vector[i] = { VAO, VBO, EBO };
+
+            glBindBuffer(GL_ARRAY_BUFFER, VBO);
+            glBufferData(GL_ARRAY_BUFFER,
+                         data().not_flags_and_1.vertex_data[i].vertices.size() * sizeof(vertex_t),
+                         data().not_flags_and_1.vertex_data[i].vertices.data(), GL_STATIC_DRAW);
+
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+            glBufferData(GL_ELEMENT_ARRAY_BUFFER,
+                         data().not_flags_and_1.vertex_data[i].index_hdr.triangle_data.size() * sizeof(uint16_t),
+                         data().not_flags_and_1.vertex_data[i].index_hdr.triangle_data.data(), GL_STATIC_DRAW);
+
+            glEnableVertexAttribArray(0);
+            glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(vertex_t), (void *) 0);
+            glEnableVertexAttribArray(1);
+            glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(vertex_t), (void *) 12);
+            glEnableVertexAttribArray(2);
+            glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(vertex_t), (void *) 24);
+            glEnableVertexAttribArray(3);
+            glVertexAttribPointer(3, 1, GL_UNSIGNED_INT, GL_FALSE, sizeof(vertex_t), (void *) 32);
+
+            glBindVertexArray(0);
+        }
+    }
 }
 
 void SlyMesh::free_gl_buffers()
 {
+    //for (const auto &szme_fragment: data.szme.flags_not_and_1.szme_data) {
+    //    if (!szme_fragment.m_initialized)
+    //        return;
+    //    glDeleteBuffers(1, &szme_fragment.render_properties.ebo);
+    //    glDeleteBuffers(1, &szme_fragment.render_properties.vbo);
+    //    glDeleteVertexArrays(1, &szme_fragment.render_properties.vao);
+    //}
+
+    if (~data().flags & 1) {
+        for (const auto &rp: data().not_flags_and_1.render_properties_vector) {
+            glDeleteBuffers(1, &rp.ebo);
+            glDeleteBuffers(1, &rp.vbo);
+            glDeleteVertexArrays(1, &rp.vao);
+        }
+    }
+}
+
+SlyMesh::~SlyMesh() noexcept {
+    free_gl_buffers();
 }
 
 void SlyMesh::render(const Camera& cam, const glm::mat4x4& proj) const
 {
-	if (mesh_data.flags & 1)
-		return;
+    if (data().flags == 0)
+        return;
+    SingleColoredSlyWorldObject::render(cam, proj);
 
-	//SingleColoredWorldObject::render(cam, proj);
-	SingleColoredSlyWorldObject::render(cam, proj);
+    const auto& dtr = data_to_render();
 
-	for (size_t i = 0; i < mesh_data.not_flags_and_1.mesh_hdr.mesh_count; i++) {
-		if (mesh_data.not_flags_and_1.szme_data.size() >= i + 1
-			&& mesh_data.not_flags_and_1.szme_data[i].texture_id < m_texture_table.texture.size()
-			&& m_texture_table.texture[mesh_data.not_flags_and_1.szme_data[i].texture_id].is_initialized()
-			)
-			glBindTexture(GL_TEXTURE_2D, m_texture_table.texture[mesh_data.not_flags_and_1.szme_data[i].texture_id].gl_texture);
-		else glBindTexture(GL_TEXTURE_2D, 0);
-		glBindVertexArray(mesh_data.not_flags_and_1.render_properties_vector[i].vao);
-		glDrawElements(GL_TRIANGLES, mesh_data.not_flags_and_1.vertex_data[i].index_hdr.triangle_data.size(), GL_UNSIGNED_SHORT, 0);
-		//glBindVertexArray(0);
-	}
+    if (dtr.flags & 1)
+        return;
+
+    for (size_t i = 0; i < data_to_render().not_flags_and_1.mesh_hdr.mesh_count; i++) {
+        if (data_to_render().szme.flags_not_and_1.szme_data.size() > i &&
+                data_to_render().szme.flags_not_and_1.szme_data[i].texture_id < m_texture_table.texture.size() &&
+            m_texture_table.texture[data_to_render().szme.flags_not_and_1.szme_data[i].texture_id].is_initialized())
+            glBindTexture(GL_TEXTURE_2D,
+                          m_texture_table.texture[data_to_render().szme.flags_not_and_1.szme_data[i].texture_id].gl_texture);
+        else
+            glBindTexture(GL_TEXTURE_2D, 0);
+        glBindVertexArray(data_to_render().not_flags_and_1.render_properties_vector[i].vao);
+        glDrawElements(GL_TRIANGLES, data_to_render().not_flags_and_1.vertex_data[i].index_hdr.triangle_data.size(),
+                       GL_UNSIGNED_SHORT, 0);
+        glBindVertexArray(0);
+    }
 }
 
 SlyLevelFile::SlyLevelFile(const char* level_file)
@@ -95,21 +185,11 @@ SlyLevelFile::SlyLevelFile(const char* level_file)
 	ez_stream stream(bf, sz);
 	parse_textures(stream);
 	parse_meshes(stream);
-	find_and_populate_coord_arrays(stream);
+	//find_and_populate_coord_arrays(stream);
 }
 
 SlyLevelFile::~SlyLevelFile()
 {
-	for (auto& mesh : meshes()) {
-		for (auto& rp : mesh.mesh_data.not_flags_and_1.render_properties_vector) {
-			glDeleteBuffers(1, &rp.ebo);
-			glDeleteBuffers(1, &rp.vbo);
-			glDeleteVertexArrays(1, &rp.vao);
-		}
-		for (auto& md : mesh.mesh_data.not_flags_and_1.szme_data) {
-			md.free_gl_buffers();
-		}
-	}
 	for (auto& tex_record : m_texture_table.texture) {
 		glDeleteTextures(1, &tex_record.gl_texture);
 	}
@@ -207,7 +287,7 @@ void SlyLevelFile::parse_textures(ez_stream& stream)
 void SlyLevelFile::render(const Camera& cam, const glm::mat4& matrix) const
 {
 	for (size_t i = 0; i < m_meshes.size(); i++) {
-		m_meshes[i].render(cam, matrix);
+		m_meshes[i]->render(cam, matrix);
 	}
 	for(size_t i = 0; i < unknown_vector_arrays().size(); i++) {
 	    if (unknown_vector_arrays()[i].should_draw())
@@ -216,22 +296,100 @@ void SlyLevelFile::render(const Camera& cam, const glm::mat4& matrix) const
 }
 
 void SlyLevelFile::parse_meshes(ez_stream& stream)
-
 {
+    //std::string_view looking_for = { "SZMS\x04\x00\x00\x00", 8 };
+    std::string_view looking_for = { "SZMS", 4 };
+#if 1
 	int total = 0;
 	size_t current_szme_index{ 0 };
-	while ((current_szme_index = find(stream.buffer(), "SZMS", current_szme_index + 4, stream.size())) != -1) {
-		stream.seek(current_szme_index - 2);
+	while ((current_szme_index = find(stream.buffer(), looking_for, current_szme_index + 4, stream.size())) != -1) {
+
+	    uint64_t field_0x40 = 0;
+
+        bool found = false;
+        for (uint32_t j = 0; j < 0xB; j++) {
+            if ((stream.read_at<uint16_t>(current_szme_index - 4 - 6 - j * 4) == 0xFFFF) &&
+                ((stream.read_at<uint8_t> (current_szme_index - 4 - 4 - j * 4) == 0x01) ||
+                 (stream.read_at<uint8_t> (current_szme_index - 4 - 4 - j * 4) == 0x00))) {
+                if (stream.read_at<uint8_t>(current_szme_index - 4 - 1 - j * 4) == j) {
+                    field_0x40 = j;
+                    found = true;
+                }
+                break;
+            }
+        }
+        if (!found) {
+            dbgprint("[0x%x] not found!\n", current_szme_index);
+        }
+
+        size_t szms_start_real = current_szme_index - 4 - (4 * field_0x40 + 1);
+
+		stream.seek(szms_start_real);
+
 		total++;
 		dbgprint("Found another object.. Total: %d\r\n", total);
-		try {
-			m_meshes.push_back(std::move(SlyMesh(stream, m_texture_table)));
-		}
-		catch (std::exception& e) {
-			dbgprint(e.what());
-			break;
-		}
+
+        try {
+            std::shared_ptr<szms_container> container = std::make_shared<szms_container> (stream);
+            if (container->szms_count > 0) {
+                std::unordered_map<std::uint16_t, std::shared_ptr<mesh_data_t>> references;
+                int i = 0;
+                for(auto& mesh_data_ptr : container->mesh_datas) {
+                    std::shared_ptr<mesh_data_t> to_render{ mesh_data_ptr };
+                    if (mesh_data_ptr->flags & 1) {
+                        if (!references.contains(mesh_data_ptr->flags_and_1.instance_mesh_idx)) {
+                            dbgprint("references do not contain instance id?");
+                        } else {
+                            to_render = references.at(mesh_data_ptr->flags_and_1.instance_mesh_idx);
+                        }
+                    } else {
+                        references.insert(std::make_pair<>(i, mesh_data_ptr));
+                    }
+                    m_meshes.emplace_back(std::make_unique<SlyMesh>(mesh_data_ptr, to_render, m_texture_table));
+                    i++;
+                }
+            }
+        } catch(std::exception& e) {
+            dbgprint("Exception encountered: %s", e.what());
+        }
 	}
+#else
+
+    int total = 0;
+    std::size_t current_szme_index{ 0 };
+    std::size_t szms_start{ 0 };
+    std::size_t szms_start_real{ 0 };
+
+    const auto get_field0x40 = [](int idx) {
+        switch (idx) {
+            case 83: return 1;
+            case 159: return 8;
+            case 185: return 4;
+            case 213: return 2;
+            case 296: return 10;
+            case 299: return 4;
+            case 300: return 5;
+            default: return 0;
+        }
+    };
+
+    while ((szms_start = find(stream.buffer(), looking_for, szms_start + 4, stream.size())) != -1) {
+        szms_start_real = szms_start - 4 - (4 * get_field0x40(total) + 1);
+
+        stream.seek(szms_start_real);
+        try {
+            szms_container container = szms_container(stream);
+            if (container.szms_count > 0) {
+                for(auto& mesh_data : container.mesh_datas)
+                    m_meshes.emplace_back(std::move(mesh_data), m_texture_table);
+            }
+        } catch (std::exception& e)
+        {
+            dbgprint("%s\n", e.what());
+        }
+        total++;
+    }
+#endif
 }
 
 void SlyLevelFile::make_texture(const char* buffer, texture_record_t& tex, size_t clutIndex, size_t imageIndex)
@@ -265,37 +423,45 @@ void SlyLevelFile::make_texture(const char* buffer, texture_record_t& tex, size_
 	}
 }
 
-void SlyLevelFile::find_and_populate_coord_arrays(ez_stream& stream) {
+void SlyLevelFile::find_and_populate_coord_arrays(ez_stream& stream)
+{
     stream.seek(0);
 
     const auto is_valid_vector = [](const glm::vec3& vec) -> bool {
-        const auto is_valid_float = [](const float& f) -> bool {
-            return  -100000.0f < f && f < 100000.0f && (f > 0.1 || f < -0.01) ;
+        const auto is_valid_float = [](const float& f, const bool is_y=false) -> bool {
+            if (!is_y)
+                return  -500.0f < f && f < 500.0f && (f > 1.0f || f < -1.0f);
+            return  -100.0f < f && f < 100.0f && (f > 0.1f || f < -0.1f);
         };
-        return is_valid_float(vec.x) && is_valid_float(vec.y) && is_valid_float(vec.z);
+        return is_valid_float(vec.x) && is_valid_float(vec.y, true) && is_valid_float(vec.z);
     };
 
-    std::vector<glm::vec3> unknowns;
     while(stream.tell() < stream.size() - sizeof(glm::vec3)) {
+        std::vector<glm::vec3> unknowns;
+        const auto before = stream.tell();
         for (auto vec = stream.read_sly_vec(); is_valid_vector(vec); vec = stream.read_sly_vec()) {
             unknowns.push_back(vec);
         }
-        //minimum six points
+
         if (unknowns.size() > 3) {
-            unknown_vector_arrays().emplace_back(unknown_vector_array(std::move(unknowns)));
-            unknown_vector_arrays().back().set_color({1.0f, 1.0f, 1.0f});
+            unknown_vector_arrays().emplace_back(std::move(unknowns));
+            unknown_vector_arrays().back().set_color({(rand() % 256) / 255.0f, (rand() % 256) / 255.0f, (rand() % 256) / 255.0f});
             unknown_vector_arrays().back().make_gl_buffers();
+            continue;
         }
-        unknowns.clear();
+
+        stream.seek(before+1);
     }
 }
 
-void unknown_vector_array::free_gl_buffers() {
+void unknown_vector_array::free_gl_buffers()
+{
     glDeleteBuffers(1, &render_properties.vbo);
     glDeleteBuffers(1, &render_properties.vao);
 }
 
-void unknown_vector_array::make_gl_buffers() {
+void unknown_vector_array::make_gl_buffers()
+{
     GLuint vao, vbo;
     glGenVertexArrays(1, &vao);
     glGenBuffers(1, &vbo);
@@ -325,5 +491,7 @@ void unknown_vector_array::render(const Camera &cam, const glm::mat4 &proj) cons
         case draw_function::triangles:
             glDrawArrays(GL_TRIANGLES, 0, points().size()/3);
             break;
+        case draw_function::polygon:
+            glDrawArrays(GL_POLYGON, 0, points().size());
     }
 }

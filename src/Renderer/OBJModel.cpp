@@ -75,3 +75,4 @@ void OBJModel::free_gl_buffer()
     glDeleteBuffers(1, &m_vertex_buffer_id);
     glDeleteVertexArrays(1, &m_vao);
 }
+

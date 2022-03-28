@@ -5,6 +5,7 @@ private:
 	config() { deserialize(DEFAULT_CONFIG_NAME); };
 	~config() { serialize(DEFAULT_CONFIG_NAME); };
 	static config c;
+
 	constexpr static const char* DEFAULT_CONFIG_NAME = "cane.cfg";
 
 public:

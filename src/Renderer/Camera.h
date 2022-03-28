@@ -59,3 +59,4 @@ private:
 	glm::vec3 m_location{ glm::vec3(1.0f) };
 	float m_pitch{ 0 }, m_yaw{ -90.f };
 };
+

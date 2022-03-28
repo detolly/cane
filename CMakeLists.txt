@@ -32,11 +32,26 @@ add_executable(cane
 #	set_target_properties(cane PROPERTIES COMPILE_FLAGS "-Wall")
 #endif()
 
-if (MSVC)
-	target_compile_definitions(cane PRIVATE /W14244 /WX)
+
+if (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+	#target_compile_definitions(cane PRIVATE /W14244 /WX)
+	if(CMAKE_BUILD_TYPE STREQUAL "Release")
+		target_compile_definitions(cane PRIVATE /O3)
+	endif()
+elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+	if (WIN32)
+		target_compile_options(cane PRIVATE /EHsc)
+		if(CMAKE_BUILD_TYPE STREQUAL "Release")
+			target_compile_definitions(cane PRIVATE O3)
+		endif()
+	endif()
 else()
+	#target_compile_definitions(cane PRIVATE -Wall -Wextra -Wpedantic -lstdc++fs)
 	#TODO: someone do this on linux
-	#target_compile_definitions(cane PRIVATE -Wall -Wextra -Wpedantic -Werror)
+	#target_compile_options(cane PRIVATE -Wall -Wextra -Wpedantic -Werror)
+	if(CMAKE_BUILD_TYPE STREQUAL "Release")
+		target_compile_definitions(cane PRIVATE -O3)
+	endif()
 endif()
 
 target_include_directories(cane PUBLIC include)
@@ -58,7 +73,7 @@ target_link_libraries(cane Threads::Threads)
 
 add_library(glad lib/glad/src/glad.c)
 target_include_directories(glad PRIVATE lib/glad/include)
-target_include_directories(cane PUBLIC lib/glad/include)
+target_include_directories(cane PRIVATE lib/glad/include)
 target_link_libraries(cane glad)
 
 add_subdirectory(lib/glfw)

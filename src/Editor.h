@@ -77,3 +77,4 @@ private:
 	bool m_can_resize { true };
 
 };
+
