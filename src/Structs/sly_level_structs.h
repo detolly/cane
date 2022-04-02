@@ -27,6 +27,9 @@ struct magic {
     bool is_szme() const {
         return magic[0] == 'S' && magic[1] == 'Z' && magic[2] == 'M' && magic[3] == 'E';
     }
+    bool is_szms() const {
+        return magic[0] == 'S' && magic[1] == 'Z' && magic[2] == 'M' && magic[3] == 'S';
+    }
 };
 
 struct vertex_t
@@ -93,16 +96,9 @@ struct vertex_data_t
     index_data_t index_hdr;
 };
 
-struct data_header_t
-{
-    char magic[4];
-    uint32_t version;
-    uint32_t data_size;
-};
-
 struct szms_header_t
 {
-    char magic[4];
+    magic magic;
     uint32_t version;
     uint32_t data_size;
 };
@@ -149,7 +145,7 @@ struct field_0x40_data_t
 
     std::vector<uint16_t> triangle_list;
 
-    field_0x40_data_nested_t nested;
+    std::vector<field_0x40_data_nested_t> nested;
 
 };
 
@@ -198,8 +194,8 @@ public:
 
     uint16_t texture_id;
 
-    byte unk_u8_1;
-    unsigned char unk_count;
+    std::uint8_t unk_u8_1;
+    std::uint8_t unk_count;
     std::vector<unsigned char> unk_bytes;
     std::vector<float> unk_floats;
 
@@ -292,6 +288,9 @@ struct szme_t {
     szme_t(const szme_t& o) = delete;
     szme_t(ez_stream& stream, uint16_t flags, unsigned char field_0x40);
 
+    bool m_error{ false };
+    magic magic;
+
     struct {
         uint32_t unk_0x04;
     } flags_and_2;
@@ -324,10 +323,12 @@ struct szme_t {
         uint16_t mesh_count;
         std::vector<szme_vertex_data_t> szme_data;
         uint16_t after_szme_data_count;
+        std::vector<after_szme_data> after_szme_datas;
         //TODO: IMPLEMENT AFTER_SZME_DATA_T
     } flags_not_and_1;
 
     glm::vec3 position;
+    glm::vec3 raw_position;
     float unk_0x14;
     uint16_t unk_0x16_ignore;
     byte unkb1;
@@ -346,6 +347,8 @@ struct mesh_data_t
     mesh_data_t(const mesh_data_t& o) = delete;
     mesh_data_t(ez_stream& stream, unsigned char);
 
+    bool m_error{ false };
+
     struct {
         szms_header_t szms;
         mesh_header_t mesh_hdr;
@@ -357,15 +360,12 @@ struct mesh_data_t
         std::vector<vertex_data_t> vertex_data;
         std::vector<render_properties> render_properties_vector;
 
-        char magic[4];
+        magic magic;
     } not_flags_and_1;
 
     struct {
         uint16_t instance_mesh_idx;
-        glm::vec3 instance_mat_0;
-        glm::vec3 instance_mat_1;
-        glm::vec3 instance_mat_2;
-        glm::vec3 instance_mat_3;
+        glm::mat4 instance_mat;
     } flags_and_1;
 
     szme_t szme;
@@ -382,6 +382,8 @@ struct szms_container
     szms_container& operator=(const szms_container& o) = delete;
     szms_container(const szms_container& o) = delete;
     szms_container(ez_stream& stream);
+
+    bool m_error { false };
 
     std::uint8_t field_0x40;
     std::vector<uint32_t> unk_u32s;

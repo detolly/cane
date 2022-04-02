@@ -11,7 +11,7 @@ public:
 	[[nodiscard]] const inline size_t tell() { return m_index; }
 
 	template <typename T, size_t size = sizeof(T)>
-	[[nodiscard]] const T read() {
+	[[nodiscard]] const inline T read() {
         if (m_index + size > m_len)
             throw std::out_of_range("ur doing it wrong");
 		T ret = *(T*)(m_buffer + m_index);
@@ -19,28 +19,56 @@ public:
 		return ret;
 	}
 
-    template <typename T, size_t size = sizeof(T)>
-    [[nodiscard]] const T read_at(size_t index) {
+    template <typename T>
+    [[nodiscard]] const inline T read_at(size_t index) {
         const auto before = tell();
-	    seek(index);
-	    T ret = read<T, size>();
-	    seek(before);
+        seek(index);
+	    T ret = read<T>();
+        seek(before);
 	    return ret;
     }
 
-	const char* buffer() const { return m_buffer; }
-	std::size_t size() const { return m_len; }
 
 	template <size_t size = sizeof(glm::vec3)>
-	const glm::vec3 read_sly_vec() {
+	const inline glm::vec3 read_sly_vec() {
 		glm::vec3 ret = read<glm::vec3, size>();
-		float temp = ret.y;
-		ret.y = ret.z;
-		ret.z = temp;
-		ret.x = -ret.x;
-		ret /= 100.0f;
+		//float temp = ret.y;
+		//ret.y = ret.z;
+		//ret.z = temp;
+		//ret.x = -ret.x;
+		//ret /= 100.0f;
 		return ret;
 	}
+
+    static inline constexpr glm::vec3 to_sly_vector(const glm::vec3 vector)
+    {
+        //glm::vec3 ret;
+        //ret.y = vector.z;
+        //ret.z = vector.y;
+        //ret.x = -vector.x;
+        //ret /= 100.0f;
+        return vector;
+    }
+
+    inline bool find(const std::string_view lf) {
+        int already_found = 0;
+        for (size_t current_index = tell(); current_index < size(); current_index++) {
+            if (read_at<char>(current_index) == lf[already_found])
+                already_found++;
+            else
+                already_found = 0;
+            if (already_found == lf.size()) {
+                seek(current_index - lf.size());
+                return true;
+            }
+        }
+        return false;
+    }
+
+public:
+
+	const char* buffer() const { return m_buffer; }
+	std::size_t size() const { return m_len; }
 
 private:
 	const char* m_buffer{ nullptr };

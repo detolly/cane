@@ -9,6 +9,10 @@
 
 #include <Editor.h>
 
+#ifdef WIN32
+#include <windows.h>
+#endif
+
 SlyMesh::SlyMesh(std::shared_ptr<mesh_data_t> the_mesh_data, std::shared_ptr<mesh_data_t> data_to_render, texture_table_t& texture_table)
 	: m_texture_table(texture_table), the_data(the_mesh_data), the_data_to_render(data_to_render)
 {
@@ -18,34 +22,29 @@ SlyMesh::SlyMesh(std::shared_ptr<mesh_data_t> the_mesh_data, std::shared_ptr<mes
 	//	(float)(stream.tell() / 7 % 255) / 255.0f }
 	//);
 	set_color({ 0.8f, 0.8f, 0.8f });
-	make_gl_buffers();
+    //game_object().set_scale(glm::vec3{ 0.01f, 0.01f, 0.01f });
     if (data().flags & 1) {
 
         if (data().flags_and_1.instance_mesh_idx == 0) {
             game_object().set_constant_model(false);
-            game_object().set_location(data().szme.position);
+            game_object().set_location(data().szme.position/100.0f);
+            game_object().calculate_model_matrix_if_needed();
         } else {
-            //data().flags_and_1.instance_mat_0 = { data().flags_and_1.instance_mat_0.x, -data().flags_and_1.instance_mat_0.z, data().flags_and_1.instance_mat_0.y };
-            //data().flags_and_1.instance_mat_1 = { data().flags_and_1.instance_mat_1.x, data().flags_and_1.instance_mat_1.z, data().flags_and_1.instance_mat_1.y };
-            //data().flags_and_1.instance_mat_2 = { data().flags_and_1.instance_mat_2.x, data().flags_and_1.instance_mat_2.z, data().flags_and_1.instance_mat_2.y };
-            //data().flags_and_1.instance_mat_3 = { -data().flags_and_1.instance_mat_3.x/100.0f, data().flags_and_1.instance_mat_3.z/100.0f, data().flags_and_1.instance_mat_3.y/100.0f };
 
-            //glm::mat<4, 4, float> asd = {
-            //        glm::vec4 { data().flags_and_1.instance_mat_0, 0.0f },
-            //        glm::vec4 { data().flags_and_1.instance_mat_1, 0.0f },
-            //        glm::vec4 { data().flags_and_1.instance_mat_2, 0.0f },
-            //        glm::vec4 { data().flags_and_1.instance_mat_3, 1.0f }
-            //};
+            //const auto new_pos = data().flags_and_1.instance_mat * glm::vec4 { data().szme.position, 1.0f };
+            //const auto new_new_pos = ez_stream::to_sly_vector(new_pos);
+            //game_object().set_location(new_new_pos);
+            //game_object().calculate_model_matrix_if_needed();
 
-            //const auto new_pos = asd * glm::vec4 { data().szme.position, 1.0f };
-
-            game_object().set_location(data().szme.position);
+            //const static auto rot = glm::rotate(glm::identity<glm::mat4>(), glm::radians(90.0f*3), glm::vec3{ 1.0f, 0.0f, 0.0f });
+            //set_additional_model_matrix(data().flags_and_1.instance_mat);
+            game_object().set_location(data().szme.position/100.0f);
             game_object().calculate_model_matrix_if_needed();
         }
 
     } else {
-        const auto &p = data().szme.position;
-        game_object().set_location(p);
+        game_object().set_constant_model(false);
+        game_object().set_location(data().szme.position/100.0f);
         game_object().calculate_model_matrix_if_needed();
     }
 }
@@ -96,18 +95,26 @@ void SlyMesh::make_vertex_buffer_gl_buffers()
 {
     if (~data().flags & 1) {
         data().not_flags_and_1.render_properties_vector.resize(data().not_flags_and_1.mesh_hdr.mesh_count);
+        if (data().not_flags_and_1.mesh_hdr.mesh_count != data().not_flags_and_1.vertex_data.size())
+            return;
         for (int i = 0; i < data().not_flags_and_1.mesh_hdr.mesh_count; i++) {
             GLuint VAO, VBO, EBO;
             glGenVertexArrays(1, &VAO);
             glGenBuffers(1, &VBO);
             glGenBuffers(1, &EBO);
             glBindVertexArray(VAO);
+
+            std::vector<vertex_t> vertices =  data().not_flags_and_1.vertex_data[i].vertices;
+
+            for (auto& vertex : vertices)
+                vertex.pos = (vertex.pos - data().szme.position)/100.0f;
+
             data().not_flags_and_1.render_properties_vector[i] = { VAO, VBO, EBO };
 
             glBindBuffer(GL_ARRAY_BUFFER, VBO);
             glBufferData(GL_ARRAY_BUFFER,
-                         data().not_flags_and_1.vertex_data[i].vertices.size() * sizeof(vertex_t),
-                         data().not_flags_and_1.vertex_data[i].vertices.data(), GL_STATIC_DRAW);
+                         vertices.size() * sizeof(vertex_t),
+                         vertices.data(), GL_STATIC_DRAW);
 
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
             glBufferData(GL_ELEMENT_ARRAY_BUFFER,
@@ -125,7 +132,54 @@ void SlyMesh::make_vertex_buffer_gl_buffers()
 
             glBindVertexArray(0);
         }
+    } else {
+        if (data_to_render().flags & 1)
+            return;
+        data().not_flags_and_1.render_properties_vector.resize(data_to_render().not_flags_and_1.mesh_hdr.mesh_count);
+        if (data_to_render().not_flags_and_1.mesh_hdr.mesh_count != data_to_render().not_flags_and_1.vertex_data.size())
+            return;
+        for (int i = 0; i < data_to_render().not_flags_and_1.mesh_hdr.mesh_count; i++) {
+            GLuint VAO, VBO, EBO;
+            glGenVertexArrays(1, &VAO);
+            glGenBuffers(1, &VBO);
+            glGenBuffers(1, &EBO);
+            glBindVertexArray(VAO);
+
+            const auto translate_vertices = [this](const std::vector<vertex_t>& vertices) {
+                std::vector<vertex_t> new_vertices;
+                for(const auto& vertex : vertices) {
+                    auto new_vertex = vertex;
+                    new_vertex.pos = ((data().flags_and_1.instance_mat * glm::vec4{ vertex.pos, 1.0f }) - glm::vec4{ data().szme.position, 1.0f })/100.0f;
+                    new_vertices.push_back(new_vertex);
+                }
+                return new_vertices;
+            };
+
+            const std::vector<vertex_t> vertices = translate_vertices(data_to_render().not_flags_and_1.vertex_data[i].vertices);
+
+            data().not_flags_and_1.render_properties_vector[i] = { VAO, VBO, EBO };
+
+            glBindBuffer(GL_ARRAY_BUFFER, VBO);
+            glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(vertex_t), vertices.data(), GL_STATIC_DRAW);
+
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+            glBufferData(GL_ELEMENT_ARRAY_BUFFER,
+                         data_to_render().not_flags_and_1.vertex_data[i].index_hdr.triangle_data.size() * sizeof(uint16_t),
+                         data_to_render().not_flags_and_1.vertex_data[i].index_hdr.triangle_data.data(), GL_STATIC_DRAW);
+
+            glEnableVertexAttribArray(0);
+            glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(vertex_t), (void *) 0);
+            glEnableVertexAttribArray(1);
+            glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(vertex_t), (void *) 12);
+            glEnableVertexAttribArray(2);
+            glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(vertex_t), (void *) 24);
+            glEnableVertexAttribArray(3);
+            glVertexAttribPointer(3, 1, GL_UNSIGNED_INT, GL_FALSE, sizeof(vertex_t), (void *) 32);
+
+            glBindVertexArray(0);
+        }
     }
+    m_is_initialized = true;
 }
 
 void SlyMesh::free_gl_buffers()
@@ -138,12 +192,10 @@ void SlyMesh::free_gl_buffers()
     //    glDeleteVertexArrays(1, &szme_fragment.render_properties.vao);
     //}
 
-    if (~data().flags & 1) {
-        for (const auto &rp: data().not_flags_and_1.render_properties_vector) {
-            glDeleteBuffers(1, &rp.ebo);
-            glDeleteBuffers(1, &rp.vbo);
-            glDeleteVertexArrays(1, &rp.vao);
-        }
+    for (const auto &rp: data().not_flags_and_1.render_properties_vector) {
+        glDeleteBuffers(1, &rp.ebo);
+        glDeleteBuffers(1, &rp.vbo);
+        glDeleteVertexArrays(1, &rp.vao);
     }
 }
 
@@ -153,13 +205,15 @@ SlyMesh::~SlyMesh() noexcept {
 
 void SlyMesh::render(const Camera& cam, const glm::mat4x4& proj) const
 {
-    if (data().flags == 0)
-        return;
     SingleColoredSlyWorldObject::render(cam, proj);
 
-    const auto& dtr = data_to_render();
+    if (!m_is_initialized)
+        return;
 
-    if (dtr.flags & 1)
+    if (data().flags == 0)
+        return;
+
+    if (data_to_render().flags & 1)
         return;
 
     for (size_t i = 0; i < data_to_render().not_flags_and_1.mesh_hdr.mesh_count; i++) {
@@ -170,7 +224,7 @@ void SlyMesh::render(const Camera& cam, const glm::mat4x4& proj) const
                           m_texture_table.texture[data_to_render().szme.flags_not_and_1.szme_data[i].texture_id].gl_texture);
         else
             glBindTexture(GL_TEXTURE_2D, 0);
-        glBindVertexArray(data_to_render().not_flags_and_1.render_properties_vector[i].vao);
+        glBindVertexArray(data().not_flags_and_1.render_properties_vector[i].vao);
         glDrawElements(GL_TRIANGLES, data_to_render().not_flags_and_1.vertex_data[i].index_hdr.triangle_data.size(),
                        GL_UNSIGNED_SHORT, 0);
         glBindVertexArray(0);
@@ -216,9 +270,12 @@ void SlyLevelFile::parse_textures(ez_stream& stream)
 {
 	size_t finding_texture_table = 0;
 	int s = 0;
-	while ((s = find(stream.buffer(), "FK$Dcrmtaunt07", s + 4, stream.size())) != -1)
-		finding_texture_table = s;
-	finding_texture_table += 32;
+    stream.seek(0);
+	while (stream.find("FK$Dcrmtaunt07")) {
+        finding_texture_table = stream.tell();
+        stream.read<int>();
+    }
+	finding_texture_table += 33;
 	stream.seek(finding_texture_table);
 	m_clut_meta_table = clut_meta_table_t(stream);
 	m_image_meta_table = image_meta_table_t(stream);
@@ -272,7 +329,7 @@ void SlyLevelFile::parse_textures(ez_stream& stream)
 			//}
 			const auto divPalImg = texture_record.clut_index.size() / texture_record.image_index.size();
 			for (size_t i = 0; i < texture_record.clut_index.size(); ++i) {
-				int imgIndex = i / divPalImg;
+				int imgIndex = i / (divPalImg == 0 ? 1 : divPalImg);
 				if (i == ((texture_record.clut_index.size() / 2)))
 					make_texture(stream.buffer(), texture_record, texture_record.clut_index[i], texture_record.image_index[imgIndex]);
 			}
@@ -297,17 +354,19 @@ void SlyLevelFile::render(const Camera& cam, const glm::mat4& matrix) const
 
 void SlyLevelFile::parse_meshes(ez_stream& stream)
 {
-    //std::string_view looking_for = { "SZMS\x04\x00\x00\x00", 8 };
-    std::string_view looking_for = { "SZMS", 4 };
+    stream.seek(0);
+    std::string_view looking_for = { "SZMS\x04\x00\x00\x00", 8 };
+    //std::string_view looking_for = { "SZMS", 4 };
 #if 1
 	int total = 0;
 	size_t current_szme_index{ 0 };
-	while ((current_szme_index = find(stream.buffer(), looking_for, current_szme_index + 4, stream.size())) != -1) {
+	while (stream.find(looking_for)) {
 
+        current_szme_index = stream.tell()+1;
 	    uint64_t field_0x40 = 0;
 
         bool found = false;
-        for (uint32_t j = 0; j < 0xB; j++) {
+        for (auto j = 0; j < 0xB; j++) {
             if ((stream.read_at<uint16_t>(current_szme_index - 4 - 6 - j * 4) == 0xFFFF) &&
                 ((stream.read_at<uint8_t> (current_szme_index - 4 - 4 - j * 4) == 0x01) ||
                  (stream.read_at<uint8_t> (current_szme_index - 4 - 4 - j * 4) == 0x00))) {
@@ -329,28 +388,35 @@ void SlyLevelFile::parse_meshes(ez_stream& stream)
 		total++;
 		dbgprint("Found another object.. Total: %d\r\n", total);
 
-        try {
-            std::shared_ptr<szms_container> container = std::make_shared<szms_container> (stream);
-            if (container->szms_count > 0) {
-                std::unordered_map<std::uint16_t, std::shared_ptr<mesh_data_t>> references;
-                int i = 0;
-                for(auto& mesh_data_ptr : container->mesh_datas) {
-                    std::shared_ptr<mesh_data_t> to_render{ mesh_data_ptr };
-                    if (mesh_data_ptr->flags & 1) {
-                        if (!references.contains(mesh_data_ptr->flags_and_1.instance_mesh_idx)) {
-                            dbgprint("references do not contain instance id?");
-                        } else {
-                            to_render = references.at(mesh_data_ptr->flags_and_1.instance_mesh_idx);
-                        }
-                    } else {
-                        references.insert(std::make_pair<>(i, mesh_data_ptr));
-                    }
-                    m_meshes.emplace_back(std::make_unique<SlyMesh>(mesh_data_ptr, to_render, m_texture_table));
-                    i++;
-                }
+        szms_container container = { stream };
+
+        std::vector<std::shared_ptr<mesh_data_t>> references;
+        std::vector<SlyMesh*> added_now;
+        int i = 0;
+        for(auto& mesh_data_ptr : container.mesh_datas) {
+            std::shared_ptr<mesh_data_t> to_render{ mesh_data_ptr };
+
+            references.push_back(mesh_data_ptr);
+            m_meshes.emplace_back(std::make_unique<SlyMesh>(mesh_data_ptr, to_render, m_texture_table));
+
+            added_now.push_back(m_meshes.back().get());
+
+            i++;
+        }
+        for(auto* mesh_ptr : added_now)
+        {
+            auto& mesh = *mesh_ptr;
+            if (mesh.data().flags & 1 && mesh.the_data_to_render.get() == mesh.the_data.get()) {
+                if (mesh.data().flags_and_1.instance_mesh_idx < references.size())
+                    mesh.the_data_to_render = references.at(mesh.data().flags_and_1.instance_mesh_idx);
+                else
+                    dbgprint("Found a weird ass mesh\n");
             }
-        } catch(std::exception& e) {
-            dbgprint("Exception encountered: %s", e.what());
+            try {
+                mesh.make_gl_buffers();
+            } catch (std::exception& e) {
+                dbgprint("failed to make gl buffers @ 0x%x", mesh_ptr);
+            }
         }
 	}
 #else

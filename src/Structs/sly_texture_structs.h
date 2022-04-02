@@ -117,8 +117,8 @@ struct texture_record_t {
 		else {
 			union1.flag_off = stream.read<decltype(union1.flag_off)>();
 		}
-		numImages = stream.read<byte>();
-		numCluts = stream.read<byte>();
+		numImages = stream.read<unsigned char>();
+		numCluts = stream.read<unsigned char>();
 
 		image_index.resize(numImages);
 		for (int i = 0; i < numImages; i++) {
@@ -189,8 +189,8 @@ struct texture_record_t {
 		} flag_off;
 	} union1;
 
-	char numImages;
-	char numCluts;
+	unsigned char numImages;
+	unsigned char numCluts;
 
 	std::vector<short> image_index;
 	std::vector<short> clut_index;

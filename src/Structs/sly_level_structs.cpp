@@ -8,8 +8,11 @@ mesh_data_t::mesh_data_t(ez_stream& stream, unsigned char field_0x40)
     flags = stream.read<uint16_t>();
     if ((~flags) & 1) {
         not_flags_and_1.szms = stream.read<szms_header_t>();
+        if (!not_flags_and_1.szms.magic.is_szms()) {
+            m_error = true;
+        }
         std::size_t offset = stream.tell();
-        not_flags_and_1.mesh_hdr = std::move(mesh_header_t(stream));
+        not_flags_and_1.mesh_hdr = mesh_header_t(stream);
         not_flags_and_1.vertex_data.resize(not_flags_and_1.mesh_hdr.mesh_count);
 
         for (int i = 0; i < not_flags_and_1.mesh_hdr.mesh_count; i++) {
@@ -17,17 +20,42 @@ mesh_data_t::mesh_data_t(ez_stream& stream, unsigned char field_0x40)
             not_flags_and_1.vertex_data[i] = std::move(vertex_data_t(stream, offset));
         }
 
-        magic a = stream.read<magic>();
-        if(!a.is_szme())
-            return;
+        magic a = stream.read<::magic>();
+        if(!a.is_szme()) {
+            m_error = true;
+        }
 
     } else
     {
         flags_and_1.instance_mesh_idx = stream.read<uint16_t>();
-        flags_and_1.instance_mat_0 = stream.read<glm::vec3>();
-        flags_and_1.instance_mat_1 = stream.read<glm::vec3>();
-        flags_and_1.instance_mat_2 = stream.read<glm::vec3>();
-        flags_and_1.instance_mat_3 = stream.read<glm::vec3>();
+        //flags_and_1.instance_mat = stream.read<glm::mat4>();
+        float a = stream.read<float>();
+        float b = stream.read<float>();
+        float c = stream.read<float>();
+
+        float d = stream.read<float>();
+        float e = stream.read<float>();
+        float f = stream.read<float>();
+
+        float g = stream.read<float>();
+        float h = stream.read<float>();
+        float i = stream.read<float>();
+
+        float x = stream.read<float>();
+        float y = stream.read<float>();
+        float z = stream.read<float>();
+        flags_and_1.instance_mat = {
+                a, b, c, 0.0f,
+                d, e, f, 0.0f,
+                g, h, i, 0.0f,
+                x, y, z, 1.0f
+        };
+        //flags_and_1.instance_mat = {
+        //        a, c, b, 0.0f,
+        //        d, f, e, 0.0f,
+        //        g, i, h, 0.0f,
+        //        x/100.0f, y/100.0f, z/100.0f, 1.0f
+        //};
     }
     szme = szme_t(stream, flags, field_0x40);
 
@@ -37,13 +65,10 @@ mesh_data_t::mesh_data_t(ez_stream& stream, unsigned char field_0x40)
     //dbgprint("%.02f %.02f %.02f\n", p.x, p.y, p.z);
 
     if (~flags & 1) {
-        for (uint16_t i = 0; i < not_flags_and_1.mesh_hdr.mesh_count; i++)
-            for (size_t j = 0; j < not_flags_and_1.vertex_data[i].vertices.size(); j++)
-                not_flags_and_1.vertex_data[i].vertices[j].pos = (not_flags_and_1.vertex_data[i].vertices[j].pos - p);
 
         for(auto i = 0; i < szme.flags_not_and_1.mesh_count; i++)
             for (auto j = 0; j < szme.flags_not_and_1.szme_data[i].gl_vertices.size(); j++)
-                szme.flags_not_and_1.szme_data[i].gl_vertices[j].pos = (szme.flags_not_and_1.szme_data[i].gl_vertices[j].pos - szme.flags_not_and_1.szme_data[i].origin);
+                szme.flags_not_and_1.szme_data[i].gl_vertices[j].pos = (szme.flags_not_and_1.szme_data[i].gl_vertices[j].pos - szme.flags_not_and_1.szme_data[i].origin)/100.0f;
 
     }
 
@@ -66,6 +91,7 @@ szme_vertex_data_t::szme_vertex_data_t(ez_stream& stream, uint16_t flags, unsign
     texcoords.resize(texcoords_count);
     indices.resize(index_count);
 
+    //TODO: stream.align(4);
     std::size_t v = stream.tell();
     int pad_size = -v & (3);
     stream.seek(v + pad_size);
@@ -82,8 +108,8 @@ szme_vertex_data_t::szme_vertex_data_t(ez_stream& stream, uint16_t flags, unsign
         indices[i] = stream.read<index_t>();
 
     texture_id = stream.read<uint16_t>();
-    unk_u8_1 = stream.read<byte>();
-    unk_count = stream.read<byte>();
+    unk_u8_1 = stream.read<std::uint8_t>();
+    unk_count = stream.read<std::uint8_t>();
 
     unk_bytes.resize(unk_count);
     for(int i = 0; i < unk_count; i++)
@@ -171,9 +197,15 @@ szms_container::szms_container(ez_stream& stream) {
             unk_u32s[i] = stream.read<uint32_t>();
     }
     szms_count = stream.read<uint16_t>();
+    if (szms_count > 2500 || szms_count == 0) {
+        m_error = true;
+    }
     mesh_datas.resize(szms_count);
     for(auto i = 0; i < szms_count; i++) {
         mesh_datas[i] = std::make_shared<mesh_data_t>(stream, field_0x40);
+        if (mesh_datas[i]->m_error) {
+            m_error = true;
+        }
     }
     flags2 = stream.read<uint32_t>();
     if (flags2 & 1)
@@ -281,6 +313,7 @@ after_szme_data::after_szme_data(ez_stream& stream, std::uint16_t field_0x40)
 
 szme_t::szme_t(ez_stream &stream, uint16_t flags, unsigned char field_0x40)
 {
+
     if (flags & 2)
         flags_and_2.unk_0x04 = stream.read<uint32_t>();
     if (flags & 0x200)
@@ -321,6 +354,9 @@ szme_t::szme_t(ez_stream &stream, uint16_t flags, unsigned char field_0x40)
             flags_not_and_1.szme_data[i] = szme_vertex_data_t{stream, flags, field_0x40};
         }
         flags_not_and_1.after_szme_data_count = stream.read<uint16_t>();
+        flags_not_and_1.after_szme_datas.resize(flags_not_and_1.after_szme_data_count);
+        for(auto i = 0; i < flags_not_and_1.after_szme_data_count; i++)
+            flags_not_and_1.after_szme_datas[i] = after_szme_data(stream, field_0x40);
     }
 }
 
@@ -346,6 +382,8 @@ field_0x40_data_t::field_0x40_data_t(ez_stream &stream, unsigned char field_0x40
     for (int i = 0; i < index_count; ++i)
         triangle_list[i] = stream.read<uint16_t>();
 
-    nested = field_0x40_data_nested_t(stream, field_0x40, index_count);
+    nested.resize(field_0x40 * 2 - 1);
+    for(auto i = 0; i < nested.size(); i++)
+        nested[i] = field_0x40_data_nested_t(stream, field_0x40, index_count);
 
 }

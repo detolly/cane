@@ -29,13 +29,14 @@ public:
 
 	void render(const Camera& cam, const glm::mat4x4& proj) const override;
 
-
     mesh_data_t& data() { return *the_data; }
     const mesh_data_t& data() const { return *the_data; }
     const mesh_data_t& data_to_render() const { return *the_data_to_render; }
 
 	std::shared_ptr<mesh_data_t> the_data;
     std::shared_ptr<mesh_data_t> the_data_to_render;
+
+    bool m_is_initialized{ false };
 };
 
 class unknown_vector_array : public SingleColoredWorldObject {
@@ -90,19 +91,6 @@ public:
 
 	SlyLevelFile(const char* level_file);
 	~SlyLevelFile();
-
-	static std::size_t find(const char* b, std::string_view lf, int start, size_t len) {
-		int already_found = 0;
-		for (size_t current_index = 0; (current_index + start) < len; current_index++) {
-			if (b[start + current_index] == lf[already_found])
-				already_found++;
-			else
-				already_found = 0;
-			if (already_found == lf.size())
-				return start + current_index - lf.size() + 1;
-		}
-		return -1;
-	}
 
 	//TODO REMOVE DEBUG (or integrate)
 	void find_near_float(ez_stream& stream, float x, float y, float z, float allowed_difference);
