@@ -135,30 +135,22 @@ void Renderer::select(double mouse_x, double mouse_y, bool ctrl_modifier)
 	glm::vec3 intersection_point;
 	for (size_t i = 0; i < meshes.size(); i++) {
         const auto& current_mesh = *meshes[i];
-        if (~current_mesh.data().flags & 1)
-            for (int j = 0; j < current_mesh.data().not_flags_and_1.mesh_hdr.mesh_count; j++) {
-                const auto& triangles = current_mesh.data().not_flags_and_1.vertex_data[j].index_hdr.triangle_data;
-                const auto& vertices = current_mesh.data().not_flags_and_1.vertex_data[j].vertices;
-                for (size_t tri = 0; tri < triangles.size(); tri += 3) {
-                    const auto v1 = current_mesh.game_object().model() * glm::vec4(vertices[triangles[tri]].pos, 1.0f);
-                    const auto v2 = current_mesh.game_object().model() * glm::vec4(vertices[triangles[tri + 1]].pos, 1.0f);
-                    const auto v3 = current_mesh.game_object().model() * glm::vec4(vertices[triangles[tri + 2]].pos, 1.0f);
-                    if (ray_intersects_triangle(
-                        camera().location(),
-                        ray,
-                        v1,
-                        v2,
-                        v3,
-                        intersection_point
-                    )) {
-                        float len = glm::length(camera().location() - intersection_point);
-                        if (len < lowest_distance) {
-                            has_found = true;
-                            mesh = i;
-                            lowest_distance = len;
-                        }
+        for (int j = 0; j < current_mesh.gl_vertices.size(); j++) {
+            const auto &triangles = current_mesh.data().not_flags_and_1.vertex_data[j].index_hdr.triangle_data;
+            const auto &vertices = current_mesh.data().not_flags_and_1.vertex_data[j].vertices;
+            for (size_t tri = 0; tri < triangles.size(); tri += 3) {
+                const auto v1 = current_mesh.game_object().model() * glm::vec4(vertices[triangles[tri]].pos, 1.0f);
+                const auto v2 = current_mesh.game_object().model() * glm::vec4(vertices[triangles[tri + 1]].pos, 1.0f);
+                const auto v3 = current_mesh.game_object().model() * glm::vec4(vertices[triangles[tri + 2]].pos, 1.0f);
+                if (ray_intersects_triangle(camera().location(), ray, v1, v2, v3, intersection_point)) {
+                    float len = glm::length(camera().location() - intersection_point);
+                    if (len < lowest_distance) {
+                        has_found = true;
+                        mesh = i;
+                        lowest_distance = len;
                     }
                 }
+            }
         }
 	}
 	m_currently_selected_mesh = has_found ? mesh : -1;

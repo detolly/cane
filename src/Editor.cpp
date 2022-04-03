@@ -12,7 +12,7 @@
 
 void Editor::create_window()
 {
-    set_window(glfwCreateWindow(1600, 900, "OpenGL Testing", NULL, NULL));
+    set_window(glfwCreateWindow(1600, 900, "cane", NULL, NULL));
 }
 
 void Editor::init()

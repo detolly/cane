@@ -110,13 +110,10 @@ public:
 
 	static inline Shader& shader() { return m_shader; }
 
-    void set_additional_model_matrix(const glm::mat4& mat);
 	virtual void render(const Camera& camera, const glm::mat4& proj) const override;
 private:
 
 	static Shader m_shader;
-
-    glm::mat4 m_additional_model{ 1.0f };
 
     const inline static auto rotation = glm::rotate(glm::identity<glm::mat4>(), glm::radians(3*90.0f), glm::vec3{ 1.0f, 0.0f, 0.0f });
 };

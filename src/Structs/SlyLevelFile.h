@@ -36,6 +36,8 @@ public:
 	std::shared_ptr<mesh_data_t> the_data;
     std::shared_ptr<mesh_data_t> the_data_to_render;
 
+    std::vector<std::vector<vertex_t>> gl_vertices;
+
     bool m_is_initialized{ false };
 };
 

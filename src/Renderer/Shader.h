@@ -7,6 +7,8 @@
 #include <glm/vec4.hpp>
 #include <glm/mat4x4.hpp>
 
+#include <Utility/FileReader.h>
+
 class Shader {
 public:
 	Shader() = delete;
@@ -14,11 +16,9 @@ public:
 	~Shader() = default;
 
 	static void init_shader(Shader& shader) {
-		const char* vs = read_from_file(shader.m_vs, &shader.m_vertex_size);
-		const char* fs = read_from_file(shader.m_fs, &shader.m_fragment_size);
-		make_gl_shader(shader, vs, fs);
-		delete[] vs;
-		delete[] fs;
+        FileReader reader(shader.m_vs, true);
+        FileReader reader2(shader.m_fs, true);
+		make_gl_shader(shader, reader.read_view(), reader2.read_view());
 	}
 
 	void use();
@@ -27,7 +27,7 @@ public:
 	void set_vec3(const char* name, const glm::vec3& v);
 	void set_vec4(const char* name, const glm::vec4& v);
 	void set_mat4(const char* name, const glm::mat4& v);
-	void set_mvp(const glm::mat4 model, const glm::mat4 view, const glm::mat4 projection);
+	void set_mvp(const glm::mat4& model, const glm::mat4& view, const glm::mat4& projection);
 	void set_float(const char* name, const float v);
 
 	void insert_location(const char* name);
@@ -51,8 +51,7 @@ private:
 
 	std::unordered_map<const char*, unsigned> m_uniform_locations{};
 
-	static void make_gl_shader(Shader& shader, const char* vs, const char* fs);
-	static const char* read_from_file(const char* file, std::streamoff* size);
+	static void make_gl_shader(Shader& shader, std::string_view vs, std::string_view fs);
 
 
 };

@@ -27,6 +27,11 @@ public:
 		return nullptr;
 	};
 
+    std::string_view read_view() {
+        read();
+        return { m_buf, m_len };
+    }
+
 	bool was_opened() const { return m_was_opened; }
 	size_t length() const { return m_len; }
 

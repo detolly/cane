@@ -29,7 +29,7 @@ void ModelBrowser::make_thumbnails() {
 		const auto& mesh = *level->meshes()[i];
 		Thumbnail b(i);
 		b.render(mesh);
-		m_thumbnails.push_back(std::move(b));
+		m_thumbnails.emplace_back(std::move(b));
 	}
 }
 
@@ -46,7 +46,7 @@ void Thumbnail::render(const SlyMesh& mesh) const
 	cam.set_pitch(-45.0f);
 	cam.set_yaw(-135.0f);
 	cam.calculate_view_matrix_if_needed();
-	static glm::mat4 proj = glm::perspective(90.0f, 1.0f, 0.1f, 50.0f);
+	const static auto proj = glm::perspective(90.0f, 1.0f, 0.1f, 50.0f);
 
 	mesh.render(cam, proj);
 }

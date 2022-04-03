@@ -97,6 +97,7 @@ void SlyMesh::make_vertex_buffer_gl_buffers()
         data().not_flags_and_1.render_properties_vector.resize(data().not_flags_and_1.mesh_hdr.mesh_count);
         if (data().not_flags_and_1.mesh_hdr.mesh_count != data().not_flags_and_1.vertex_data.size())
             return;
+        gl_vertices.resize(data().not_flags_and_1.mesh_hdr.mesh_count);
         for (int i = 0; i < data().not_flags_and_1.mesh_hdr.mesh_count; i++) {
             GLuint VAO, VBO, EBO;
             glGenVertexArrays(1, &VAO);
@@ -104,17 +105,17 @@ void SlyMesh::make_vertex_buffer_gl_buffers()
             glGenBuffers(1, &EBO);
             glBindVertexArray(VAO);
 
-            std::vector<vertex_t> vertices =  data().not_flags_and_1.vertex_data[i].vertices;
+            gl_vertices[i] = data().not_flags_and_1.vertex_data[i].vertices;
 
-            for (auto& vertex : vertices)
+            for (auto& vertex : gl_vertices[i])
                 vertex.pos = (vertex.pos - data().szme.position)/100.0f;
 
             data().not_flags_and_1.render_properties_vector[i] = { VAO, VBO, EBO };
 
             glBindBuffer(GL_ARRAY_BUFFER, VBO);
             glBufferData(GL_ARRAY_BUFFER,
-                         vertices.size() * sizeof(vertex_t),
-                         vertices.data(), GL_STATIC_DRAW);
+                         gl_vertices[i].size() * sizeof(vertex_t),
+                         gl_vertices[i].data(), GL_STATIC_DRAW);
 
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
             glBufferData(GL_ELEMENT_ARRAY_BUFFER,
@@ -138,6 +139,7 @@ void SlyMesh::make_vertex_buffer_gl_buffers()
         data().not_flags_and_1.render_properties_vector.resize(data_to_render().not_flags_and_1.mesh_hdr.mesh_count);
         if (data_to_render().not_flags_and_1.mesh_hdr.mesh_count != data_to_render().not_flags_and_1.vertex_data.size())
             return;
+        gl_vertices.resize(data_to_render().not_flags_and_1.mesh_hdr.mesh_count);
         for (int i = 0; i < data_to_render().not_flags_and_1.mesh_hdr.mesh_count; i++) {
             GLuint VAO, VBO, EBO;
             glGenVertexArrays(1, &VAO);
@@ -147,20 +149,23 @@ void SlyMesh::make_vertex_buffer_gl_buffers()
 
             const auto translate_vertices = [this](const std::vector<vertex_t>& vertices) {
                 std::vector<vertex_t> new_vertices;
+                new_vertices.resize(vertices.size());
+                int i = 0;
                 for(const auto& vertex : vertices) {
                     auto new_vertex = vertex;
                     new_vertex.pos = ((data().flags_and_1.instance_mat * glm::vec4{ vertex.pos, 1.0f }) - glm::vec4{ data().szme.position, 1.0f })/100.0f;
-                    new_vertices.push_back(new_vertex);
+                    new_vertices[i] = new_vertex;
+                    i++;
                 }
                 return new_vertices;
             };
 
-            const std::vector<vertex_t> vertices = translate_vertices(data_to_render().not_flags_and_1.vertex_data[i].vertices);
+            gl_vertices[i] = translate_vertices(data_to_render().not_flags_and_1.vertex_data[i].vertices);
 
             data().not_flags_and_1.render_properties_vector[i] = { VAO, VBO, EBO };
 
             glBindBuffer(GL_ARRAY_BUFFER, VBO);
-            glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(vertex_t), vertices.data(), GL_STATIC_DRAW);
+            glBufferData(GL_ARRAY_BUFFER, gl_vertices[i].size() * sizeof(vertex_t), gl_vertices[i].data(), GL_STATIC_DRAW);
 
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
             glBufferData(GL_ELEMENT_ARRAY_BUFFER,
@@ -199,19 +204,20 @@ void SlyMesh::free_gl_buffers()
     }
 }
 
-SlyMesh::~SlyMesh() noexcept {
+SlyMesh::~SlyMesh() noexcept
+{
     free_gl_buffers();
 }
 
 void SlyMesh::render(const Camera& cam, const glm::mat4x4& proj) const
 {
-    SingleColoredSlyWorldObject::render(cam, proj);
-
     if (!m_is_initialized)
         return;
 
     if (data().flags == 0)
         return;
+
+    SingleColoredSlyWorldObject::render(cam, proj);
 
     if (data_to_render().flags & 1)
         return;
@@ -297,7 +303,14 @@ void SlyLevelFile::parse_textures(ez_stream& stream)
 		stream.buffer(),
 		0,
 		stream.size(),
-		" aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80", "aaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaax",
+		" aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80"
+        " aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80"
+        " aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80"
+        " aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80"
+        " aa\x80 aa\x80 aa\x80 aa\x80",
+        "aaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaax"
+        "aaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaax"
+        "aaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaax",
 		0
 	);
 	//dbgprint("%08x\n", offset);
@@ -412,15 +425,10 @@ void SlyLevelFile::parse_meshes(ez_stream& stream)
                 else
                     dbgprint("Found a weird ass mesh\n");
             }
-            try {
-                mesh.make_gl_buffers();
-            } catch (std::exception& e) {
-                dbgprint("failed to make gl buffers @ 0x%x", mesh_ptr);
-            }
+            mesh.make_gl_buffers();
         }
 	}
 #else
-
     int total = 0;
     std::size_t current_szme_index{ 0 };
     std::size_t szms_start{ 0 };
@@ -555,7 +563,7 @@ void unknown_vector_array::render(const Camera &cam, const glm::mat4 &proj) cons
             glDrawArrays(GL_POINTS, 0, points().size());
             break;
         case draw_function::triangles:
-            glDrawArrays(GL_TRIANGLES, 0, points().size()/3);
+            glDrawArrays(GL_TRIANGLES, 0, points().size());
             break;
         case draw_function::polygon:
             glDrawArrays(GL_POLYGON, 0, points().size());

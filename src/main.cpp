@@ -25,6 +25,20 @@
 #include <Structs/SlyLevelFile.h>
 #include <Editor.h>
 
+void GLAPIENTRY
+MessageCallback( GLenum source,
+                 GLenum type,
+                 GLuint id,
+                 GLenum severity,
+                 GLsizei length,
+                 const GLchar* message,
+                 const void* userParam )
+{
+    dbgprint("GL CALLBACK: %s type = 0x%x, severity = 0x%x, message = %s\n",
+             ( type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : "" ),
+             type, severity, message );
+}
+
 int main(int argc, char* argv[]) {
     (void)argc;
     (void)argv;
@@ -63,6 +77,12 @@ int main(int argc, char* argv[]) {
 		dbgprint("ERROR INIT GLAD\n");
 	}
 
+#ifndef NDEBUG
+    // During init, enable debug output
+    glEnable              ( GL_DEBUG_OUTPUT );
+    glDebugMessageCallback( MessageCallback, 0 );
+#endif
+
 	//Init the Editor after establishing a container and linking opengl
 	Editor::the().init();
 
@@ -70,10 +90,14 @@ int main(int argc, char* argv[]) {
 	glEnable(GL_MULTISAMPLE);
 	glDisable(GL_CULL_FACE);
 
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	//glEnable(GL_BLEND);
+	//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	glFrontFace(GL_CW);
+	glFrontFace(GL_CCW);
+
+    //For Wireframe:
+    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    //glLineWidth(1.0f);
 
 	Shader::init_shader(SingleColoredWorldObject::shader());
 	Shader::init_shader(SingleColoredSlyWorldObject::shader());

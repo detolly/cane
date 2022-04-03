@@ -4,14 +4,17 @@
 #include <memory>
 #include <cstring>
 
-void Shader::make_gl_shader(Shader& shader, const char* vs, const char* fs)
+void Shader::make_gl_shader(Shader& shader, std::string_view vs, std::string_view fs)
 {
 	GLuint ivs, ifs;
 	ivs = glCreateShader(GL_VERTEX_SHADER);
 	ifs = glCreateShader(GL_FRAGMENT_SHADER);
 
-	glShaderSource(ivs, 1, (const GLchar* const*)&vs, NULL);
-	glShaderSource(ifs, 1, (const GLchar* const*)&fs, NULL);
+    int fs_len = fs.size();
+    int vs_len = vs.size();
+
+	glShaderSource(ivs, 1, (const GLchar* const*)&vs, &vs_len);
+	glShaderSource(ifs, 1, (const GLchar* const*)&fs, &fs_len);
 
 	glCompileShader(ivs);
 	glCompileShader(ifs);
@@ -38,23 +41,16 @@ void Shader::make_gl_shader(Shader& shader, const char* vs, const char* fs)
 	glAttachShader(program, ifs);
 	glLinkProgram(program);
 
-	shader.m_program = program;
-}
+    int is{0};
+    glGetProgramiv(program, GL_LINK_STATUS, &is);
 
-const char* Shader::read_from_file(const char* file_name, std::streamoff* size = nullptr)
-{
-	std::ifstream file(file_name, std::ios::in);
-	file.seekg(0, std::ios::end);
-	std::streamoff len = file.tellg();
-	if (size)
-		*size = len;
-	size_t length = size_t(len);
-	char* buf = new char[length]; // not 64-bit compliant - 4GB file size max
-	std::memset(buf, 0, length);
-	file.seekg(0, std::ios::beg);
-	file.read(buf, length);
-	//dbgprint("Reading shader from file -- Size: %d bytes\n", len);
-	return buf;
+    if (!is) {
+        int maxLength = 5000;
+        std::vector<GLchar> infoLog(maxLength);
+        glGetProgramInfoLog(program, maxLength, &maxLength, &infoLog[0]);
+    }
+
+	shader.m_program = program;
 }
 
 void Shader::use()
@@ -104,7 +100,7 @@ void Shader::set_float(const char* name, float v)
 	glUniform1f(loc, v);
 }
 
-void Shader::set_mvp(glm::mat4 model, glm::mat4 view, glm::mat4 projection)
+void Shader::set_mvp(const glm::mat4& model, const glm::mat4& view, const glm::mat4& projection)
 {
     set_mat4("model", model);
     set_mat4("view", view);

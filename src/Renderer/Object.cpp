@@ -20,7 +20,8 @@ const glm::mat4& GameObject::model()
 	return m_model;
 }
 
-const glm::mat4& GameObject::model() const {
+const glm::mat4& GameObject::model() const
+{
     return m_model;
 }
 
@@ -75,11 +76,6 @@ void SingleColoredWorldObject::render(const Camera& camera, const glm::mat4& pro
 	shader().set_mat4("projection", proj);
 }
 
-void SingleColoredSlyWorldObject::set_additional_model_matrix(const glm::mat4 &mat)
-{
-    m_additional_model = mat;
-}
-
 void SingleColoredWorldObject::set_color(const glm::vec3& color) {
 	m_color = glm::vec4(color, 1.0f);
 	shader().set_vec4("col", m_color);
@@ -89,8 +85,6 @@ void SingleColoredSlyWorldObject::render(const Camera& camera, const glm::mat4 &
 	shader().use();
 	shader().set_vec4("col", glm::vec4(color(), 1.0f));
     shader().set_mat4("rotation", rotation);
-    const static auto _scale = glm::scale(glm::identity<glm::mat4>(), glm::vec3{ 1/100.0f, 1/100.0f, 1/100.0f });
-    shader().set_mat4("additional_model", m_additional_model);
 	shader().set_mat4("model", game_object().constant_model() ? game_object().constant_model_matrix() : game_object().model());
 	shader().set_mat4("view", camera.view());
 	shader().set_mat4("projection", proj);
