@@ -59,7 +59,7 @@ void Renderer::render()
 
 	ImGui::Image((ImTextureID)texture(), m_render_size, { 0, 1 }, { 1, 0 });
 	char buf[64];
-	sprintf_s(buf, 64, "%.4f %.4f %.4f", camera().location().x, camera().location().y, camera().location().z);
+	std::snprintf(buf, 64, "%.4f %.4f %.4f", camera().location().x, camera().location().y, camera().location().z);
 	const auto text_size = ImGui::CalcTextSize(buf);
 	ImGui::SetNextWindowSize({ text_size.x + 50.f, 60.0f });
 	ImGui::SetNextWindowPos({ m_render_location.x, m_render_location.y });

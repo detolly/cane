@@ -3,12 +3,14 @@
 #include <Editor.h>
 #include <Utility/dbgprint.h>
 
+#include <exception>
+
 mesh_data_t::mesh_data_t(ez_stream& stream, unsigned char field_0x40)
 {
     flags = stream.read<uint16_t>();
     if ((~flags) & 1) {
         not_flags_and_1.szms = stream.read<szms_header_t>();
-        if (!not_flags_and_1.szms.magic.is_szms()) {
+        if (!not_flags_and_1.szms.m_magic.is_szms()) {
             m_error = true;
         }
         std::size_t offset = stream.tell();
@@ -347,7 +349,7 @@ szme_t::szme_t(ez_stream &stream, uint16_t flags, unsigned char field_0x40)
     {
         flags_not_and_1.mesh_count = stream.read<uint16_t>();
         if (flags_not_and_1.mesh_count > 2000)
-            throw std::exception("let's not");
+            throw std::runtime_error("let's not");
         flags_not_and_1.szme_data.resize(flags_not_and_1.mesh_count);
         for(int i = 0; i < flags_not_and_1.mesh_count; i++)
         {

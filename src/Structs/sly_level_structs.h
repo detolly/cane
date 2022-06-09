@@ -9,6 +9,8 @@
 #include <cstddef>
 #include <glad/glad.h>
 
+#include <memory>
+
 namespace {
 typedef unsigned char byte;
 }
@@ -98,7 +100,7 @@ struct vertex_data_t
 
 struct szms_header_t
 {
-    magic magic;
+    magic m_magic;
     uint32_t version;
     uint32_t data_size;
 };
@@ -289,7 +291,7 @@ struct szme_t {
     szme_t(ez_stream& stream, uint16_t flags, unsigned char field_0x40);
 
     bool m_error{ false };
-    magic magic;
+    magic m_magic;
 
     struct {
         uint32_t unk_0x04;
@@ -360,7 +362,7 @@ struct mesh_data_t
         std::vector<vertex_data_t> vertex_data;
         std::vector<render_properties> render_properties_vector;
 
-        magic magic;
+        magic m_magic;
     } not_flags_and_1;
 
     struct {
