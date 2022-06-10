@@ -21,7 +21,7 @@ struct normal_t {
     float x{0.0f}, y{0.0f}, z{0.0f};
  };
 
-struct magic {
+struct magic_t {
     char magic[4];
 
     bool is_szme() const {
@@ -98,7 +98,7 @@ struct vertex_data_t
 
 struct szms_header_t
 {
-    magic magic;
+    magic_t magic;
     uint32_t version;
     uint32_t data_size;
 };
@@ -289,7 +289,7 @@ struct szme_t {
     szme_t(ez_stream& stream, uint16_t flags, unsigned char field_0x40);
 
     bool m_error{ false };
-    magic magic;
+    magic_t magic;
 
     struct {
         uint32_t unk_0x04;
@@ -360,7 +360,7 @@ struct mesh_data_t
         std::vector<vertex_data_t> vertex_data;
         std::vector<render_properties> render_properties_vector;
 
-        magic magic;
+        magic_t magic;
     } not_flags_and_1;
 
     struct {
