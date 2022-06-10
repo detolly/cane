@@ -3,6 +3,7 @@
 #include <glad/glad.h>
 #include <memory>
 #include <cstring>
+#include <vector>
 
 void Shader::make_gl_shader(Shader& shader, std::string_view vs, std::string_view fs)
 {
@@ -46,7 +47,7 @@ void Shader::make_gl_shader(Shader& shader, std::string_view vs, std::string_vie
 
     if (!is) {
         int maxLength = 5000;
-        std::vector<GLchar> infoLog(maxLength);
+        std::vector<GLchar> infoLog = std::vector<GLchar>(maxLength);
         glGetProgramInfoLog(program, maxLength, &maxLength, &infoLog[0]);
     }
 
