@@ -20,7 +20,7 @@ mesh_data_t::mesh_data_t(ez_stream& stream, unsigned char field_0x40)
             not_flags_and_1.vertex_data[i] = std::move(vertex_data_t(stream, offset));
         }
 
-        magic a = stream.read<::magic>();
+        magic_t a = stream.read<::magic_t>();
         if(!a.is_szme()) {
             m_error = true;
         }
@@ -347,7 +347,7 @@ szme_t::szme_t(ez_stream &stream, uint16_t flags, unsigned char field_0x40)
     {
         flags_not_and_1.mesh_count = stream.read<uint16_t>();
         if (flags_not_and_1.mesh_count > 2000)
-            throw std::exception("let's not");
+            throw std::runtime_error("let's not");
         flags_not_and_1.szme_data.resize(flags_not_and_1.mesh_count);
         for(int i = 0; i < flags_not_and_1.mesh_count; i++)
         {
