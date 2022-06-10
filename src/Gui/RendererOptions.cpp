@@ -16,7 +16,7 @@ void RendererOptions::render() {
             int i = 0;
             char buf[50];
             for(auto& unknown_vector_array : Editor::the().level_file()->unknown_vector_arrays()) {
-                sprintf_s(buf, 50, "Unknown Array %d", i++);
+                std::snprintf(buf, 50, "Unknown Array %d", i++);
                 if (ImGui::CollapsingHeader(buf)) {
                     ImGui::Indent();
                     ImGui::Checkbox("Should Render", &unknown_vector_array.m_should_draw);

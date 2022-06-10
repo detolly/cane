@@ -18,7 +18,7 @@ public:
     void write(const T* ptr, size_t size) {
         //rewrite this also
         const auto path = std::filesystem::current_path();
-        std::ofstream file = std::ofstream(path / m_loc, std::ios::out | std::ios::binary | std::ios::beg);
+        std::ofstream file = std::ofstream(path / m_loc, std::ios::binary);
         if (file.is_open()) {
             m_was_opened = true;
             file.write((const char*)ptr, size);

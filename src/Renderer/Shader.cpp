@@ -4,6 +4,9 @@
 #include <memory>
 #include <cstring>
 
+#include <vector>
+#include <string_view>
+
 void Shader::make_gl_shader(Shader& shader, std::string_view vs, std::string_view fs)
 {
 	GLuint ivs, ifs;
@@ -13,8 +16,11 @@ void Shader::make_gl_shader(Shader& shader, std::string_view vs, std::string_vie
     int fs_len = fs.size();
     int vs_len = vs.size();
 
-	glShaderSource(ivs, 1, (const GLchar* const*)&vs, &vs_len);
-	glShaderSource(ifs, 1, (const GLchar* const*)&fs, &fs_len);
+	const GLchar* vertex_shader_array[] = { vs.data() };
+	const GLchar* fragment_shader_array[] = { fs.data() };
+
+	glShaderSource(ivs, 1, vertex_shader_array, &vs_len);
+	glShaderSource(ifs, 1, fragment_shader_array, &fs_len);
 
 	glCompileShader(ivs);
 	glCompileShader(ifs);
@@ -44,10 +50,12 @@ void Shader::make_gl_shader(Shader& shader, std::string_view vs, std::string_vie
     int is{0};
     glGetProgramiv(program, GL_LINK_STATUS, &is);
 
-    if (!is) {
-        int maxLength = 5000;
-        std::vector<GLchar> infoLog(maxLength);
-        glGetProgramInfoLog(program, maxLength, &maxLength, &infoLog[0]);
+    if (!is) 
+	{
+		GLint len;
+        glGetProgramInfoLog(program, sizeof(infoLog), &len, (GLchar*)infoLog);
+		printf("%s", infoLog);
+		throw std::runtime_error("Could not link shader");
     }
 
 	shader.m_program = program;
