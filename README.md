@@ -29,7 +29,7 @@ cd cane
 
 Compile
 ```bash
-mkdir build && cd build && cmake .. && cmake --build --config Release .
+mkdir build && cd build && cmake .. && cmake --build . --config Release
 ```
 
 Run
