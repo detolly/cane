@@ -1,9 +1,3 @@
-[submodule "lib/glfw"]
-	path = lib/glfw
-	url = https://github.com/glfw/glfw
-[submodule "include/glm"]
-	path = include/glm
-	url = https://github.com/g-truc/glm
-[submodule "include/imgui"]
-	path = include/imgui
+[submodule "lib/imgui"]
+	path = lib/imgui
 	url = https://github.com/ocornut/imgui
