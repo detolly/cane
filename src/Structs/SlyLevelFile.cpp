@@ -225,7 +225,7 @@ void SlyMesh::render(const Camera& cam, const glm::mat4x4& proj) const
     for (size_t i = 0; i < data_to_render().not_flags_and_1.mesh_hdr.mesh_count; i++) {
         if (data_to_render().szme.flags_not_and_1.szme_data.size() > i &&
                 data_to_render().szme.flags_not_and_1.szme_data[i].texture_id < m_texture_table.texture.size() &&
-            m_texture_table.texture[data_to_render().szme.flags_not_and_1.szme_data[i].texture_id].is_initialized())
+                m_texture_table.texture[data_to_render().szme.flags_not_and_1.szme_data[i].texture_id].is_initialized())
             glBindTexture(GL_TEXTURE_2D,
                           m_texture_table.texture[data_to_render().szme.flags_not_and_1.szme_data[i].texture_id].gl_texture);
         else
