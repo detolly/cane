@@ -22,17 +22,24 @@ public:
 		bool model_viewer		{ true };
 		bool examples			{ true };
 	} windows;
+
 	struct {
-		bool wireframe { false };
-		float fov{ 90.0f };
-		float move_speed{ 0.01f };
+		bool wireframe      { false };
+		float fov           { 90.0f };
+		float move_speed    { 0.01f };
 	} renderer;
-	struct {
+	
+    struct {
 
 	} debug_information;
-	struct {
+	
+    struct {
 		struct {
-			float r{0.2f}, g{0.2f}, b{0.2f}, a{1.0f};
+			float 
+                r{0.2f}, 
+                g{0.2f}, 
+                b{0.2f}, 
+                a{1.0f};
 		} rgba;
 	} model_viewer;
 };

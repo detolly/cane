@@ -51,8 +51,8 @@ private:
 		-1.0f, 1.0f, 1.0f,
 		1.0f,-1.0f, 1.0f
 	};
-	unsigned m_vao;
-	unsigned m_vertex_buffer_id;
+	glm::u32 m_vao;
+	glm::u32 m_vertex_buffer_id;
 
 	void make_gl_buffers();
 	void free_gl_buffers();

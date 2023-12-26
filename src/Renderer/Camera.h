@@ -14,40 +14,29 @@ public:
 	}
 	~Camera() = default;
 
-	const glm::mat4 view() const { return m_view; }
-	const glm::vec3 location() const { return m_location; } 
-	const glm::vec3& location() { return m_location; }
+	const glm::mat4& view() const { return m_view; }
+
+	glm::vec3 location() const { return m_location; }
 	void set_location(glm::vec3 vec) { m_location = vec; m_should_recalculate_view_matrix = true; }
 
 	void calculate_view_matrix_if_needed() { if (m_should_recalculate_view_matrix) calculate_view_matrix(); }
 
-	const float pitch() const { return m_pitch; } 
-	float pitch() { return m_pitch; }
-
-	const float yaw() const { return m_yaw; } 
-	float yaw() { return m_yaw; }
+	float pitch() const { return m_pitch; }
+	float yaw() const { return m_yaw; } 
 
 	void set_yaw(float yaw) { m_yaw = yaw; m_should_recalculate_view_matrix = true; }
 	void set_pitch(float pitch) { m_pitch = pitch; m_should_recalculate_view_matrix = true; }
 
-	void set_yaw_pitch(float yaw, float pitch) {
-		float norm = yaw + 180.0f;
-		if (norm < 0.0f)
-			norm += 360.0f;
-		else if (norm > 360.0f)
-			norm -= 360.0f;
-		m_yaw = norm - 180.0f;
-		m_pitch = glm::clamp(pitch, -89.f, 89.f);
-		m_should_recalculate_view_matrix = true;
-	}
+	void set_yaw_pitch(float yaw, float pitch);
 
-	const glm::vec3 direction() const;
-	const glm::vec3 forward() const;
-	const glm::vec3 forward_xy() const;
-	const glm::vec3 left() const;
-	const glm::vec3 right() const;
-	const glm::vec3 back() const;
-	const glm::vec3 back_xy() const;
+	glm::vec3 direction() const;
+	glm::vec3 forward() const;
+	glm::vec3 forward_xy() const;
+	glm::vec3 left() const;
+	glm::vec3 right() const;
+	glm::vec3 back() const;
+	glm::vec3 back_xy() const;
+	
 	constexpr const static glm::vec3 up() { return glm::vec3(0.0f, 1.0f, 0.0f); };
 
 private:

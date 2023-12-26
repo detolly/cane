@@ -1,6 +1,7 @@
 
+#include <GL/glew.h>
+
 #include <Gui/RenderBuffer.h>
-#include <glad/glad.h>
 #include <Utility/dbgprint.h>
 
 void TexturedRenderBuffer::free_buffer()
@@ -20,7 +21,6 @@ void TexturedRenderBuffer::resize_buffer(float width, float height)
 
 void TexturedRenderBuffer::resize_buffer(int width, int height)
 {
-	static int msaa = 4;
 	free_buffer();
 
 	glGenFramebuffers(1, &m_fbo);
@@ -47,7 +47,7 @@ void TexturedRenderBuffer::resize_buffer(int width, int height)
 	switch (result) {
 	case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT:				dbgprint("GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT\n"); break;
 	case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT:		dbgprint("GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT\n"); break;
-	case GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS:				dbgprint("GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS\n"); break;
+	//case GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS:				dbgprint("GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS\n"); break;
 	case GL_FRAMEBUFFER_UNSUPPORTED:						dbgprint("GL_FRAMEBUFFER_UNSUPPORTED\n"); break;
 	case GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE:				dbgprint("GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE\n"); break;
 	case GL_RENDERBUFFER_SAMPLES:							dbgprint("GL_RENDERBUFFER_SAMPLES\n"); break;

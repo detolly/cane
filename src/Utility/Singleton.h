@@ -1,9 +1,4 @@
-//
-// Created by Thomas on 1/23/2021.
-//
-
-#ifndef CANE_SINGLETON_H
-#define CANE_SINGLETON_H
+#pragma once
 
 template<typename T>
 class Singleton {
@@ -19,6 +14,3 @@ public:
 
 template<typename T>
 T Singleton<T>::m_static_instance;
-
-
-#endif //CANE_SINGLETON_H

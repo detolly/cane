@@ -30,6 +30,7 @@ SOFTWARE.
 
 #include <float.h>
 #include <string.h> // stricmp / strcasecmp
+#include <cstdint>
 #include <sstream>
 #include <iomanip>
 #include <time.h>

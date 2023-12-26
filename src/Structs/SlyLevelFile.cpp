@@ -1,13 +1,12 @@
 #include "SlyLevelFile.h"
 
-#include <Renderer/Camera.h>
 #include <memory>
 
+#include <Editor.h>
+#include <Renderer/Camera.h>
 #include <Utility/dbgprint.h>
 #include <Utility/Sigscan.h>
 #include <Utility/FileReader.h>
-
-#include <Editor.h>
 
 #ifdef WIN32
 #include <windows.h>
@@ -204,7 +203,7 @@ void SlyMesh::free_gl_buffers()
     }
 }
 
-SlyMesh::~SlyMesh() noexcept
+SlyMesh::~SlyMesh()
 {
     free_gl_buffers();
 }
@@ -240,9 +239,9 @@ void SlyMesh::render(const Camera& cam, const glm::mat4x4& proj) const
 SlyLevelFile::SlyLevelFile(const char* level_file)
 {
 	FileReader reader(level_file);
-	const auto* bf = reader.read();
+	const auto bf = reader.read();
 	const auto sz = reader.length();
-	ez_stream stream(bf, sz);
+	ez_stream stream(bf.c_str(), sz);
 	parse_textures(stream);
 	parse_meshes(stream);
 	//find_and_populate_coord_arrays(stream);
@@ -275,11 +274,10 @@ void SlyLevelFile::find_near_float(ez_stream& stream, float x, float y, float z,
 void SlyLevelFile::parse_textures(ez_stream& stream)
 {
 	size_t finding_texture_table = 0;
-	int s = 0;
     stream.seek(0);
 	while (stream.find("FK$Dcrmtaunt07")) {
         finding_texture_table = stream.tell();
-        stream.read<int>();
+        [[maybe_unused]] auto unk = stream.read<int>();
     }
 	finding_texture_table += 33;
 	stream.seek(finding_texture_table);
@@ -313,10 +311,9 @@ void SlyLevelFile::parse_textures(ez_stream& stream)
         "aaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaax",
 		0
 	);
-	//dbgprint("%08x\n", offset);
 	m_TEX_PALETTE_BASE = offset;
 
-	int tex_entry_idx = 0;
+	[[maybe_unused]] int tex_entry_idx = 0;
 
 	for (auto& texture_record : m_texture_table.texture) {
 
@@ -337,18 +334,12 @@ void SlyLevelFile::parse_textures(ez_stream& stream)
 			}
 		}
 		else if (isManyImgManyPal) {
-			//if (!Number.isInteger(texEntry.clutIndices.length / texEntry.imageIndices.length)) {
-			//	console.log(`WARN: nonint m2m ${ texEntryIdx } ${ texEntry.clutIndices.length } ${ texEntry.imageIndices.length }`);
-			//}
 			const auto divPalImg = texture_record.clut_index.size() / texture_record.image_index.size();
 			for (size_t i = 0; i < texture_record.clut_index.size(); ++i) {
 				int imgIndex = i / (divPalImg == 0 ? 1 : divPalImg);
 				if (i == ((texture_record.clut_index.size() / 2)))
 					make_texture(stream.buffer(), texture_record, texture_record.clut_index[i], texture_record.image_index[imgIndex]);
 			}
-		}
-		else {
-			//console.log(`WARN: other ${ texEntryIdx } ${ texEntry.clutIndices.length } ${ texEntry.imageIndices.length }`);
 		}
 		tex_entry_idx++;
 	}
@@ -405,7 +396,6 @@ void SlyLevelFile::parse_meshes(ez_stream& stream)
 
         std::vector<std::shared_ptr<mesh_data_t>> references;
         std::vector<SlyMesh*> added_now;
-        int i = 0;
         for(auto& mesh_data_ptr : container.mesh_datas) {
             std::shared_ptr<mesh_data_t> to_render{ mesh_data_ptr };
 
@@ -413,8 +403,6 @@ void SlyLevelFile::parse_meshes(ez_stream& stream)
             m_meshes.emplace_back(std::make_unique<SlyMesh>(mesh_data_ptr, to_render, m_texture_table));
 
             added_now.push_back(m_meshes.back().get());
-
-            i++;
         }
         for(auto* mesh_ptr : added_now)
         {

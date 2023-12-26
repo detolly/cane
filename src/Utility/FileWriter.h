@@ -1,9 +1,4 @@
-//
-// Created by Thomas on 2/9/2021.
-//
-
-#ifndef CANE_FILEWRITER_H
-#define CANE_FILEWRITER_H
+#pragma once
 
 #include <fstream>
 #include <filesystem>
@@ -11,28 +6,23 @@
 
 class FileWriter {
 public:
-    FileWriter(const char* loc) : m_loc(loc) {}
+    FileWriter(std::string_view location) : m_location(location) {}
     ~FileWriter() = default;
 
     template<typename T>
     void write(const T* ptr, size_t size) {
         //rewrite this also
-        const auto path = std::filesystem::current_path();
-        std::ofstream file = std::ofstream(path / m_loc, std::ios::binary);
+        std::ofstream file = std::ofstream(m_location, std::ios::binary);
         if (file.is_open()) {
             m_was_opened = true;
-            file.write((const char*)ptr, size);
+            file.write(reinterpret_cast<const char*>(ptr), size);
             file.close();
         }
-        //TODO: exception handling?
     };
 
     bool was_opened() const { return m_was_opened; }
 
 private:
-    bool m_was_opened{false};
-    const char* m_loc{nullptr};
+    bool m_was_opened{ false };
+    std::string m_location;
 };
-
-#endif // CANE_FILEWRITER_H
-

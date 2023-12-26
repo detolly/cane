@@ -1,14 +1,15 @@
-#include "DebugInformation.h"
+#include <imgui/imgui.h>
+
+#include <Editor.h>
+#include <Gui/DebugInformation.h>
 #include <Gui/Renderer.h>
 #include <Structs/SlyLevelFile.h>
-#include <Editor.h>
-#include <imgui/imgui.h>
 
 void DebugInformation::render()
 {
-	int currently_selected_mesh = Renderer::the().currently_selected_mesh();
 	ImGui::Begin("Debug Information", &config::the().windows.debug_information);
 #if 0
+	int currently_selected_mesh = Renderer::the().currently_selected_mesh();
 	ImGui::TextWrapped("Selected Mesh: ");
 	if (Editor::the().has_file_loaded() && currently_selected_mesh > -1) {
 		auto& writable_mesh = Editor::the().level_file()->meshes()[currently_selected_mesh];

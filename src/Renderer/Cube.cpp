@@ -1,5 +1,6 @@
+#include <GL/glew.h>
+
 #include <Renderer/Cube.h>
-#include <glad/glad.h>
 
 Cube::Cube(glm::vec3 location)
 {

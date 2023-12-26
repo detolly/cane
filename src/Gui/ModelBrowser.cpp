@@ -1,10 +1,13 @@
 #include "ModelBrowser.h"
-#include <Gui/ModelViewer.h>
+
+#include <GL/glew.h>
 #include <imgui/imgui.h>
-#include <Utility/config.h>
+
 #include <Editor.h>
+#include <Gui/ModelViewer.h>
 #include <Structs/SlyLevelFile.h>
-#include <glad/glad.h>
+#include <Utility/config.h>
+
 
 void ModelBrowser::render()
 {
@@ -13,7 +16,7 @@ void ModelBrowser::render()
 	for (Thumbnail& t : m_thumbnails) {
 		if (ImGui::GetContentRegionAvail().x < 128)
 			ImGui::NewLine();
-		if (ImGui::ImageButton((ImTextureID)t.texture(), { 128, 128 }, { 0, 1 }, { 1, 0 })) {
+		if (ImGui::ImageButton(reinterpret_cast<ImTextureID>(t.texture()), { 128, 128 }, { 0, 1 }, { 1, 0 })) {
 			ModelViewer::the().set_selected(t.index());
 		}
 		ImGui::SameLine();

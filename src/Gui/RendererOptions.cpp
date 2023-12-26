@@ -1,12 +1,12 @@
-//
-// Created by Thomas on 1/21/2021.
-//
-
 #include "RendererOptions.h"
-#include <Utility/config.h>
-#include <Structs/SlyLevelFile.h>
-#include <Editor.h>
+
 #include <imgui.h>
+
+#include <format>
+
+#include <Editor.h>
+#include <Structs/SlyLevelFile.h>
+#include <Utility/config.h>
 
 void RendererOptions::render() {
     if (ImGui::Begin("Renderer Options", &config::the().windows.renderer_options))
@@ -14,10 +14,9 @@ void RendererOptions::render() {
         if (Editor::the().has_file_loaded())
         {
             int i = 0;
-            char buf[50];
             for(auto& unknown_vector_array : Editor::the().level_file()->unknown_vector_arrays()) {
-                std::snprintf(buf, 50, "Unknown Array %d", i++);
-                if (ImGui::CollapsingHeader(buf)) {
+                const auto buf = std::format("Unknown Array {}", i++);
+                if (ImGui::CollapsingHeader(buf.c_str())) {
                     ImGui::Indent();
                     ImGui::Checkbox("Should Render", &unknown_vector_array.m_should_draw);
                     const char* const items[] = { "Triangles", "Lines", "Points" };

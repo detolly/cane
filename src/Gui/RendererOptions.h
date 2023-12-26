@@ -1,8 +1,4 @@
-//
-// Created by Thomas on 1/21/2021.
-//
-#ifndef CANE_RENDEREROPTIONS_H
-#define CANE_RENDEREROPTIONS_H
+#pragma once
 
 #include <Utility/Singleton.h>
 
@@ -14,7 +10,3 @@ public:
     void on_close();
 
 };
-
-
-#endif //CANE_RENDEREROPTIONS_H
-

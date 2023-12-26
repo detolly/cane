@@ -1,11 +1,12 @@
 #pragma once
 
-#include <cstdint>
-#include <Utility/ez_stream.h>
-#include <main.h>
-
-#include <glad/glad.h>
+#include <GL/glew.h>
 #include <GLFW/glfw3.h>
+
+#include <cstdint>
+#include <vector>
+
+#include <Utility/ez_stream.h>
 
 struct UNK_TABLE_t {
 	uint16_t u0x0;
@@ -108,10 +109,10 @@ struct texture_record_t {
 		unk_color1 = stream.read<uint32_t>();
 		unk_i0 = stream.read<uint32_t>();
 		unk_sh0 = stream.read<short>();
-		unk5 = stream.read<byte>();
-		unk7 = stream.read<byte>();
-		unk_flag = stream.read<byte>();
-		if (unk_flag) {
+		unk5 = stream.read<std::byte>();
+		unk7 = stream.read<std::byte>();
+		unk_flag = stream.read<std::byte>();
+		if (static_cast<bool>(unk_flag)) {
 			union1.flag_on = stream.read<decltype(union1.flag_on)>();
 		}
 		else {
@@ -131,14 +132,14 @@ struct texture_record_t {
 		}
 	}
 
-	const bool is_initialized() const { return m_initialized; }
+	bool is_initialized() const { return m_initialized; }
 
 	void make_texture(uint8_t* paletteBuf, uint8_t* imageBuf, int width, int height, uint8_t* csm1ClutIndices) {
 		m_initialized = true;	
 		m_bitmap.resize(width * height * 4);
 		for (int i = 0; i < width * height; i++) {
 			const int idx = csm1ClutIndices[imageBuf[i]] * 4;
-			const int line = ((i) / width) + 1;
+			[[maybe_unused]] const int line = ((i) / width) + 1;
 
 			// const alpha = palette_slice[idx + 3] / 256; // Paint alpha black
 			//m_bitmap[4 * (width * height - line * width + (i % width)) + 3] = paletteBuf[idx + 3] * 2 - 1; 
@@ -171,21 +172,21 @@ struct texture_record_t {
 	uint32_t unk_color1;
 	uint32_t unk_i0;
 	short unk_sh0;
-	unsigned char unk5;
-	unsigned char unk7;
-	unsigned char unk_flag;
+	std::byte unk5;
+	std::byte unk7;
+	std::byte unk_flag;
 
 	bool m_initialized{false};
 
 	union {
 		struct {
-			byte unk3[8 + 8];
-			byte unk4[6];
-			byte unk[11];
+			std::byte unk3[8 + 8];
+			std::byte unk4[6];
+			std::byte unk[11];
 		} flag_on;
 		struct {
-			byte unk[1];
-			byte unk2[4];
+			std::byte unk[1];
+			std::byte unk2[4];
 		} flag_off;
 	} union1;
 

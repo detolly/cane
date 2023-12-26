@@ -2,16 +2,18 @@
 
 #include <stdexcept>
 
+#include <glm/glm.hpp>
+
 class ez_stream {
 public:
 	ez_stream(const char* buffer, size_t len) : m_buffer(buffer), m_len(len) {}
 	~ez_stream() = default;
 
 	void seek(size_t index) { m_index = index; }
-	[[nodiscard]] const inline size_t tell() { return m_index; }
+	[[nodiscard]] inline size_t tell() { return m_index; }
 
 	template <typename T, size_t size = sizeof(T)>
-	[[nodiscard]] const inline T read() {
+	[[nodiscard]] inline T read() {
         if (m_index + size > m_len)
             throw std::out_of_range("ur doing it wrong");
 		T ret = *(T*)(m_buffer + m_index);
@@ -51,7 +53,7 @@ public:
     }
 
     inline bool find(const std::string_view lf) {
-        int already_found = 0;
+        std::size_t already_found = 0;
         for (size_t current_index = tell(); current_index < size(); current_index++) {
             if (read_at<char>(current_index) == lf[already_found])
                 already_found++;

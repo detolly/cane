@@ -13,7 +13,7 @@ void config::serialize(const char *filename) {
 
 void config::deserialize(const char *filename) {
     FileReader reader(filename);
-    const char* buffer = reader.read();
+    const auto buffer = reader.read();
     if (reader.was_opened()) {
         const auto len = reader.length();
 
@@ -22,7 +22,7 @@ void config::deserialize(const char *filename) {
             return;
         }
 
-        config::the() = *(config*)buffer;
+        config::the() = *(config*)buffer.data();
     } else {
         // File does not exist, that's fine!
     };

@@ -1,43 +1,51 @@
-#include "Shader.h"
+#include <GL/glew.h>
 
-#include <glad/glad.h>
-#include <memory>
 #include <cstring>
-
-#include <vector>
+#include <memory>
 #include <string_view>
+#include <vector>
 
-void Shader::make_gl_shader(Shader& shader, std::string_view vs, std::string_view fs)
+#include <Renderer/Shader.h>
+#include <Utility/dbgprint.h>
+
+void Shader::init()
 {
-	GLuint ivs, ifs;
-	ivs = glCreateShader(GL_VERTEX_SHADER);
-	ifs = glCreateShader(GL_FRAGMENT_SHADER);
+    FileReader reader { m_vs };
+    FileReader reader2 { m_fs };
+    make_gl_shader(reader.read(), reader2.read());
+}
+
+void Shader::make_gl_shader(const std::string& vs, const std::string& fs)
+{
+	glm::u32 ivs = glCreateShader(GL_VERTEX_SHADER);
+	glm::u32 ifs = glCreateShader(GL_FRAGMENT_SHADER);
 
     int fs_len = fs.size();
     int vs_len = vs.size();
 
-	const GLchar* vertex_shader_array[] = { vs.data() };
-	const GLchar* fragment_shader_array[] = { fs.data() };
-
-	glShaderSource(ivs, 1, vertex_shader_array, &vs_len);
-	glShaderSource(ifs, 1, fragment_shader_array, &fs_len);
+	const GLchar* vertex_shader_array = vs.c_str();
+	const GLchar* fragment_shader_array = fs.c_str();
+	glShaderSource(ivs, 1, &vertex_shader_array, &vs_len);
+	glShaderSource(ifs, 1, &fragment_shader_array, &fs_len);
 
 	glCompileShader(ivs);
 	glCompileShader(ifs);
 
 	int  success;
 	char infoLog[512];
+	
 	glGetShaderiv(ivs, GL_COMPILE_STATUS, &success);
-	if (!success)
-	{
+	if (!success) {
 		glGetShaderInfoLog(ivs, 512, NULL, infoLog);
-		//dbgprint("ERROR::SHADER::VERTEX::COMPILATION_FAILED\nOBJECT: %x\n%s\n", &shader, infoLog);
+		printf("%s", infoLog);
+		throw std::runtime_error("Could not compile shader");
 	}
+
 	glGetShaderiv(ifs, GL_COMPILE_STATUS, &success);
-	if (!success)
-	{
-		glGetShaderInfoLog(ifs, 512, NULL, infoLog);
-		//dbgprint("ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\nOBJECT: %x\n%s\n", &shader, infoLog);
+	if (!success) {
+    	glGetShaderInfoLog(ifs, 512, NULL, infoLog);
+		printf("%s", infoLog);
+		throw std::runtime_error("Could not compile shader");
 	}
 
 	unsigned int program;
@@ -50,15 +58,14 @@ void Shader::make_gl_shader(Shader& shader, std::string_view vs, std::string_vie
     int is{0};
     glGetProgramiv(program, GL_LINK_STATUS, &is);
 
-    if (!is) 
-	{
+    if (!is) {
 		GLint len;
         glGetProgramInfoLog(program, sizeof(infoLog), &len, (GLchar*)infoLog);
 		printf("%s", infoLog);
 		throw std::runtime_error("Could not link shader");
     }
 
-	shader.m_program = program;
+	m_program = program;
 }
 
 void Shader::use()
@@ -66,13 +73,13 @@ void Shader::use()
 	glUseProgram(program());
 }
 
-void Shader::insert_location(const char* name)
+void Shader::insert_location(const std::string& name)
 {
-	unsigned location = glGetUniformLocation(program(), name);
+	int location = glGetUniformLocation(program(), name.c_str());
 	m_uniform_locations.insert(std::make_pair<>(name, location));
 }
 
-unsigned Shader::get_location(const char* name)
+glm::u32 Shader::get_location(const std::string& name)
 {
 	if (!m_uniform_locations.contains(name))
 		insert_location(name);
@@ -80,28 +87,28 @@ unsigned Shader::get_location(const char* name)
 	return a != m_uniform_locations.end() ? a->second : 0;
 }
 
-void Shader::set_vec3(const char* name, const glm::vec3& v)
+void Shader::set_vec3(const std::string& name, const glm::vec3 v)
 {
 	unsigned loc = get_location(name);
 	use();
 	glUniform3fv(loc, 1, (float*)&v[0]);
 }
 
-void Shader::set_vec4(const char* name, const glm::vec4& v)
+void Shader::set_vec4(const std::string& name, const glm::vec4 v)
 {
 	unsigned loc = get_location(name);
 	use();
 	glUniform4fv(loc, 1, (float*)&v[0]);
 }
 
-void Shader::set_mat4(const char* name, const glm::mat4& v)
+void Shader::set_mat4(const std::string& name, const glm::mat4& v)
 {
 	unsigned loc = get_location(name);
 	use();
 	glUniformMatrix4fv(loc, 1, GL_FALSE, (float*)&v);
 }
 
-void Shader::set_float(const char* name, float v)
+void Shader::set_float(const std::string& name, float v)
 {
 	unsigned loc = get_location(name);
 	use();

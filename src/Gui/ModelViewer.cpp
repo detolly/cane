@@ -1,11 +1,14 @@
 #include "ModelViewer.h"
-#include <imgui/imgui.h>
-#include <glad/glad.h>
-#include <Utility/config.h>
-#include <Renderer/Camera.h>
-#include <Editor.h>
-#include <Structs/SlyLevelFile.h>
+
 #include <cmath>
+
+#include <GL/glew.h>
+#include <imgui/imgui.h>
+
+#include <Editor.h>
+#include <Renderer/Camera.h>
+#include <Structs/SlyLevelFile.h>
+#include <Utility/config.h>
 
 void ModelViewer::init() {
     resize_buffer(512, 512);
@@ -35,7 +38,7 @@ void ModelViewer::render()
 		const auto size = ImGui::GetContentRegionAvail();
 		const auto val = std::fmin(std::fmin(size.x, size.y), 512.0f);
 		ImGui::SameLine(size.x / 2.0f - val/2.0f);
-		ImGui::Image((ImTextureID)texture(), { val, val }, { 0, 1 }, { 1, 0 });
+		ImGui::Image(reinterpret_cast<ImTextureID>(texture()), { val, val }, { 0, 1 }, { 1, 0 });
 	}
 	ImGui::End();
 }

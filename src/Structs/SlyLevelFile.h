@@ -1,14 +1,15 @@
 #pragma once 
 
-#include <Renderer/Object.h>
-#include <Utility/ez_stream.h>
-#include <Structs/sly_level_structs.h>
-#include <Structs/sly_texture_structs.h>
-
 #include <vector>
 #include <cstring>
+#include <memory>
 
-class SlyMesh : public SingleColoredSlyWorldObject {
+#include <Renderer/Object.h>
+#include <Structs/sly_level_structs.h>
+#include <Structs/sly_texture_structs.h>
+#include <Utility/ez_stream.h>
+
+class SlyMesh final : public SingleColoredSlyWorldObject {
 
 public:
 	texture_table_t& m_texture_table;
@@ -27,7 +28,7 @@ public:
 
 	void free_gl_buffers();
 
-	void render(const Camera& cam, const glm::mat4x4& proj) const override;
+	virtual void render(const Camera& cam, const glm::mat4x4& proj) const override;
 
     mesh_data_t& data() { return *the_data; }
     const mesh_data_t& data() const { return *the_data; }
@@ -70,7 +71,7 @@ private:
     } m_draw_func { draw_function::points };
 
 public:
-    const draw_function draw_func() const { return m_draw_func; }
+    draw_function draw_func() const { return m_draw_func; }
     const std::vector<glm::vec3>& points() const { return m_points; }
     bool should_draw() const { return m_should_draw; }
     void set_should_draw(bool b) { m_should_draw = b; }

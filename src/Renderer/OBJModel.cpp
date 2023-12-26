@@ -1,47 +1,61 @@
+#include <GL/glew.h>
+
+#include <charconv>
+#include <string>
+
+#include <Renderer/Camera.h>
 #include <Renderer/OBJModel.h>
 #include <Utility/FileReader.h>
-#include <glad/glad.h>
-#include <string>
-#include <Renderer/Camera.h>
 
-OBJModel::OBJModel(const char* file_location)
+OBJModel::OBJModel(std::string_view file_location)
 {
     FileReader r(file_location);
-    const char* buf = r.read();
+    std::string buf = r.read();
     parse(buf);
     make_gl_buffers();
     //det:://dbgprint(buf);
 }
 
-void OBJModel::parse(const char* buf) {
-    std::string a(buf);
+void OBJModel::parse(std::string_view obj) {
     int last_start = 0;
     std::vector<glm::vec3> vert_arr;
-    for (int start = 0; start != std::string::npos; last_start = start, start = a.find("\n", start)+1) {
-        if (a[last_start] == '#')
+    for (std::size_t start = 0; start != std::string::npos; last_start = start, start = obj.find("\n", start) + 1) {
+        if (obj[last_start] == '#')
             continue;
-        const std::string current_line = a.substr(last_start, start-last_start-1);
-        //det:://dbgprint(current_line.c_str());
+        const std::string_view current_line = obj.substr(last_start, start-last_start-1);
         if (current_line.starts_with("v "))
         {
-            const std::string verts = current_line.substr(2);
+            const std::string_view verts = current_line.substr(2);
             const int st1 = verts.find(' ');
             const int st2 = verts.find(' ', st1 + 1);
-            const std::string vert1 = verts.substr(0, st1);
-            const std::string vert2 = verts.substr(st1 + 1, st2 - st1);
-            const std::string vert3 = verts.substr(st2 + 1);
-            vert_arr.push_back(glm::vec3((float)std::stof(vert1), (float)std::stof(vert2), (float)std::stof(vert3)));
+            const std::string_view vert1 = verts.substr(0, st1);
+            const std::string_view vert2 = verts.substr(st1 + 1, st2 - st1);
+            const std::string_view vert3 = verts.substr(st2 + 1);
+
+            float v1, v2, v3;
+            [[maybe_unused]] const auto result1 = std::from_chars(vert1.begin(), vert1.end(), v1);
+            [[maybe_unused]] const auto result2 = std::from_chars(vert2.begin(), vert2.end(), v2);
+            [[maybe_unused]] const auto result3 = std::from_chars(vert3.begin(), vert3.end(), v3);
+
+            vert_arr.push_back(glm::vec3(v1, v2, v3));
         }
         else if (current_line.starts_with("f ")) {
-            const std::string verts = current_line.substr(2);
+            const std::string_view verts = current_line.substr(2);
             const int st1 = verts.find(' ');
             const int st2 = verts.find(' ', st1 + 1);
-            const int index1 = atoi(verts.substr(0, st1).c_str());
-            const int index2 = atoi(verts.substr(st1 + 1, st2 - st1).c_str());
-            const int index3 = atoi(verts.substr(st2 + 1).c_str());
-            m_buffer_data.push_back(vert_arr.at(index1-1));
-            m_buffer_data.push_back(vert_arr.at(index2-1));
-            m_buffer_data.push_back(vert_arr.at(index3-1));
+
+            const auto index1 = verts.substr(0, st1);
+            const auto index2 = verts.substr(st1 + 1, st2 - st1);
+            const auto index3 = verts.substr(st2 + 1);
+
+            int i1, i2, i3;
+            [[maybe_unused]] const auto result1 = std::from_chars(index1.begin(), index1.end(), i1);
+            [[maybe_unused]] const auto result2 = std::from_chars(index2.begin(), index2.end(), i2);
+            [[maybe_unused]] const auto result3 = std::from_chars(index3.begin(), index3.end(), i3);
+
+            m_buffer_data.push_back(vert_arr.at(i1-1));
+            m_buffer_data.push_back(vert_arr.at(i2-1));
+            m_buffer_data.push_back(vert_arr.at(i3-1));
         }
         else if (current_line.starts_with("o ")) {}
         else if (current_line.starts_with("s ")) {}

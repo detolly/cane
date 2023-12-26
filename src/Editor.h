@@ -1,9 +1,10 @@
 #pragma once
 
-#include <glad/glad.h>
-#include <Utility/Singleton.h>
+#include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <imgui.h>
+
+#include <Utility/Singleton.h>
 
 class SlyLevelFile;
 class Renderer;
@@ -12,7 +13,7 @@ class ModelBrowser;
 class ModelViewer;
 class RendererOptions;
 
-class Editor : public Singleton<Editor> {
+class Editor final : public Singleton<Editor> {
     friend class Singleton<Editor>;
 private:
     Editor() = default;
@@ -73,8 +74,8 @@ private:
     GLFWwindow* m_window;
     int m_cursor_mode { GLFW_CURSOR_DISABLED };
 
-	SlyLevelFile* m_level { nullptr };
-	bool m_can_resize { true };
+    SlyLevelFile* m_level { nullptr };
+    bool m_can_resize { true };
 
 };
 

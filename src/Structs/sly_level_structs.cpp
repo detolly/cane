@@ -19,7 +19,7 @@ mesh_data_t::mesh_data_t(ez_stream& stream, unsigned char field_0x40)
 
         for (int i = 0; i < not_flags_and_1.mesh_hdr.mesh_count; i++) {
             stream.seek(offset + not_flags_and_1.mesh_hdr.mesh_offsets[i]);
-            not_flags_and_1.vertex_data[i] = std::move(vertex_data_t(stream, offset));
+            not_flags_and_1.vertex_data[i] = vertex_data_t(stream, offset);
         }
 
         magic a = stream.read<::magic>();
@@ -62,14 +62,14 @@ mesh_data_t::mesh_data_t(ez_stream& stream, unsigned char field_0x40)
     szme = szme_t(stream, flags, field_0x40);
 
     //Convert to new code
-    const auto& p = szme.position;
+    //const auto& p = szme.position;
 
     //dbgprint("%.02f %.02f %.02f\n", p.x, p.y, p.z);
 
     if (~flags & 1) {
 
-        for(auto i = 0; i < szme.flags_not_and_1.mesh_count; i++)
-            for (auto j = 0; j < szme.flags_not_and_1.szme_data[i].gl_vertices.size(); j++)
+        for(size_t i = 0; i < szme.flags_not_and_1.mesh_count; i++)
+            for (size_t j = 0; j < szme.flags_not_and_1.szme_data[i].gl_vertices.size(); j++)
                 szme.flags_not_and_1.szme_data[i].gl_vertices[j].pos = (szme.flags_not_and_1.szme_data[i].gl_vertices[j].pos - szme.flags_not_and_1.szme_data[i].origin)/100.0f;
 
     }
@@ -133,7 +133,7 @@ szme_vertex_data_t::szme_vertex_data_t(ez_stream& stream, uint16_t flags, unsign
         vertex.pos = vertices[i];
         gl_vertices[i] = std::move(vertex);
     }
-    for(auto i = 0; i < indices.size(); i++) {
+    for(size_t i = 0; i < indices.size(); i++) {
         if (indices[i].vertex_index >= vertices.size())
             continue;
         if (indices[i].normal_index >= rotations.size())
@@ -157,8 +157,8 @@ vertex_data_t::vertex_data_t(ez_stream& stream, int mesh_header_start)
     vertex_hdr = stream.read<vertex_header_t>();
     vertices.resize(vertex_hdr.vertex_count);
     stream.seek(mesh_header_start + vertex_hdr.vertex_data_offset);
-    for (int i = 0; i < vertex_hdr.vertex_count; i++) {
-        vertices[i] = std::move(vertex_t(stream));
+    for (size_t i = 0; i < vertex_hdr.vertex_count; i++) {
+        vertices[i] = vertex_t(stream);
     }
     stream.seek(mesh_header_start + vertex_hdr.index_header_offset);
     index_hdr = index_data_t(stream, mesh_header_start);
@@ -306,7 +306,7 @@ after_szme_data::after_szme_data(ez_stream& stream, std::uint16_t field_0x40)
 
     auto sz = unk_count3 * (std::uint32_t)unk_count_;
     unk_float.resize(sz);
-    for(auto i = 0; i < sz; i++)
+    for(size_t i = 0; i < sz; i++)
         unk_float.push_back(stream.read<float>());
 
     if (field_0x40 != 0)
@@ -362,7 +362,7 @@ szme_t::szme_t(ez_stream &stream, uint16_t flags, unsigned char field_0x40)
     }
 }
 
-field_0x40_data_nested_t::field_0x40_data_nested_t(ez_stream &stream, unsigned char field_0x40, unsigned char index_count)
+field_0x40_data_nested_t::field_0x40_data_nested_t(ez_stream &stream, [[maybe_unused]] unsigned char field_0x40, unsigned char index_count)
 {
     for(int i = 0; i < index_count; i++)
         unk.emplace_back(stream.read<uint16_t>());
@@ -385,7 +385,7 @@ field_0x40_data_t::field_0x40_data_t(ez_stream &stream, unsigned char field_0x40
         triangle_list[i] = stream.read<uint16_t>();
 
     nested.resize(field_0x40 * 2 - 1);
-    for(auto i = 0; i < nested.size(); i++)
+    for(size_t i = 0; i < nested.size(); i++)
         nested[i] = field_0x40_data_nested_t(stream, field_0x40, index_count);
 
 }

@@ -2,9 +2,12 @@
 
 #include <memory>
 
+#include <glm/glm.hpp>
+
 typedef unsigned int GLuint;
 
-class TexturedRenderBuffer {
+class TexturedRenderBuffer 
+{
 public:
 	explicit TexturedRenderBuffer() = default;
 	~TexturedRenderBuffer() {
@@ -33,12 +36,12 @@ public:
     void resize_buffer(float width, float height);
 
 	bool is_allocated() const { return m_allocated; }
-	GLuint fbo() const { return m_fbo; }
-	GLuint depth_buffer() const { return m_depthbuffer; }
-	GLuint texture() const { return m_texture; }
+	glm::u32 fbo() const { return m_fbo; }
+	glm::u32 depth_buffer() const { return m_depthbuffer; }
+	glm::u32 texture() const { return m_texture; }
 
 private:
-	GLuint m_fbo{ 0 }, m_depthbuffer{ 0 }, m_texture{ 0 };
+	glm::u32 m_fbo{ 0 }, m_depthbuffer{ 0 }, m_texture{ 0 };
 	bool m_allocated{false};
 };
 

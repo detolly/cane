@@ -1,56 +1,74 @@
 
-#include "main.h"
-
-#ifdef WIN32
-#include <windows.h>
-#endif
-
-#include <glad/glad.h>
+#include <GL/glew.h>
 
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
 
 #include <chrono>
 
-#include <Gui/RendererOptions.h>
-#include <Gui/Renderer.h>
-
 #include <imgui_internal.h>
 #include <imgui/backends/imgui_impl_opengl3.h>
 #include <imgui/backends/imgui_impl_glfw.h>
 #include <ImGuiFileDialog/ImGuiFileDialog.h>
 
-#include <Utility/dbgprint.h>
+#include <Editor.h>
+#include <Gui/Renderer.h>
+#include <Gui/RendererOptions.h>
 #include <Renderer/OBJModel.h>
 #include <Structs/SlyLevelFile.h>
-#include <Editor.h>
+#include <Utility/dbgprint.h>
 
-void GLAPIENTRY
-MessageCallback( GLenum source,
-                 GLenum type,
-                 GLuint id,
-                 GLenum severity,
-                 GLsizei length,
-                 const GLchar* message,
-                 const void* userParam )
+
+static void handle_input()
+{
+    Editor::the().handle_input();
+}
+
+static void scroll_callback(GLFWwindow*, double xoff, double yoff)
+{
+	Editor::the().scroll_callback(xoff, yoff);
+}
+
+void mouse_button_callback(GLFWwindow*, int button, int action, int mods)
+{
+    Editor::the().mouse_button_callback(button, action, mods);
+}
+
+static void key_callback(GLFWwindow*, int key, int scancode, int action, int mods)
+{
+	Editor::the().key_callback(key, scancode, action, mods);
+}
+
+static void error_callback([[maybe_unused]] int id, const char* desc)
+{
+	dbgprint("%s\n", desc);
+}
+
+static void size_callback(GLFWwindow*, int width, int height)
+{
+    Editor::the().size_callback(width, height);
+}
+
+static void cursor_position_callback(GLFWwindow*, double x, double y)
+{
+    Editor::the().cursor_position_callback(x, y);
+}
+
+void
+message_callback([[maybe_unused]] GLenum source,
+                [[maybe_unused]] GLenum type,
+                [[maybe_unused]] GLuint id,
+                [[maybe_unused]] GLenum severity,
+                [[maybe_unused]] GLsizei length,
+                [[maybe_unused]] const GLchar* message,
+                [[maybe_unused]] const void* userParam)
 {
     dbgprint("GL CALLBACK: %s type = 0x%x, severity = 0x%x, message = %s\n",
              ( type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : "" ),
              type, severity, message );
 }
 
-int main(int argc, char* argv[]) {
-    (void)argc;
-    (void)argv;
-#ifdef WIN32
-#ifdef NDEBUG
-	CloseHandle(GetStdHandle((DWORD)stdin));
-	CloseHandle(GetStdHandle((DWORD)stderr));
-	CloseHandle(GetStdHandle((DWORD)stdout));
-	PostMessage(GetConsoleWindow(), WM_CLOSE, 0, 0);
-	FreeConsole();
-#endif
-#endif
+int main() {
 
 	glfwSetErrorCallback(error_callback);
 	//glfwWindowHint(GLFW_SAMPLES, 4);
@@ -59,28 +77,29 @@ int main(int argc, char* argv[]) {
 		dbgprint("ERROR INIT WINDOW");
 	}
 
-	//glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 1);
-	//glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
-
 	//Create the OpenGL context window
 	Editor::the().create_window();
 
-    glfwSetKeyCallback(Editor::the().window(), key_callback);
-    glfwSetCursorPosCallback(Editor::the().window(), cursor_position_callback);
-    glfwSetFramebufferSizeCallback(Editor::the().window(), size_callback);
-    glfwSetScrollCallback(Editor::the().window(), scroll_callback);
-    glfwSetMouseButtonCallback(Editor::the().window(), mouse_button_callback);
-    glfwSetKeyCallback(Editor::the().window(), key_callback);
-    glfwMakeContextCurrent(Editor::the().window());
+    auto* window = Editor::the().window();
 
-	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
-		dbgprint("ERROR INIT GLAD\n");
-	}
+    glfwSetKeyCallback(window, key_callback);
+    glfwSetCursorPosCallback(window, cursor_position_callback);
+    glfwSetFramebufferSizeCallback(window, size_callback);
+    glfwSetScrollCallback(window, scroll_callback);
+    glfwSetMouseButtonCallback(window, mouse_button_callback);
+    glfwSetKeyCallback(window, key_callback);
+    glfwMakeContextCurrent(window);
+
+	glewInit();
+
+	// if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
+	// 	dbgprint("ERROR INIT GLAD\n");
+	// }
 
 #ifndef NDEBUG
     // During init, enable debug output
     glEnable              ( GL_DEBUG_OUTPUT );
-    glDebugMessageCallback( MessageCallback, 0 );
+    glDebugMessageCallback( message_callback, 0 );
 #endif
 
 	//Init the Editor after establishing a container and linking opengl
@@ -99,8 +118,8 @@ int main(int argc, char* argv[]) {
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     //glLineWidth(1.0f);
 
-	Shader::init_shader(SingleColoredWorldObject::shader());
-	Shader::init_shader(SingleColoredSlyWorldObject::shader());
+	SingleColoredWorldObject::shader().init();
+	SingleColoredSlyWorldObject::shader().init();
 
 
 	// Setup Dear ImGui context
@@ -135,41 +154,4 @@ int main(int argc, char* argv[]) {
 		glfwSwapBuffers(Editor::the().window());
 		glfwPollEvents();
 	}
-
-}
-
-static void handle_input()
-{
-    Editor::the().handle_input();
-}
-
-static void scroll_callback(GLFWwindow*, double xoff, double yoff)
-{
-	Editor::the().scroll_callback(xoff, yoff);
-}
-
-void mouse_button_callback(GLFWwindow*, int button, int action, int mods)
-{
-    Editor::the().mouse_button_callback(button, action, mods);
-}
-
-static void key_callback(GLFWwindow*, int key, int scancode, int action, int mods)
-{
-	Editor::the().key_callback(key, scancode, action, mods);
-}
-
-static void error_callback(int id, const char* desc)
-{
-    (void)id;
-	dbgprint("%s\n", desc);
-}
-
-static void size_callback(GLFWwindow*, int width, int height)
-{
-    Editor::the().size_callback(width, height);
-}
-
-static void cursor_position_callback(GLFWwindow*, double x, double y)
-{
-    Editor::the().cursor_position_callback(x, y);
 }

@@ -36,7 +36,7 @@ void Renderer::render()
 		camera().calculate_view_matrix_if_needed();
 		editor.level_file()->render(camera(), projection());
 
-		const auto selected_mesh = m_currently_selected_mesh;
+		// const auto selected_mesh = m_currently_selected_mesh;
 		//if (selected_mesh != -1) {
 		//	const auto& mesh = Editor::the().level_file()->meshes()[selected_mesh];
         //    if (~mesh.data.flags & 1) {
@@ -57,7 +57,7 @@ void Renderer::render()
 		ImGui::EndPopup();
 	}
 
-	ImGui::Image((ImTextureID)texture(), m_render_size, { 0, 1 }, { 1, 0 });
+	ImGui::Image(reinterpret_cast<ImTextureID>(texture()), m_render_size, { 0, 1 }, { 1, 0 });
 	char buf[64];
 	std::snprintf(buf, 64, "%.4f %.4f %.4f", camera().location().x, camera().location().y, camera().location().z);
 	const auto text_size = ImGui::CalcTextSize(buf);
@@ -133,9 +133,9 @@ void Renderer::select(double mouse_x, double mouse_y, bool ctrl_modifier)
 	bool has_found = false;
 	float lowest_distance = 10000000.0f;
 	glm::vec3 intersection_point;
-	for (size_t i = 0; i < meshes.size(); i++) {
+	for (std::size_t i = 0; i < meshes.size(); i++) {
         const auto& current_mesh = *meshes[i];
-        for (int j = 0; j < current_mesh.gl_vertices.size(); j++) {
+        for (std::size_t j = 0; j < current_mesh.gl_vertices.size(); j++) {
             const auto &triangles = current_mesh.data().not_flags_and_1.vertex_data[j].index_hdr.triangle_data;
             const auto &vertices = current_mesh.data().not_flags_and_1.vertex_data[j].vertices;
             for (size_t tri = 0; tri < triangles.size(); tri += 3) {

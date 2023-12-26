@@ -9,35 +9,25 @@
 
 GameObject::GameObject() {}
 
-void GameObject::set_location(const glm::vec3& vec)
+void GameObject::set_location(const glm::vec3 vec)
 {
 	m_location = vec;
 	m_should_recalculate_model_matrix = true;
 }
 
-const glm::mat4& GameObject::model()
-{
-	return m_model;
-}
-
-const glm::mat4& GameObject::model() const
-{
-    return m_model;
-}
-
-void GameObject::set_scale(const glm::vec3& scale)
+void GameObject::set_scale(const glm::vec3 scale)
 {
 	m_scale = scale;
 	m_should_recalculate_model_matrix = true;
 }
 
-void GameObject::set_rotation(const glm::vec4& rot)
+void GameObject::set_rotation(const glm::vec4 rot)
 {
 	m_rotation = rot;
 	m_should_recalculate_model_matrix = true;
 }
 
-void GameObject::move(const glm::vec3& vec) {
+void GameObject::move(const glm::vec3 vec) {
 	GameObject::set_location(m_location + vec);
 }
 
@@ -66,7 +56,7 @@ SingleColoredWorldObject::SingleColoredWorldObject(glm::vec3 color) :
 {
 	set_color(color);
 }
-
+  
 void SingleColoredWorldObject::render(const Camera& camera, const glm::mat4& proj) const
 {
 	shader().use();

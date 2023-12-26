@@ -1,15 +1,19 @@
 #pragma once
 
+#include <cstddef>
 #include <cstdint>
-#include <Renderer/Object.h>
-#include <Utility/ez_stream.h>
+#include <memory>
+#include <vector>
+
+#include <GL/glew.h>
 #include <glm/vec2.hpp>
 #include <glm/vec3.hpp>
 #include <glm/vec4.hpp>
-#include <cstddef>
-#include <glad/glad.h>
 
-#include <memory>
+#include <Renderer/Object.h>
+#include <Utility/ez_stream.h>
+
+
 
 namespace {
 typedef unsigned char byte;

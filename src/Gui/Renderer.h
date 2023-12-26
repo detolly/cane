@@ -1,13 +1,14 @@
 #pragma once
 
-#include <glad/glad.h>
-#include <imgui/imgui.h>
-#include <Utility/config.h>
-#include <Gui/RenderBuffer.h>
 #include <string>
+
+#include <GL/glew.h>
 #include <glm/mat4x4.hpp>
 #include <imgui/imgui.h>
+
+#include <Gui/RenderBuffer.h>
 #include <Renderer/Camera.h>
+#include <Utility/config.h>
 #include <Utility/Singleton.h>
 
 class Renderer : public TexturedRenderBuffer, public Singleton<Renderer> {
