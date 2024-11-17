@@ -1,3 +1,6 @@
+[submodule "lib/ImGuiFileDialog"]
+	path = lib/ImGuiFileDialog
+	url = https://github.com/aiekick/ImGuiFileDialog
 [submodule "lib/imgui"]
 	path = lib/imgui
 	url = https://github.com/ocornut/imgui
