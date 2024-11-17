@@ -93,10 +93,10 @@ void SlyMesh::make_szme_buffer_gl_buffers()
 void SlyMesh::make_vertex_buffer_gl_buffers()
 {
     if (~data().flags & 1) {
-        data().not_flags_and_1.render_properties_vector.resize(data().not_flags_and_1.mesh_hdr.mesh_count);
+        data().not_flags_and_1.render_properties_vector.reserve(data().not_flags_and_1.mesh_hdr.mesh_count);
         if (data().not_flags_and_1.mesh_hdr.mesh_count != data().not_flags_and_1.vertex_data.size())
             return;
-        gl_vertices.resize(data().not_flags_and_1.mesh_hdr.mesh_count);
+        gl_vertices.reserve(data().not_flags_and_1.mesh_hdr.mesh_count);
         for (int i = 0; i < data().not_flags_and_1.mesh_hdr.mesh_count; i++) {
             GLuint VAO, VBO, EBO;
             glGenVertexArrays(1, &VAO);
@@ -135,10 +135,10 @@ void SlyMesh::make_vertex_buffer_gl_buffers()
     } else {
         if (data_to_render().flags & 1)
             return;
-        data().not_flags_and_1.render_properties_vector.resize(data_to_render().not_flags_and_1.mesh_hdr.mesh_count);
+        data().not_flags_and_1.render_properties_vector.reserve(data_to_render().not_flags_and_1.mesh_hdr.mesh_count);
         if (data_to_render().not_flags_and_1.mesh_hdr.mesh_count != data_to_render().not_flags_and_1.vertex_data.size())
             return;
-        gl_vertices.resize(data_to_render().not_flags_and_1.mesh_hdr.mesh_count);
+        gl_vertices.reserve(data_to_render().not_flags_and_1.mesh_hdr.mesh_count);
         for (int i = 0; i < data_to_render().not_flags_and_1.mesh_hdr.mesh_count; i++) {
             GLuint VAO, VBO, EBO;
             glGenVertexArrays(1, &VAO);
@@ -148,7 +148,7 @@ void SlyMesh::make_vertex_buffer_gl_buffers()
 
             const auto translate_vertices = [this](const std::vector<vertex_t>& vertices) {
                 std::vector<vertex_t> new_vertices;
-                new_vertices.resize(vertices.size());
+                new_vertices.reserve(vertices.size());
                 int i = 0;
                 for(const auto& vertex : vertices) {
                     auto new_vertex = vertex;

@@ -1,10 +1,5 @@
 build/
-cmake-build-debug/
-cmake-build-release/
-
-.idea/
-.vscode/
+lib/imgui/*
 .cache/
 
-lib/imgui/*
-lib/glad/*
+compile_commands.json

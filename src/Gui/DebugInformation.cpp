@@ -1,4 +1,4 @@
-#include <imgui/imgui.h>
+#include <imgui.h>
 
 #include <Editor.h>
 #include <Gui/DebugInformation.h>

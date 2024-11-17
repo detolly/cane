@@ -1,10 +1,8 @@
 #pragma once
 
-#include <string>
-
 #include <GL/glew.h>
 #include <glm/mat4x4.hpp>
-#include <imgui/imgui.h>
+#include <imgui.h>
 
 #include <Gui/RenderBuffer.h>
 #include <Renderer/Camera.h>

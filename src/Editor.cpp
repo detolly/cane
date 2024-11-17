@@ -1,4 +1,12 @@
+#include <cstdlib>
+#include <string>
+
 #include "Editor.h"
+#include "imgui/imgui_internal.h"
+
+#include <imgui_internal.h>
+#include <ImGuiFileDialog/ImGuiFileDialog.h>
+
 #include <Gui/DebugInformation.h>
 #include <Gui/Renderer.h>
 #include <Gui/ModelBrowser.h>
@@ -6,9 +14,6 @@
 #include <Gui/RendererOptions.h>
 #include <Structs/SlyLevelFile.h>
 #include <Utility/dbgprint.h>
-#include <cstdlib>
-#include <imgui_internal.h>
-#include <ImGuiFileDialog/ImGuiFileDialog.h>
 
 void Editor::create_window()
 {
@@ -64,7 +69,7 @@ void Editor::render()
         if (ImGui::BeginMenu("File"))
         {
             if (ImGui::MenuItem("Open")) {
-                igfd::ImGuiFileDialog::Instance()->OpenDialog("choose_file", "Choose File", ".decompressed,.bin", "");
+                ImGuiFileDialog::Instance()->OpenDialog("choose_file", "Choose File", ".decompressed,.bin");
             }
             bool disabled = !Editor::the().has_file_loaded();
             if (disabled) {
@@ -99,18 +104,14 @@ void Editor::render()
         }
         ImGui::EndMainMenuBar();
     }
-
-    if (igfd::ImGuiFileDialog::Instance()->FileDialog("choose_file"))
-    {
-        if (igfd::ImGuiFileDialog::Instance()->IsOk == true)
-        {
-            std::string file_path = igfd::ImGuiFileDialog::Instance()->GetFilePathName();
+    
+    if (ImGuiFileDialog::Instance()->IsOpened()) {
+        if (ImGuiFileDialog::Instance()->Display("choose_file")) {
+            std::string file_path = ImGuiFileDialog::Instance()->GetFilePathName();
             Editor::the().open(file_path.c_str());
+            ImGuiFileDialog::Instance()->Close();
         }
-
-        igfd::ImGuiFileDialog::Instance()->CloseDialog("choose_file");
     }
-
     ImGuiDockNodeFlags dockspaceFlags = ImGuiDockNodeFlags_NoCloseButton;
     ImGuiID dockspaceID = ImGui::GetID("dock");
     //ImGui::SetNextWindowSize(ImGui::GetContentRegionAvail());

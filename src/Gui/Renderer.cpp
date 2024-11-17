@@ -57,7 +57,7 @@ void Renderer::render()
         ImGui::EndPopup();
     }
 
-    ImGui::Image(reinterpret_cast<ImTextureID>(texture()), m_render_size, { 0, 1 }, { 1, 0 });
+    ImGui::Image(static_cast<ImTextureID>(texture()), m_render_size, { 0, 1 }, { 1, 0 });
     char buf[64];
     std::snprintf(buf, 64, "%.4f %.4f %.4f", camera().location().x, camera().location().y, camera().location().z);
     const auto text_size = ImGui::CalcTextSize(buf);

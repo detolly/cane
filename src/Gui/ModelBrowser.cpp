@@ -16,7 +16,7 @@ void ModelBrowser::render()
     for (Thumbnail& t : m_thumbnails) {
         if (ImGui::GetContentRegionAvail().x < 128)
             ImGui::NewLine();
-        if (ImGui::ImageButton(reinterpret_cast<ImTextureID>(t.texture()), { 128, 128 }, { 0, 1 }, { 1, 0 })) {
+        if (ImGui::ImageButton("",static_cast<ImTextureID>(t.texture()), { 128, 128 }, { 0, 1 }, { 1, 0 })) {
             ModelViewer::the().set_selected(t.index());
         }
         ImGui::SameLine();

@@ -38,7 +38,7 @@ void ModelViewer::render()
         const auto size = ImGui::GetContentRegionAvail();
         const auto val = std::fmin(std::fmin(size.x, size.y), 512.0f);
         ImGui::SameLine(size.x / 2.0f - val/2.0f);
-        ImGui::Image(reinterpret_cast<ImTextureID>(texture()), { val, val }, { 0, 1 }, { 1, 0 });
+        ImGui::Image(static_cast<ImTextureID>(texture()), { val, val }, { 0, 1 }, { 1, 0 });
     }
     ImGui::End();
 }

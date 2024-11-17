@@ -1,6 +1,5 @@
 #pragma once
 
-#include <cstddef>
 #include <cstdint>
 #include <memory>
 #include <vector>
@@ -39,11 +38,6 @@ struct magic {
 struct vertex_t
 {
     vertex_t() = default;
-    ~vertex_t() = default;
-    vertex_t(vertex_t&&) = default;
-    vertex_t& operator=(vertex_t&& o) = default;
-    vertex_t(const vertex_t&) = delete;
-    vertex_t& operator=(const vertex_t& o) = delete;
     vertex_t(ez_stream& stream) {
         pos = stream.read_sly_vec();
         normal = stream.read<normal_t>();
