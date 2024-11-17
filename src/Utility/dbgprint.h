@@ -1,6 +1,6 @@
 #pragma once
 
-#include <iostream>
+#include <cstdio>
 
 namespace {
 template<typename ...T> void sink(const T& ...) {}
@@ -8,7 +8,7 @@ template<typename ...T> void sink(const T& ...) {}
 
 inline static void dbgprint(const char* a) {
 #ifndef NDEBUG
-	printf("%s", a);
+    printf("%s", a);
 #endif
 #ifdef NDEBUG
     (void)(a);
@@ -18,7 +18,7 @@ inline static void dbgprint(const char* a) {
 template <typename... T>
 inline static void dbgprint(const char* a, const T& ...args) {
 #ifndef NDEBUG
-	printf(a, args...);
+    printf(a, args...);
 #endif
 #ifdef NDEBUG
     (void)(a);

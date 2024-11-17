@@ -2,7 +2,6 @@
 #include <Utility/FileReader.h>
 #include <Utility/FileWriter.h>
 #include <Utility/dbgprint.h>
-#include <exception>
 
 config config::c;
 

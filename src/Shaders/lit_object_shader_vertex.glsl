@@ -11,6 +11,6 @@ uniform mat4 mvp;
 out vec3 onormal;
 
 void main() {
-	gl_Position = mvp * vec4(pos, 1.0f);
-	onormal = normal;
+    gl_Position = mvp * vec4(pos, 1.0f);
+    onormal = normal;
 }

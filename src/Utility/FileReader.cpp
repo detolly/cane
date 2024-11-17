@@ -1,3 +1,4 @@
+#include <fstream>
 
 #include <Utility/FileReader.h>
 #include <Utility/dbgprint.h>

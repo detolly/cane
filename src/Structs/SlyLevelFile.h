@@ -12,29 +12,29 @@
 class SlyMesh final : public SingleColoredSlyWorldObject {
 
 public:
-	texture_table_t& m_texture_table;
+    texture_table_t& m_texture_table;
 
-	SlyMesh() = delete;
-	~SlyMesh();
-	SlyMesh(SlyMesh&& o) = default;
-	SlyMesh& operator=(SlyMesh && o) = delete;
-	SlyMesh(const SlyMesh & o) = delete;
-	SlyMesh(std::shared_ptr<mesh_data_t> the_data, std::shared_ptr<mesh_data_t> data_to_render, texture_table_t& texture_table);
+    SlyMesh() = delete;
+    ~SlyMesh();
+    SlyMesh(SlyMesh&& o) = default;
+    SlyMesh& operator=(SlyMesh && o) = delete;
+    SlyMesh(const SlyMesh & o) = delete;
+    SlyMesh(std::shared_ptr<mesh_data_t> the_data, std::shared_ptr<mesh_data_t> data_to_render, texture_table_t& texture_table);
 
-	void make_gl_buffers();
+    void make_gl_buffers();
 
     void make_vertex_buffer_gl_buffers();
     void make_szme_buffer_gl_buffers();
 
-	void free_gl_buffers();
+    void free_gl_buffers();
 
-	virtual void render(const Camera& cam, const glm::mat4x4& proj) const override;
+    virtual void render(const Camera& cam, const glm::mat4x4& proj) const override;
 
     mesh_data_t& data() { return *the_data; }
     const mesh_data_t& data() const { return *the_data; }
     const mesh_data_t& data_to_render() const { return *the_data_to_render; }
 
-	std::shared_ptr<mesh_data_t> the_data;
+    std::shared_ptr<mesh_data_t> the_data;
     std::shared_ptr<mesh_data_t> the_data_to_render;
 
     std::vector<std::vector<vertex_t>> gl_vertices;
@@ -89,27 +89,27 @@ private:
 class SlyLevelFile : public RenderedWorldObject
 {
 private:
-	SlyLevelFile() = delete;
+    SlyLevelFile() = delete;
 public:
 
-	SlyLevelFile(const char* level_file);
-	~SlyLevelFile();
+    SlyLevelFile(const char* level_file);
+    ~SlyLevelFile();
 
-	//TODO REMOVE DEBUG (or integrate)
-	void find_near_float(ez_stream& stream, float x, float y, float z, float allowed_difference);
-	void find_and_populate_coord_arrays(ez_stream& stream);
+    //TODO REMOVE DEBUG (or integrate)
+    void find_near_float(ez_stream& stream, float x, float y, float z, float allowed_difference);
+    void find_and_populate_coord_arrays(ez_stream& stream);
 
-	void parse_meshes(ez_stream& stream);
-	void parse_textures(ez_stream& stream);
-	void make_texture(const char* buffer, texture_record_t& tex, size_t clutIndex, size_t imageIndex);
+    void parse_meshes(ez_stream& stream);
+    void parse_textures(ez_stream& stream);
+    void make_texture(const char* buffer, texture_record_t& tex, size_t clutIndex, size_t imageIndex);
 
-	void render(const Camera& cam, const glm::mat4& matrix) const override;
+    void render(const Camera& cam, const glm::mat4& matrix) const override;
 
-	image_meta_table_t const& image_image_table() { return m_image_meta_table; }
-	clut_meta_table_t const& clut_meta_table() { return m_clut_meta_table; }
-	texture_table_t const& texture_table() { return m_texture_table; }
+    image_meta_table_t const& image_image_table() { return m_image_meta_table; }
+    clut_meta_table_t const& clut_meta_table() { return m_clut_meta_table; }
+    texture_table_t const& texture_table() { return m_texture_table; }
     std::vector<std::unique_ptr<SlyMesh>>& meshes() { return m_meshes; }
-	std::vector<unknown_vector_array>& unknown_vector_arrays() { return m_unknown_vector_arrays; }
+    std::vector<unknown_vector_array>& unknown_vector_arrays() { return m_unknown_vector_arrays; }
 
     const image_meta_table_t& image_image_table() const { return m_image_meta_table; }
     const clut_meta_table_t& clut_meta_table() const { return m_clut_meta_table; }
@@ -117,17 +117,16 @@ public:
     const std::vector<std::unique_ptr<SlyMesh>>& meshes() const { return m_meshes; }
     const std::vector<unknown_vector_array>& unknown_vector_arrays() const { return m_unknown_vector_arrays; }
 
-
 private:
 
-	std::vector<std::unique_ptr<SlyMesh>> m_meshes;
+    std::vector<std::unique_ptr<SlyMesh>> m_meshes;
 
     std::vector<unknown_vector_array> m_unknown_vector_arrays;
-	int m_TEX_PALETTE_BASE{ 0 };
-	uint8_t csm1ClutIndices[256];
-	clut_meta_table_t m_clut_meta_table;
-	image_meta_table_t m_image_meta_table;
-	texture_table_t m_texture_table;
-	UNK_TABLE_t unk_table[250];
+    int m_TEX_PALETTE_BASE{ 0 };
+    uint8_t csm1ClutIndices[256];
+    clut_meta_table_t m_clut_meta_table;
+    image_meta_table_t m_image_meta_table;
+    texture_table_t m_texture_table;
+    UNK_TABLE_t unk_table[250];
 };
 

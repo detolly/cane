@@ -15,10 +15,10 @@ uniform mat4 model;
 uniform mat4 rotation;
 
 void main() {
-	o_normal = norm;
-	vec4 vec4pos = vec4(pos.x, pos.y, pos.z, 1.0);
-	FragPos = vec3(rotation * model * vec4pos);
-	gl_Position = projection * view * rotation * model * vec4pos;
-	//depth = gl_Position.z / 75.0f;
-	tex_coord = texcoords;
+    o_normal = norm;
+    vec4 vec4pos = vec4(pos.x, pos.y, pos.z, 1.0);
+    FragPos = vec3(rotation * model * vec4pos);
+    gl_Position = projection * view * rotation * model * vec4pos;
+    //depth = gl_Position.z / 75.0f;
+    tex_coord = texcoords;
 }

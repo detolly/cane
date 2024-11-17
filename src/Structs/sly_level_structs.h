@@ -13,8 +13,6 @@
 #include <Renderer/Object.h>
 #include <Utility/ez_stream.h>
 
-
-
 namespace {
 typedef unsigned char byte;
 }
@@ -43,9 +41,9 @@ struct vertex_t
     vertex_t() = default;
     ~vertex_t() = default;
     vertex_t(vertex_t&&) = default;
-    vertex_t(const vertex_t&) = default;
     vertex_t& operator=(vertex_t&& o) = default;
-    vertex_t& operator=(const vertex_t& o) = default;
+    vertex_t(const vertex_t&) = delete;
+    vertex_t& operator=(const vertex_t& o) = delete;
     vertex_t(ez_stream& stream) {
         pos = stream.read_sly_vec();
         normal = stream.read<normal_t>();
@@ -164,7 +162,7 @@ public:
     szme_vertex_data_t& operator=(const szme_vertex_data_t& o) = delete;
     szme_vertex_data_t(ez_stream& stream, uint16_t flags, unsigned char field_0x40);
 
-    static inline bool is_bad_flags(uint16_t flags) {
+    static constexpr inline bool is_bad_flags(const uint16_t flags) {
         return flags & 0x40 || flags & 0x4 || flags == 0;
     }
 

@@ -33,9 +33,9 @@ void OBJModel::parse(std::string_view obj) {
             const std::string_view vert3 = verts.substr(st2 + 1);
 
             float v1, v2, v3;
-            [[maybe_unused]] const auto result1 = std::from_chars(vert1.begin(), vert1.end(), v1);
-            [[maybe_unused]] const auto result2 = std::from_chars(vert2.begin(), vert2.end(), v2);
-            [[maybe_unused]] const auto result3 = std::from_chars(vert3.begin(), vert3.end(), v3);
+            std::from_chars(vert1.begin(), vert1.end(), v1);
+            std::from_chars(vert2.begin(), vert2.end(), v2);
+            std::from_chars(vert3.begin(), vert3.end(), v3);
 
             vert_arr.push_back(glm::vec3(v1, v2, v3));
         }
@@ -49,9 +49,9 @@ void OBJModel::parse(std::string_view obj) {
             const auto index3 = verts.substr(st2 + 1);
 
             int i1, i2, i3;
-            [[maybe_unused]] const auto result1 = std::from_chars(index1.begin(), index1.end(), i1);
-            [[maybe_unused]] const auto result2 = std::from_chars(index2.begin(), index2.end(), i2);
-            [[maybe_unused]] const auto result3 = std::from_chars(index3.begin(), index3.end(), i3);
+            std::from_chars(index1.begin(), index1.end(), i1);
+            std::from_chars(index2.begin(), index2.end(), i2);
+            std::from_chars(index3.begin(), index3.end(), i3);
 
             m_buffer_data.push_back(vert_arr.at(i1-1));
             m_buffer_data.push_back(vert_arr.at(i2-1));
@@ -59,7 +59,6 @@ void OBJModel::parse(std::string_view obj) {
         }
         else if (current_line.starts_with("o ")) {}
         else if (current_line.starts_with("s ")) {}
-        else break;
     }
 }
 

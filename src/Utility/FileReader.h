@@ -1,22 +1,20 @@
 #pragma once
 
-#include <fstream>
-#include <filesystem>
-#include <cstring>
+#include <string>
 
 class FileReader {
 public:
-	explicit FileReader(std::string_view loc) : m_location(loc) {}
+    explicit FileReader(std::string_view loc) : m_location(loc) {}
 
-	std::string read();
+    std::string read();
 
-	bool was_opened() const { return m_was_opened; }
-	size_t length() const { return m_len; }
+    bool was_opened() const { return m_was_opened; }
+    size_t length() const { return m_len; }
 
 private:
     bool m_was_opened{ false };
-	size_t m_len{ 0 };
-    
-	std::string m_location;
+    size_t m_len{ 0 };
+
+    std::string m_location;
 };
 

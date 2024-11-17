@@ -15,7 +15,7 @@ glm::vec3 clickray(double mouse_x, double mouse_y, double width, double height, 
 
 /* https://en.wikipedia.org/wiki/M%C3%B6ller%E2%80%93Trumbore_intersection_algorithm thanks wikipedia<3*/
 bool ray_intersects_triangle(const glm::vec3& ray_origin,
-	const glm::vec3& ray_vector,
-	const glm::vec3& vertex0, const glm::vec3& vertex1, const glm::vec3& vertex2,
-	glm::vec3& outIntersectionPoint);
+    const glm::vec3& ray_vector,
+    const glm::vec3& vertex0, const glm::vec3& vertex1, const glm::vec3& vertex2,
+    glm::vec3& outIntersectionPoint);
 

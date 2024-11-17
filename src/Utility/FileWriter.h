@@ -1,7 +1,6 @@
 #pragma once
 
 #include <fstream>
-#include <filesystem>
 #include <cstring>
 
 class FileWriter {

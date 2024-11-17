@@ -14,10 +14,10 @@ uniform mat4 model;
 uniform sampler2D tex;
 
 void main() {
-	float ambient = 0.25f;
-	vec3 lightPos = vec3(0.0f, 1000.0f, 0.0f);
-	float diff = abs(dot(normalize(norm), normalize(lightPos - FragPos))) * (1.f-ambient) + ambient;
-	//FragColor = (col * diff)/max(depth, 1.0f);
-	float thing = diff;
-	FragColor = texture(tex, tex_coord) * vec4(thing, thing, thing, 1.0f);
+    float ambient = 0.25f;
+    vec3 lightPos = vec3(0.0f, 1000.0f, 0.0f);
+    float diff = abs(dot(normalize(norm), normalize(lightPos - FragPos))) * (1.f-ambient) + ambient;
+    //FragColor = (col * diff)/max(depth, 1.0f);
+    float thing = diff;
+    FragColor = texture(tex, tex_coord) * vec4(thing, thing, thing, 1.0f);
 }
