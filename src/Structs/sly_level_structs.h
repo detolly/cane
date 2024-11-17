@@ -12,6 +12,13 @@
 #include <Renderer/Object.h>
 #include <Utility/ez_stream.h>
 
+#define NO_COPY(X)  X() = default;                                  \
+                    ~X() = default;                                 \
+                    X(X&&) = default;                               \
+                    X(const X&) = delete;                           \
+                    X& operator=(const X&) = delete;                \
+                    X& operator=(X&& o) = default;
+
 namespace {
 typedef unsigned char byte;
 }
@@ -61,11 +68,8 @@ struct index_header_t
 
 struct index_data_t
 {
-    index_data_t() {}
-    ~index_data_t() = default;
-    index_data_t(index_data_t&&) = default;
-    index_data_t& operator=(index_data_t&& o) = default;
-    index_data_t(ez_stream& stream, int mesh_header_index);
+    NO_COPY(index_data_t);
+    index_data_t(ez_stream&, int);
 
     index_header_t index_hdr;
     std::vector<uint16_t> triangle_data;
@@ -83,11 +87,8 @@ struct vertex_header_t
 
 struct vertex_data_t
 {
-    vertex_data_t() {}
-    ~vertex_data_t() = default;
-    vertex_data_t(vertex_data_t&&) = default;
-    vertex_data_t& operator=(vertex_data_t&& o) = default;
-    vertex_data_t(ez_stream& stream, int mesh_header_start);
+    NO_COPY(vertex_data_t);
+    vertex_data_t(ez_stream&, int);
 
     vertex_header_t vertex_hdr;
     std::vector<vertex_t> vertices;
@@ -103,11 +104,8 @@ struct szms_header_t
 
 struct mesh_header_t
 {
-    mesh_header_t() = default;
-    ~mesh_header_t() = default;
-    mesh_header_t(mesh_header_t&&) = default;
-    mesh_header_t& operator=(mesh_header_t&& o) = default;
-    mesh_header_t(ez_stream& stream);
+    NO_COPY(mesh_header_t);
+    mesh_header_t(ez_stream&);
 
     uint32_t unknown_0x00;
     uint16_t unknown_0x04;
@@ -117,43 +115,28 @@ struct mesh_header_t
 
 struct field_0x40_data_nested_t
 {
-    field_0x40_data_nested_t() = default;
-    ~field_0x40_data_nested_t() = default;
-    field_0x40_data_nested_t(field_0x40_data_nested_t&&) = default;
-    field_0x40_data_nested_t& operator=(field_0x40_data_nested_t&& o) = default;
-    field_0x40_data_nested_t(ez_stream& stream, unsigned char field_0x40, unsigned char index_count);
+    NO_COPY(field_0x40_data_nested_t);
+    field_0x40_data_nested_t(ez_stream&, unsigned char, unsigned char);
 
     std::vector<uint16_t> unk;
 };
 
 struct field_0x40_data_t
 {
-    field_0x40_data_t() = default;
-    ~field_0x40_data_t() = default;
-    field_0x40_data_t(field_0x40_data_t&&) = default;
-    field_0x40_data_t& operator=(field_0x40_data_t&& o) = default;
-    field_0x40_data_t& operator=(const field_0x40_data_t& o) = delete;
+    NO_COPY(field_0x40_data_t);
     field_0x40_data_t(ez_stream& stream, unsigned char field_0x40, unsigned char index_count);
 
     uint16_t pos_count;
-    std::vector<glm::vec3> positions;
-
     uint16_t normal_count;
+
+    std::vector<glm::vec3> positions;
     std::vector<glm::vec3> normals;
-
     std::vector<uint16_t> triangle_list;
-
     std::vector<field_0x40_data_nested_t> nested;
-
 };
 
 struct szme_vertex_data_t {
-public:
-    szme_vertex_data_t() = default;
-    ~szme_vertex_data_t() = default;
-    szme_vertex_data_t(szme_vertex_data_t&&) = default;
-    szme_vertex_data_t& operator=(szme_vertex_data_t&& o) = default;
-    szme_vertex_data_t& operator=(const szme_vertex_data_t& o) = delete;
+    NO_COPY(szme_vertex_data_t);
     szme_vertex_data_t(ez_stream& stream, uint16_t flags, unsigned char field_0x40);
 
     static constexpr inline bool is_bad_flags(const uint16_t flags) {
@@ -203,12 +186,7 @@ public:
 
 struct flags_0x100_t
 {
-    flags_0x100_t() = default;
-    ~flags_0x100_t() = default;
-    flags_0x100_t(flags_0x100_t&&) = default;
-    flags_0x100_t& operator=(flags_0x100_t&& o) = default;
-    flags_0x100_t& operator=(flags_0x100_t& o) = delete;
-    flags_0x100_t(const flags_0x100_t& o) = delete;
+    NO_COPY(flags_0x100_t);
     flags_0x100_t(ez_stream& stream);
 
     uint16_t unk_u16;
@@ -224,12 +202,7 @@ struct flags_0x100_t
 
 struct meta_entry_alt_t
 {
-    meta_entry_alt_t() = default;
-    ~meta_entry_alt_t() = default;
-    meta_entry_alt_t(meta_entry_alt_t&&) = default;
-    meta_entry_alt_t& operator=(meta_entry_alt_t&& o) = default;
-    meta_entry_alt_t& operator=(const meta_entry_alt_t& o) = delete;
-    meta_entry_alt_t(const meta_entry_alt_t& o) = delete;
+    NO_COPY(meta_entry_alt_t);
     meta_entry_alt_t(ez_stream& stream);
 
     uint16_t type_maybe;
@@ -238,12 +211,7 @@ struct meta_entry_alt_t
 
 struct after_szme_data_nested
 {
-    after_szme_data_nested() = default;
-    ~after_szme_data_nested() = default;
-    after_szme_data_nested(after_szme_data_nested&&) = default;
-    after_szme_data_nested& operator=(after_szme_data_nested&& o) = default;
-    after_szme_data_nested& operator=(const after_szme_data_nested& o) = delete;
-    after_szme_data_nested(const after_szme_data_nested& o) = delete;
+    NO_COPY(after_szme_data_nested);
     after_szme_data_nested(ez_stream& stream, std::uint16_t field_0x40, std::uint8_t unk_count_parent);
 
     std::uint8_t unk_count;
@@ -254,12 +222,7 @@ struct after_szme_data_nested
 
 struct after_szme_data
 {
-    after_szme_data() = default;
-    ~after_szme_data() = default;
-    after_szme_data(after_szme_data&&) = default;
-    after_szme_data& operator=(after_szme_data&& o) = default;
-    after_szme_data& operator=(const after_szme_data& o) = delete;
-    after_szme_data(const after_szme_data& o) = delete;
+    NO_COPY(after_szme_data);
     after_szme_data(ez_stream& stream, std::uint16_t field_0x40);
 
     std::uint8_t unk_count_;
@@ -278,12 +241,7 @@ struct after_szme_data
 };
 
 struct szme_t {
-    szme_t() = default;
-    ~szme_t() = default;
-    szme_t(szme_t&&) = default;
-    szme_t& operator=(szme_t&& o) = default;
-    szme_t& operator=(szme_t& o) = delete;
-    szme_t(const szme_t& o) = delete;
+    NO_COPY(szme_t);
     szme_t(ez_stream& stream, uint16_t flags, unsigned char field_0x40);
 
     bool m_error{ false };
@@ -337,12 +295,7 @@ struct szme_t {
 
 struct mesh_data_t
 {
-    mesh_data_t() = default;
-    ~mesh_data_t() = default;
-    mesh_data_t(mesh_data_t&&) = default;
-    mesh_data_t& operator=(mesh_data_t&& o) = default;
-    mesh_data_t& operator=(mesh_data_t& o) = delete;
-    mesh_data_t(const mesh_data_t& o) = delete;
+    NO_COPY(mesh_data_t);
     mesh_data_t(ez_stream& stream, unsigned char);
 
     bool m_error{ false };
@@ -373,12 +326,7 @@ struct mesh_data_t
 
 struct szms_container
 {
-    szms_container() = default;
-    ~szms_container() = default;
-    szms_container(szms_container&&) = default;
-    szms_container& operator=(szms_container&& o) = default;
-    szms_container& operator=(const szms_container& o) = delete;
-    szms_container(const szms_container& o) = delete;
+    NO_COPY(szms_container);
     szms_container(ez_stream& stream);
 
     bool m_error { false };
