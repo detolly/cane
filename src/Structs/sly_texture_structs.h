@@ -24,11 +24,7 @@ struct clut_record_t {
 
 struct clut_meta_table_t {
 
-    clut_meta_table_t() = default;
-    ~clut_meta_table_t() = default;
-    clut_meta_table_t(clut_meta_table_t&&) = default;
-    clut_meta_table_t& operator=(clut_meta_table_t&& o) = default;
-
+    NO_COPY(clut_meta_table_t);
     clut_meta_table_t(ez_stream& stream) {
         header = stream.read<clut_meta_header_t>();
         record.resize(header.numRecords);
@@ -47,10 +43,7 @@ struct clut_meta_table_t {
 
 struct image_record_t {
 
-    image_record_t() = default;
-    ~image_record_t() = default;
-    image_record_t(image_record_t&&) = default;
-    image_record_t& operator=(image_record_t&& o) = default;
+    NO_COPY(image_record_t);
     image_record_t(ez_stream& stream) {
         width = stream.read<short>();
         height = stream.read<short>();
@@ -75,18 +68,14 @@ struct image_record_t {
 };
 
 struct image_meta_table_t {
-     
-    image_meta_table_t() = default;
-    ~image_meta_table_t() = default;
-    image_meta_table_t(image_meta_table_t&& o) = default;
-    image_meta_table_t& operator=(image_meta_table_t&&) = default;
+
+    NO_COPY(image_meta_table_t);
     image_meta_table_t(ez_stream& stream) {
         header = stream.read<image_meta_header_t>();
         for (int i = 0; i < header.numRecords; i++) {
             texture.emplace_back(stream);
         }
     }
-
 
     struct image_meta_header_t {
         short numRecords;
@@ -98,10 +87,7 @@ struct image_meta_table_t {
 // TEXTURE_RECORD2
 struct texture_record_t {
 
-    texture_record_t() = default;
-    ~texture_record_t() = default;
-    texture_record_t(texture_record_t&& o) = default;
-    texture_record_t& operator=(texture_record_t&&) = default;
+    NO_COPY(texture_record_t);
     texture_record_t(ez_stream& stream) {
         flags = stream.read<uint16_t>();
         id = stream.read<uint16_t>();
@@ -203,10 +189,7 @@ struct texture_record_t {
 // TEXTURE_TABLE2_t
 struct texture_table_t {
 
-    texture_table_t() = default;
-    ~texture_table_t() = default;
-    texture_table_t(texture_table_t&&) = default;
-    texture_table_t& operator=(texture_table_t&& o) = default;
+    NO_COPY(texture_table_t);
     texture_table_t(ez_stream& stream) {
         header = stream.read<texture_header_t>();
         texture.reserve(header.numTextures);

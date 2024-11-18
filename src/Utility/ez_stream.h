@@ -4,6 +4,13 @@
 
 #include <glm/glm.hpp>
 
+#define NO_COPY(X)  X() = default;                                  \
+                    ~X() = default;                                 \
+                    X(const X&) = delete;                           \
+                    X& operator=(const X&) = delete;                \
+                    X(X&&) = default;                               \
+                    X& operator=(X&&) = default;
+
 class ez_stream {
 public:
     ez_stream(const char* buffer, size_t len) : m_buffer(buffer), m_len(len) {}

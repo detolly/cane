@@ -107,8 +107,10 @@ void Editor::render()
     
     if (ImGuiFileDialog::Instance()->IsOpened()) {
         if (ImGuiFileDialog::Instance()->Display("choose_file")) {
-            std::string file_path = ImGuiFileDialog::Instance()->GetFilePathName();
-            Editor::the().open(file_path.c_str());
+            if (ImGuiFileDialog::Instance()->IsOk()) {
+                std::string file_path = ImGuiFileDialog::Instance()->GetFilePathName();
+                Editor::the().open(file_path.c_str());
+            }
             ImGuiFileDialog::Instance()->Close();
         }
     }

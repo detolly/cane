@@ -1,6 +1,7 @@
 #include "SlyLevelFile.h"
 
 #include <memory>
+#include <print>
 
 #include <Editor.h>
 #include <Renderer/Camera.h>
@@ -8,11 +9,7 @@
 #include <Utility/Sigscan.h>
 #include <Utility/FileReader.h>
 
-#ifdef WIN32
-#include <windows.h>
-#endif
-
-SlyMesh::SlyMesh(std::shared_ptr<mesh_data_t> the_mesh_data, std::shared_ptr<mesh_data_t> data_to_render, texture_table_t& texture_table)
+SlyMesh::SlyMesh(std::shared_ptr<mesh_data_t> the_mesh_data, std::shared_ptr<mesh_data_t> data_to_render, std::shared_ptr<texture_table_t> texture_table)
     : m_texture_table(texture_table), the_data(the_mesh_data), the_data_to_render(data_to_render)
 {
     //set_color(glm::vec3{
@@ -149,17 +146,15 @@ void SlyMesh::make_vertex_buffer_gl_buffers()
             const auto translate_vertices = [this](const std::vector<vertex_t>& vertices) {
                 std::vector<vertex_t> new_vertices;
                 new_vertices.reserve(vertices.size());
-                int i = 0;
-                for(const auto& vertex : vertices) {
-                    auto new_vertex = vertex;
-                    new_vertex.pos = ((data().flags_and_1.instance_mat * glm::vec4{ vertex.pos, 1.0f }) - glm::vec4{ data().szme.position, 1.0f })/100.0f;
-                    new_vertices[i] = new_vertex;
-                    i++;
+                for(const auto& v : vertices) {
+                    auto vertex = auto{ v };
+                    vertex.pos = ((data().flags_and_1.instance_mat * glm::vec4{ v.pos, 1.0f }) - glm::vec4{ data().szme.position, 1.0f })/100.0f;
+                    new_vertices.emplace_back(vertex);
                 }
                 return new_vertices;
             };
 
-            gl_vertices[i] = translate_vertices(data_to_render().not_flags_and_1.vertex_data[i].vertices);
+            gl_vertices.emplace_back(translate_vertices(data_to_render().not_flags_and_1.vertex_data[i].vertices));
 
             data().not_flags_and_1.render_properties_vector[i] = { VAO, VBO, EBO };
 
@@ -205,7 +200,27 @@ void SlyMesh::free_gl_buffers()
 
 SlyMesh::~SlyMesh()
 {
-    free_gl_buffers();
+    if (m_is_initialized)
+        free_gl_buffers();
+}
+
+SlyMesh::SlyMesh(SlyMesh&& other)
+{
+    other.m_is_initialized = m_is_initialized;
+    m_is_initialized = false;
+    other.gl_vertices = std::move(this->gl_vertices);
+    other.the_data = std::move(the_data);
+    other.the_data_to_render = std::move(the_data_to_render);
+}
+
+SlyMesh& SlyMesh::operator=(SlyMesh&& other)
+{
+    m_is_initialized = other.m_is_initialized;
+    other.m_is_initialized = false;
+    gl_vertices = std::move(other.gl_vertices);
+    the_data = std::move(other.the_data);
+    the_data_to_render = std::move(other.the_data_to_render);
+    return *this;
 }
 
 void SlyMesh::render(const Camera& cam, const glm::mat4x4& proj) const
@@ -223,10 +238,10 @@ void SlyMesh::render(const Camera& cam, const glm::mat4x4& proj) const
 
     for (size_t i = 0; i < data_to_render().not_flags_and_1.mesh_hdr.mesh_count; i++) {
         if (data_to_render().szme.flags_not_and_1.szme_data.size() > i &&
-                data_to_render().szme.flags_not_and_1.szme_data[i].texture_id < m_texture_table.texture.size() &&
-                m_texture_table.texture[data_to_render().szme.flags_not_and_1.szme_data[i].texture_id].is_initialized())
+                data_to_render().szme.flags_not_and_1.szme_data[i].texture_id < m_texture_table->texture.size() &&
+                m_texture_table->texture[data_to_render().szme.flags_not_and_1.szme_data[i].texture_id].is_initialized())
             glBindTexture(GL_TEXTURE_2D,
-                          m_texture_table.texture[data_to_render().szme.flags_not_and_1.szme_data[i].texture_id].gl_texture);
+                          m_texture_table->texture[data_to_render().szme.flags_not_and_1.szme_data[i].texture_id].gl_texture);
         else
             glBindTexture(GL_TEXTURE_2D, 0);
         glBindVertexArray(data().not_flags_and_1.render_properties_vector[i].vao);
@@ -249,7 +264,7 @@ SlyLevelFile::SlyLevelFile(const char* level_file)
 
 SlyLevelFile::~SlyLevelFile()
 {
-    for (auto& tex_record : m_texture_table.texture) {
+    for (auto& tex_record : m_texture_table->texture) {
         glDeleteTextures(1, &tex_record.gl_texture);
     }
 }
@@ -283,7 +298,7 @@ void SlyLevelFile::parse_textures(ez_stream& stream)
     stream.seek(finding_texture_table);
     m_clut_meta_table = clut_meta_table_t(stream);
     m_image_meta_table = image_meta_table_t(stream);
-    m_texture_table = texture_table_t(stream);
+    m_texture_table = std::make_shared<texture_table_t>(stream);
     for (int i = 0; i < 250; i++) {
         unk_table[i] = stream.read<UNK_TABLE_t>();
     }
@@ -315,7 +330,7 @@ void SlyLevelFile::parse_textures(ez_stream& stream)
 
     [[maybe_unused]] int tex_entry_idx = 0;
 
-    for (auto& texture_record : m_texture_table.texture) {
+    for (auto& texture_record : m_texture_table->texture) {
 
         const bool is1Img1Pal = (texture_record.clut_index.size() == texture_record.image_index.size());
         const bool is1ImgManyPal = (texture_record.image_index.size() == 1) && (texture_record.clut_index.size() > 1);
@@ -359,7 +374,7 @@ void SlyLevelFile::render(const Camera& cam, const glm::mat4& matrix) const
 void SlyLevelFile::parse_meshes(ez_stream& stream)
 {
     stream.seek(0);
-    std::string_view looking_for = { "SZMS\x04\x00\x00\x00", 8 };
+    std::string_view looking_for = { "SZMS\x04\x00\x00\x00" };
     //std::string_view looking_for = { "SZMS", 4 };
 #if 1
     int total = 0;
@@ -370,11 +385,11 @@ void SlyLevelFile::parse_meshes(ez_stream& stream)
         uint64_t field_0x40 = 0;
 
         bool found = false;
-        for (auto j = 0; j < 0xB; j++) {
-            if ((stream.read_at<uint16_t>(current_szme_index - 4 - 6 - j * 4) == 0xFFFF) &&
-                ((stream.read_at<uint8_t> (current_szme_index - 4 - 4 - j * 4) == 0x01) ||
-                 (stream.read_at<uint8_t> (current_szme_index - 4 - 4 - j * 4) == 0x00))) {
-                if (stream.read_at<uint8_t>(current_szme_index - 4 - 1 - j * 4) == j) {
+        for (auto j = 0; j < 11; j++) {
+            if ((stream.read_at<uint16_t>(current_szme_index - 10 - j * 4) == 0xFFFF) &&
+                ((stream.read_at<uint8_t> (current_szme_index - 8 - j * 4) == 0x01) ||
+                 (stream.read_at<uint8_t> (current_szme_index - 8 - j * 4) == 0x00))) {
+                if (stream.read_at<uint8_t>(current_szme_index - 5 - j * 4) == j) {
                     field_0x40 = j;
                     found = true;
                 }
@@ -386,34 +401,35 @@ void SlyLevelFile::parse_meshes(ez_stream& stream)
         }
 
         size_t szms_start_real = current_szme_index - 4 - (4 * field_0x40 + 1);
-
         stream.seek(szms_start_real);
 
         total++;
-        dbgprint("Found another object.. Total: %d\r\n", total);
+        dbgprint("Found another object.. Total: %d\n", total);
 
-        szms_container container = { stream };
+        try {
+            szms_container container = { stream };
 
-        std::vector<std::shared_ptr<mesh_data_t>> references;
-        std::vector<SlyMesh*> added_now;
-        for(auto& mesh_data_ptr : container.mesh_datas) {
-            std::shared_ptr<mesh_data_t> to_render{ mesh_data_ptr };
+            std::vector<std::shared_ptr<mesh_data_t>> references;
+            std::vector<SlyMesh*> added_now;
+            for(auto& mesh_data_ptr : container.mesh_datas) {
+                references.push_back(mesh_data_ptr);
+                m_meshes.emplace_back(std::make_unique<SlyMesh>(mesh_data_ptr, mesh_data_ptr, m_texture_table));
 
-            references.push_back(mesh_data_ptr);
-            m_meshes.emplace_back(std::make_unique<SlyMesh>(mesh_data_ptr, to_render, m_texture_table));
-
-            added_now.push_back(m_meshes.back().get());
-        }
-        for(auto* mesh_ptr : added_now)
-        {
-            auto& mesh = *mesh_ptr;
-            if (mesh.data().flags & 1 && mesh.the_data_to_render.get() == mesh.the_data.get()) {
-                if (mesh.data().flags_and_1.instance_mesh_idx < references.size())
-                    mesh.the_data_to_render = references.at(mesh.data().flags_and_1.instance_mesh_idx);
-                else
-                    dbgprint("Found a weird ass mesh\n");
+                added_now.push_back(m_meshes.back().get());
             }
-            mesh.make_gl_buffers();
+            for(auto* mesh_ptr : added_now)
+            {
+                auto& mesh = *mesh_ptr;
+                if (mesh.data().flags & 1 && mesh.the_data_to_render.get() == mesh.the_data.get()) {
+                    if (mesh.data().flags_and_1.instance_mesh_idx < references.size())
+                        mesh.the_data_to_render = references.at(mesh.data().flags_and_1.instance_mesh_idx);
+                    else
+                        dbgprint("Found a weird ass mesh\n");
+                }
+                mesh.make_gl_buffers();
+            }
+        } catch(std::exception& e) {
+            std::print("Idk.\n {}", e.what());
         }
     }
 #else

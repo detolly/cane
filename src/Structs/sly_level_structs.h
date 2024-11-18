@@ -12,13 +12,6 @@
 #include <Renderer/Object.h>
 #include <Utility/ez_stream.h>
 
-#define NO_COPY(X)  X() = default;                                  \
-                    ~X() = default;                                 \
-                    X(X&&) = default;                               \
-                    X(const X&) = delete;                           \
-                    X& operator=(const X&) = delete;                \
-                    X& operator=(X&& o) = default;
-
 namespace {
 typedef unsigned char byte;
 }
@@ -29,15 +22,15 @@ struct texcoord_t {
 
 struct normal_t {
     float x{0.0f}, y{0.0f}, z{0.0f};
- };
+};
 
 struct magic {
     char magic[4];
 
-    bool is_szme() const {
+    constexpr bool is_szme() const {
         return magic[0] == 'S' && magic[1] == 'Z' && magic[2] == 'M' && magic[3] == 'E';
     }
-    bool is_szms() const {
+    constexpr bool is_szms() const {
         return magic[0] == 'S' && magic[1] == 'Z' && magic[2] == 'M' && magic[3] == 'S';
     }
 };
@@ -168,7 +161,7 @@ struct szme_vertex_data_t {
     std::vector<uint16_t> triangle_data;
 
     std::vector<glm::vec3> vertices;
-    std::vector<normal_t> rotations;
+    std::vector<normal_t> normals;
     std::vector<uint32_t> vertex_colors;
     std::vector<texcoord_t> texcoords;
     std::vector<index_t> indices;
@@ -366,12 +359,7 @@ struct szms_container
     std::uint8_t unk_count;
     struct unk_t {
 
-        unk_t() = default;
-        ~unk_t() = default;
-        unk_t(unk_t&&) = default;
-        unk_t& operator=(unk_t&& o) = default;
-        unk_t& operator=(const unk_t& o) = delete;
-        unk_t(const unk_t& o) = delete;
+        NO_COPY(unk_t);
         unk_t(ez_stream& stream, unsigned char);
 
         uint16_t unk_u16;

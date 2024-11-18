@@ -32,6 +32,8 @@ add_executable(cane
 
 if(CMAKE_BUILD_TYPE STREQUAL "Release")
     target_compile_options(cane PRIVATE -O3 -Wall -Wextra -Wpedantic -Werror)
+else()
+    target_compile_options(cane PRIVATE -g)
 endif()
 
 target_include_directories(cane PRIVATE src)
