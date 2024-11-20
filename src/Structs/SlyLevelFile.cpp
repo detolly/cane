@@ -101,12 +101,12 @@ void SlyMesh::make_vertex_buffer_gl_buffers()
             glGenBuffers(1, &EBO);
             glBindVertexArray(VAO);
 
-            gl_vertices[i] = data().not_flags_and_1.vertex_data[i].vertices;
+            gl_vertices.push_back(data().not_flags_and_1.vertex_data[i].vertices);
 
             for (auto& vertex : gl_vertices[i])
                 vertex.pos = (vertex.pos - data().szme.position)/100.0f;
 
-            data().not_flags_and_1.render_properties_vector[i] = { VAO, VBO, EBO };
+            data().not_flags_and_1.render_properties_vector.push_back({ VAO, VBO, EBO });
 
             glBindBuffer(GL_ARRAY_BUFFER, VBO);
             glBufferData(GL_ARRAY_BUFFER,
@@ -156,7 +156,7 @@ void SlyMesh::make_vertex_buffer_gl_buffers()
 
             gl_vertices.emplace_back(translate_vertices(data_to_render().not_flags_and_1.vertex_data[i].vertices));
 
-            data().not_flags_and_1.render_properties_vector[i] = { VAO, VBO, EBO };
+            data().not_flags_and_1.render_properties_vector.push_back({ VAO, VBO, EBO });
 
             glBindBuffer(GL_ARRAY_BUFFER, VBO);
             glBufferData(GL_ARRAY_BUFFER, gl_vertices[i].size() * sizeof(vertex_t), gl_vertices[i].data(), GL_STATIC_DRAW);
@@ -429,7 +429,7 @@ void SlyLevelFile::parse_meshes(ez_stream& stream)
                 mesh.make_gl_buffers();
             }
         } catch(std::exception& e) {
-            std::print("Idk.\n {}", e.what());
+            std::print("Parsing mesh failed: {}\n", e.what());
         }
     }
 #else

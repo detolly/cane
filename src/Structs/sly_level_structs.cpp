@@ -98,15 +98,15 @@ szme_vertex_data_t::szme_vertex_data_t(ez_stream& stream, uint16_t flags, unsign
     stream.seek(v + pad_size);
 
     for (int i = 0; i < vertex_count; i++)
-        vertices[i] = stream.read_sly_vec();
+        vertices.push_back(stream.read_sly_vec());
     for (int i = 0; i < rotations_count; i++)
-        normals[i] = stream.read<normal_t>();
+        normals.push_back(stream.read<normal_t>());
     for (int i = 0; i < vertex_color_count; i++)
-        vertex_colors[i] = stream.read<uint32_t>();
+        vertex_colors.push_back(stream.read<uint32_t>());
     for (int i = 0; i < texcoords_count; i++)
-        texcoords[i] = stream.read<texcoord_t>();
+        texcoords.push_back(stream.read<texcoord_t>());
     for (int i = 0; i < index_count; i++)
-        indices[i] = stream.read<index_t>();
+        indices.push_back(stream.read<index_t>());
 
     texture_id = stream.read<uint16_t>();
     unk_u8_1 = stream.read<std::uint8_t>();
@@ -114,23 +114,21 @@ szme_vertex_data_t::szme_vertex_data_t(ez_stream& stream, uint16_t flags, unsign
 
     unk_bytes.reserve(unk_count);
     for(int i = 0; i < unk_count; i++)
-        unk_bytes[i] = stream.read<unsigned char>();
+        unk_bytes.push_back(stream.read<unsigned char>());
 
     unk_floats.reserve(unk_count * vertex_count);
     for(int i = 0; i < unk_count * vertex_count; i++)
-        unk_floats[i] = stream.read<float>();
+        unk_floats.push_back(stream.read<float>());
 
     if (field_0x40 != 0)
-    {
         f_0x40 = field_0x40_data_t(stream, field_0x40, index_count);
-    }
 
     //TODO: handle special case
     gl_vertices.reserve(vertices.size());
     for (size_t i = 0; i < vertices.size(); i++) {
         vertex_t vertex;
         vertex.pos = vertices[i];
-        gl_vertices[i] = vertex;
+        gl_vertices.push_back(vertex);
     }
     for(size_t i = 0; i < indices.size(); i++) {
         if (indices[i].vertex_index >= vertices.size())
@@ -156,9 +154,8 @@ vertex_data_t::vertex_data_t(ez_stream& stream, int mesh_header_start)
     vertex_hdr = stream.read<vertex_header_t>();
     vertices.reserve(vertex_hdr.vertex_count);
     stream.seek(mesh_header_start + vertex_hdr.vertex_data_offset);
-    for (size_t i = 0; i < vertex_hdr.vertex_count; i++) {
-        vertices[i] = vertex_t(stream);
-    }
+    for (size_t i = 0; i < vertex_hdr.vertex_count; i++)
+        vertices.push_back(vertex_t(stream));
     stream.seek(mesh_header_start + vertex_hdr.index_header_offset);
     index_hdr = index_data_t(stream, mesh_header_start);
 }
@@ -169,12 +166,12 @@ index_data_t::index_data_t(ez_stream& stream, int mesh_header_index)
     stream.seek(mesh_header_index + index_hdr.index_data_offset_0);
     triangle_data.reserve(index_hdr.triangle_count * 3);
     for (int i = 0; i < index_hdr.triangle_count * 3; i++) {
-        triangle_data[i] = stream.read<uint16_t>();
+        triangle_data.push_back(stream.read<uint16_t>());
     }
     stream.seek(mesh_header_index + index_hdr.index_data_offset_1);
     index_data.reserve(index_hdr.index_count);
     for (int i = 0; i < index_hdr.index_count; i++) {
-        index_data[i] = stream.read<uint16_t>();
+        index_data.push_back(stream.read<uint16_t>());
     }
 }
 
@@ -185,7 +182,7 @@ mesh_header_t::mesh_header_t(ez_stream& stream)
     mesh_count = stream.read<uint16_t>();
     mesh_offsets.reserve(mesh_count);
     for (int i = 0; i < mesh_count; i++) {
-        mesh_offsets[i] = stream.read<uint32_t>();
+        mesh_offsets.push_back(stream.read<uint32_t>());
     }
 }
 
@@ -195,7 +192,7 @@ szms_container::szms_container(ez_stream& stream) {
     {
         unk_u32s.reserve(field_0x40);
         for(auto i = 0; i < field_0x40; i++)
-            unk_u32s[i] = stream.read<uint32_t>();
+            unk_u32s.push_back(stream.read<uint32_t>());
     }
     szms_count = stream.read<uint16_t>();
     if (szms_count > 2500 || szms_count == 0) {
@@ -370,16 +367,16 @@ field_0x40_data_t::field_0x40_data_t(ez_stream &stream, unsigned char field_0x40
     pos_count = stream.read<uint16_t>();
     positions.reserve(pos_count);
     for(int i = 0; i < pos_count; i++)
-        positions[i] = stream.read_sly_vec();
+        positions.push_back(stream.read_sly_vec());
 
     normal_count = stream.read<uint16_t>();
     normals.reserve(normal_count);
     for (int i = 0; i < normal_count; ++i)
-        normals[i] = stream.read_sly_vec();
+        normals.push_back(stream.read_sly_vec());
 
     triangle_list.reserve(index_count);
     for (int i = 0; i < index_count; ++i)
-        triangle_list[i] = stream.read<uint16_t>();
+        triangle_list.push_back(stream.read<uint16_t>());
 
     nested.reserve(field_0x40 * 2 - 1);
     for(size_t i = 0; i < nested.size(); i++)
