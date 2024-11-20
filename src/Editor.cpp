@@ -1,10 +1,10 @@
 #include <cstdlib>
 #include <string>
 
-#include "Editor.h"
-#include "imgui/imgui_internal.h"
+#include <Editor.h>
 
 #include <imgui_internal.h>
+#include <imgui/imgui_internal.h>
 #include <ImGuiFileDialog/ImGuiFileDialog.h>
 
 #include <Gui/DebugInformation.h>
@@ -12,7 +12,9 @@
 #include <Gui/ModelBrowser.h>
 #include <Gui/ModelViewer.h>
 #include <Gui/RendererOptions.h>
-#include <Structs/SlyLevelFile.h>
+
+#include <Structs/SlyWorld.h>
+
 #include <Utility/dbgprint.h>
 
 void Editor::create_window()
@@ -36,9 +38,7 @@ void Editor::init()
 
 void Editor::open(const char* file)
 {
-    if (has_file_loaded())
-        delete m_level;
-    m_level = new SlyLevelFile(file);
+    m_level = std::make_unique<SlyWorld>(file);
     RendererOptions::the().on_load();
     DebugInformation::the().on_load();
     Renderer::the().on_load();
@@ -48,8 +48,6 @@ void Editor::open(const char* file)
 
 void Editor::close()
 {
-    if (has_file_loaded())
-        delete m_level;
     m_level = nullptr;
     RendererOptions::the().on_close();
     DebugInformation::the().on_close();

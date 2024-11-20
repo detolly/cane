@@ -9,7 +9,7 @@
 #include <Structs/sly_texture_structs.h>
 #include <Utility/ez_stream.h>
 
-class SlyMesh final : public SingleColoredSlyWorldObject {
+class SlyMesh final : public SlyObject {
 
 public:
     std::shared_ptr<texture_table_t> m_texture_table;
@@ -29,7 +29,7 @@ public:
 
     void free_gl_buffers();
 
-    virtual void render(const Camera& cam, const glm::mat4x4& proj) const override;
+    void render(const Camera& cam, const glm::mat4x4& proj) const;
 
     mesh_data_t& data() { return *the_data; }
     const mesh_data_t& data() const { return *the_data; }
@@ -43,7 +43,7 @@ public:
     bool m_is_initialized{ false };
 };
 
-class unknown_vector_array : public SingleColoredWorldObject {
+class unknown_vector_array : public WorldObject {
 
     friend class RendererOptions;
 public:
@@ -59,7 +59,7 @@ public:
         if (m_should_delete)
             free_gl_buffers();
     }
-    void render(const Camera& cam, const glm::mat4& proj) const override;
+    void render(const Camera& cam, const glm::mat4& proj) const;
     void make_gl_buffers();
     void free_gl_buffers();
 
@@ -87,14 +87,14 @@ private:
     bool m_should_draw{ false };
 };
 
-class SlyLevelFile : public RenderedWorldObject
+class SlyWorld final : public WorldObject
 {
 private:
-    SlyLevelFile() = delete;
+    SlyWorld() = delete;
 public:
 
-    SlyLevelFile(const char* level_file);
-    ~SlyLevelFile();
+    SlyWorld(const char* level_file);
+    ~SlyWorld();
 
     //TODO REMOVE DEBUG (or integrate)
     void find_near_float(ez_stream& stream, float x, float y, float z, float allowed_difference);
@@ -104,7 +104,7 @@ public:
     void parse_textures(ez_stream& stream);
     void make_texture(const char* buffer, texture_record_t& tex, size_t clutIndex, size_t imageIndex);
 
-    void render(const Camera& cam, const glm::mat4& matrix) const override;
+    void render(const Camera& cam, const glm::mat4& matrix) const;
 
     const image_meta_table_t& image_image_table() { return m_image_meta_table; }
     const clut_meta_table_t& clut_meta_table() { return m_clut_meta_table; }

@@ -17,13 +17,11 @@ add_executable(cane
     src/Gui/RendererOptions.cpp 
 
     src/Renderer/Camera.cpp
-    src/Renderer/Cube.cpp
     src/Renderer/Object.cpp
-    src/Renderer/OBJModel.cpp
     src/Renderer/Shader.cpp
 
     src/Structs/sly_level_structs.cpp
-    src/Structs/SlyLevelFile.cpp
+    src/Structs/SlyWorld.cpp
 
     src/Utility/math.cpp
     src/Utility/config.cpp
@@ -41,10 +39,8 @@ target_include_directories(cane PRIVATE lib)
 
 set_property(TARGET cane PROPERTY CXX_STANDARD 26)
 
-add_custom_command(TARGET cane POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/src/Shaders/colored_object_shader_fragment.glsl      $<TARGET_FILE_DIR:${PROJECT_NAME}>)
-add_custom_command(TARGET cane POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/src/Shaders/colored_object_shader_vertex.glsl        $<TARGET_FILE_DIR:${PROJECT_NAME}>)
-add_custom_command(TARGET cane POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/src/Shaders/colored_sly_object_shader_fragment.glsl  $<TARGET_FILE_DIR:${PROJECT_NAME}>)
-add_custom_command(TARGET cane POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/src/Shaders/colored_sly_object_shader_vertex.glsl    $<TARGET_FILE_DIR:${PROJECT_NAME}>)
+add_custom_command(TARGET cane POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/src/Shaders/sly_object_shader_fragment.glsl  $<TARGET_FILE_DIR:${PROJECT_NAME}>)
+add_custom_command(TARGET cane POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/src/Shaders/sly_object_shader_vertex.glsl    $<TARGET_FILE_DIR:${PROJECT_NAME}>)
 add_custom_command(TARGET cane POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/src/Shaders/lit_object_shader_fragment.glsl          $<TARGET_FILE_DIR:${PROJECT_NAME}>)
 add_custom_command(TARGET cane POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/src/Shaders/lit_object_shader_vertex.glsl            $<TARGET_FILE_DIR:${PROJECT_NAME}>)
 

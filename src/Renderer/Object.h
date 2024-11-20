@@ -61,62 +61,22 @@ private:
 
 class WorldObject {
 public:
-
-    WorldObject() {}
-    virtual ~WorldObject() = default;
-
     GameObject& game_object() { return m_game_object; };
     const GameObject& game_object() const { return m_game_object; }
 
 private:
-
     GameObject m_game_object;
 };
 
-class RenderedWorldObject : public WorldObject {
-
-public:
-    RenderedWorldObject() {}
-    virtual ~RenderedWorldObject() override = default;
-    virtual void render(const Camera& camera, const glm::mat4& proj) const = 0;
-
-private:
-
-};
-
-class SingleColoredWorldObject : public RenderedWorldObject
+class SlyObject : public WorldObject
 {
 public:
-    SingleColoredWorldObject();
-    SingleColoredWorldObject(glm::vec3 color);
-    virtual ~SingleColoredWorldObject() override = default;
+    SlyObject() : WorldObject(){}
 
-    static inline Shader& shader() { return m_shader; }
-    virtual void render(const Camera& camera, const glm::mat4& proj) const override;
-
-    void set_color(const glm::vec3&);
-    const inline glm::vec3 color() const { return m_color; };
-
+    static Shader& shader() { return m_shader; }
+    virtual void render(const Camera& camera, const glm::mat4& proj) const;
 private:
-    glm::vec4 m_color{ 1.0f };
-
     static Shader m_shader;
-};
-
-class SingleColoredSlyWorldObject : public SingleColoredWorldObject
-{
-public:
-    SingleColoredSlyWorldObject() : SingleColoredWorldObject() {}
-    SingleColoredSlyWorldObject(glm::vec3 color) : SingleColoredWorldObject(color) {}
-    virtual ~SingleColoredSlyWorldObject() {}
-
-    static inline Shader& shader() { return m_shader; }
-
-    virtual void render(const Camera& camera, const glm::mat4& proj) const override;
-private:
-
-    static Shader m_shader;
-
     const inline static auto rotation = glm::rotate(glm::identity<glm::mat4>(), glm::radians(3*90.0f), glm::vec3{ 1.0f, 0.0f, 0.0f });
 };
 

@@ -4,13 +4,13 @@
 
 #include <Renderer/Object.h>
 
-class OBJModel final : public SingleColoredWorldObject 
+class OBJModel
 {
 public:
     OBJModel(std::string_view file_location);
     ~OBJModel() { free_gl_buffer(); }
 
-    virtual void render(const Camera& camera, const glm::mat4& proj) const override;
+    void render(const Camera& camera, const glm::mat4& proj) const;
 
 private:
 

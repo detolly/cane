@@ -5,7 +5,7 @@
 
 #include <Editor.h>
 #include <Gui/ModelViewer.h>
-#include <Structs/SlyLevelFile.h>
+#include <Structs/SlyWorld.h>
 #include <Utility/config.h>
 
 
@@ -27,11 +27,11 @@ void ModelBrowser::render()
 
 void ModelBrowser::make_thumbnails() {
     m_thumbnails.clear();
-    const auto* level = Editor::the().level_file();
+    const auto& level = Editor::the().level_file();
     for (size_t i = 0; i < level->meshes().size(); i++) {
-        const auto& mesh = *level->meshes()[i];
+        const auto& mesh = level->meshes()[i];
         Thumbnail b(i);
-        b.render(mesh);
+        b.render(*mesh);
         m_thumbnails.emplace_back(std::move(b));
     }
 }

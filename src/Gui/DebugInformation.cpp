@@ -3,7 +3,7 @@
 #include <Editor.h>
 #include <Gui/DebugInformation.h>
 #include <Gui/Renderer.h>
-#include <Structs/SlyLevelFile.h>
+#include <Structs/SlyWorld.h>
 
 void DebugInformation::render()
 {

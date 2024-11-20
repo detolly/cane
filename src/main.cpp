@@ -12,10 +12,12 @@
 #include <ImGuiFileDialog/ImGuiFileDialog.h>
 
 #include <Editor.h>
+
 #include <Gui/Renderer.h>
 #include <Gui/RendererOptions.h>
-#include <Renderer/OBJModel.h>
-#include <Structs/SlyLevelFile.h>
+
+#include <Structs/SlyWorld.h>
+
 #include <Utility/dbgprint.h>
 
 static Editor& editor = Editor::the();
@@ -120,8 +122,7 @@ int main()
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     //glLineWidth(1.0f);
 
-    SingleColoredWorldObject::shader().init();
-    SingleColoredSlyWorldObject::shader().init();
+    SlyObject::shader().init();
 
 
     // Setup Dear ImGui context

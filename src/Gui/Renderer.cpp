@@ -1,6 +1,6 @@
 #include <Gui/Renderer.h>
 #include <Editor.h>
-#include <Structs/SlyLevelFile.h>
+#include <Structs/SlyWorld.h>
 #include <Utility/math.h>
 
 void Renderer::render()

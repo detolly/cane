@@ -1,12 +1,15 @@
 #pragma once
 
+#include <memory>
+
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
+
 #include <imgui.h>
 
 #include <Utility/Singleton.h>
 
-class SlyLevelFile;
+class SlyWorld;
 class Renderer;
 class DebugInformation;
 class ModelBrowser;
@@ -24,8 +27,8 @@ public:
     void imgui_init();
     void create_window();
 
-    SlyLevelFile* level_file() { return m_level; }
-    const SlyLevelFile* level_file() const { return m_level; }
+    std::unique_ptr<SlyWorld>& level_file() { return m_level; }
+    const std::unique_ptr<SlyWorld>& level_file() const { return m_level; }
     bool has_file_loaded() const { return m_level != nullptr; }
 
     void set_can_resize(bool value) { m_can_resize = value; }
@@ -74,7 +77,7 @@ private:
     GLFWwindow* m_window;
     int m_cursor_mode { GLFW_CURSOR_DISABLED };
 
-    SlyLevelFile* m_level { nullptr };
+    std::unique_ptr<SlyWorld> m_level { nullptr };
     bool m_can_resize { true };
 
 };

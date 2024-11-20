@@ -7,7 +7,7 @@
 
 #include <Editor.h>
 #include <Renderer/Camera.h>
-#include <Structs/SlyLevelFile.h>
+#include <Structs/SlyWorld.h>
 #include <Utility/config.h>
 
 void ModelViewer::init() {

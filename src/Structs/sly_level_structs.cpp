@@ -1,7 +1,7 @@
 #include "sly_level_structs.h"
 
 #include <Editor.h>
-#include <Structs/SlyLevelFile.h>
+#include <Structs/SlyWorld.h>
 #include <Utility/dbgprint.h>
 
 mesh_data_t::mesh_data_t(ez_stream& stream, unsigned char field_0x40)
