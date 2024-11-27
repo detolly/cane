@@ -1,20 +1,16 @@
-// TODO: index_data is not always sequential (?)
-
-//
-// Initialization
-//
-
 import std.mem;
 import std.math;
 import std.sys;
-
-bool parse_entities_experimental = false;
-
-// Common types
+import std.core;
 
 struct bvec4
 {
     u8 x, y, z, w;
+};
+
+struct bvec3
+{
+    u8 x, y, z;
 };
 
 struct vec2
@@ -54,8 +50,6 @@ struct mat4x3
     vec3 c;
     vec3 d;
 };
-
-// SZMS stuff
 
 struct szms_header
 {
@@ -110,8 +104,9 @@ struct vertex_data
 };
 
 fn get_indices(auto indices) {
-    u32 ret[sizeof(indices) * 3];
-    for(u32 i = 0, i < sizeof(indices) / sizeof(bvec4), i+=1) {
+    auto index_array_size = std::core::member_count(indices);
+    u32 ret[index_array_size * 3];
+    for(u32 i = 0, i < index_array_size, i+=1) {
         ret[i * 3] = indices[i].x;
         ret[i * 3 + 1] = indices[i].y;
         ret[i * 3 + 2] = indices[i].z;
@@ -163,7 +158,7 @@ struct szme_vertex_data<auto flags, auto unk_container_array_length> {
         u16 unk_triangles[indices_count * unk_container_array_length * 2];
     }
 } 
-[[hex::visualize("3d", positions, get_indices(indices))]]
+//[[hex::visualize("3d", positions, get_indices(indices))]]
 ;
 
 using mesh;
@@ -225,6 +220,20 @@ struct szme_t<auto flags, auto unk_container_array_length> {
             u8 count3;
             u32 unk3[count3];
         }
+        if (unk_flags & 2 != 0) {
+            u8 count;
+            vec3 unk[count];
+            u8 count2;
+            u32 unk2[count2];
+            u8 count3;
+            u32 unk3[count3];
+            u8 count4;
+            vec3 unk4[count4];
+            u8 count5;
+            u32 unk5[count5];
+            if (count5 > 0)
+                u8;
+        }
     }
     
 };
@@ -251,8 +260,10 @@ struct mesh<auto unk_container_array_length> {
         
         char magic[4];
         
-        if (magic[0] != 'S' || magic[1] != 'Z' || magic[2] != 'M' || magic[3] != 'E')
+        if (magic[0] != 'S' || magic[1] != 'Z' || magic[2] != 'M' || magic[3] != 'E') {
+            std::print("Failed SZME at 0x{:x}", $);
             break;
+        }
         
     } else {
         u16 instance_mesh_idx;
@@ -267,20 +278,22 @@ fn find_unk_field(auto szme_start) {
     for(auto i = 0, i < 0x100, i += 1) {
         if (std::mem::read_unsigned(actual_start - 4 * i - 1, 1) == i
          && std::mem::read_unsigned(actual_start - 4 * i - 6, 2) == 0xFFFF)
-            return actual_start - 4 * i - 1;
+            return actual_start - 4 * i - 4;
     }
     std::print("NOTHING FOUND FOR {:x}", szme_start);
-    return szme_start - 5;
+    return szme_start - 8;
 };
 
 struct mesh_container {
+    u8;
+    u8;
+    u8;
     u8 unk_container_array_length;
     u32 unk[unk_container_array_length];
     u16 num_meshes;
     mesh<unk_container_array_length> meshes[std::math::max(num_meshes, 1)];
     
     auto current_offset = $;
-    
     auto next_mesh_container = std::mem::find_string_in_range(0, current_offset, 0xFFFFFFFF, "SZMS");
     if (next_mesh_container > 0xFFFFFFFF)
         return;
@@ -295,9 +308,10 @@ struct mesh_container {
 
 struct top_level
 {   
-    mesh_container containers[10000];
 };
 
 #pragma pattern_limit 10000000
 
-top_level toplevel @ (0x20910 + 0x6);
+
+auto first_mesh_container = std::mem::find_string_in_range(0, 0, 0xFFFFFFFF, "SZMS");
+mesh_container containers[10000] @ find_unk_field(first_mesh_container);
