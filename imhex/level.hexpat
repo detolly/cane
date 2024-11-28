@@ -161,18 +161,28 @@ struct szme_vertex_data<auto flags, auto unk_container_array_length> {
 //[[hex::visualize("3d", positions, get_indices(indices))]]
 ;
 
-struct after_szme_data<auto flags> {
+struct after_szme_data<auto unk_container_length, auto flags> {
     u8 count;
     vec3 unk[count];
     u8 unk_indices_count;
     u32 unk_indices[unk_indices_count];
-    if (flags & 8 > 0) {
+    if (flags > 0) {
         u8 unk_array_count;
         u8 unk_array[unk_array_count];
         float unk_vecs[count * unk_array_count];
     } else {
         u8 unk_count;
         u32 unk_array[unk_count];
+        if (unk_count > 0) {
+            std::print("after_szme unk_count > 0 {:x} {}", $, unk_count);
+            return;
+        }
+    }
+    
+    if (unk_container_length > 0) {
+        u16 unk_vec_count;
+        vec3 unk_vecs2[unk_vec_count];
+        u16 unk_indices2[count * unk_container_length];
     }
 };
 
@@ -226,10 +236,10 @@ struct szme_t<auto flags, auto unk_container_length, auto after_szme_flags> {
         
         u16 after_szme_data_length;
         if (after_szme_data_length > 0) {
-            std::print("SZME UNK_FLAGS {:x} {} {}", $, after_szme_data_length, after_szme_flags);
+            std::print("SZME after_szme_data_length {:x} {} {}", $, after_szme_data_length, after_szme_flags);
         }
         
-        after_szme_data<after_szme_flags> after_szme[after_szme_data_length];
+        after_szme_data<unk_container_length, after_szme_flags> after_szme[after_szme_data_length];
     }
     
 };
@@ -271,7 +281,7 @@ struct mesh<auto unk_container_length, auto after_szme_flags> {
 
 fn find_unk_field(auto szme_start) {
     auto actual_start = szme_start - 4;
-    for(auto i = 0, i < 0x10, i += 1) {
+    for(auto i = 0, i < 0x50, i += 1) {
         if (std::mem::read_unsigned(actual_start - 4 * i - 1, 1) == i
          && std::mem::read_unsigned(actual_start - 4 * i - 6, 2) == 0xFFFF)
             return actual_start - 4 * i - 4;
@@ -281,12 +291,17 @@ fn find_unk_field(auto szme_start) {
 };
 
 struct mesh_container {
+    u8 unk1;
     u8 after_szme_flags;
-    u8;
-    u8;
+    u8 unk2;
     u8 unk_container_array_length;
     u32 unk[unk_container_array_length];
     u16 num_meshes;
+    
+    if (unk1 > 0 || unk2 > 0) {
+        std::print("unk1 unk2 scenario {:x} {} {}", $, unk1, unk2);
+    }
+    
     mesh<unk_container_array_length, after_szme_flags> meshes[std::math::max(num_meshes, 1)];
     
     auto current_offset = $;
@@ -300,10 +315,6 @@ struct mesh_container {
         return;
     
     padding[padding_count];
-};
-
-struct top_level
-{   
 };
 
 #pragma pattern_limit 10000000
