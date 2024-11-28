@@ -2,12 +2,15 @@
 
 #include <memory>
 #include <print>
+#include <string_view>
 
 #include <Editor.h>
 #include <Renderer/Camera.h>
 #include <Utility/dbgprint.h>
 #include <Utility/Sigscan.h>
 #include <Utility/FileReader.h>
+
+using namespace std::string_view_literals;
 
 SlyMesh::SlyMesh(std::shared_ptr<mesh_data_t> the_mesh_data, std::shared_ptr<mesh_data_t> data_to_render, std::shared_ptr<texture_table_t> texture_table)
     : m_texture_table(texture_table), the_data(the_mesh_data), the_data_to_render(data_to_render)
@@ -309,7 +312,7 @@ void SlyWorld::parse_textures(ez_stream& stream)
         }
     }
 
-    int offset = detolly::sigscan(
+    int offset = sigscan(
         stream.buffer(),
         0,
         stream.size(),
@@ -317,10 +320,10 @@ void SlyWorld::parse_textures(ez_stream& stream)
         " aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80"
         " aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80"
         " aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80 aa\x80"
-        " aa\x80 aa\x80 aa\x80 aa\x80",
+        " aa\x80 aa\x80 aa\x80 aa\x80"sv,
         "aaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaax"
         "aaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaax"
-        "aaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaax",
+        "aaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaaxaaax"sv,
         0
     );
     m_TEX_PALETTE_BASE = offset;

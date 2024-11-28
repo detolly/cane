@@ -1,28 +1,27 @@
 #pragma once
 
 #include <cstring>
+#include <string_view>
 
-namespace detolly {
-    static inline bool memcmp(const char* buffer, const char* bMask, const char* szMask, int& advance_by) {
-        for (size_t bCount = 0; bCount < std::strlen(szMask); ++bCount) {
-            //printf("Read byte: 0x%x,  Byte Mask: 0x%x\r\n", *(BYTE*)(bData + bCount), (BYTE)bMask[bCount]);
-            if (szMask[bCount] == 'x' && buffer[bCount] != bMask[bCount]) {
-                advance_by = bCount;
-                return false;
-            }
+static inline bool compare(const char* buffer, const std::string_view mask, std::string_view ignored_bytes, int& advance_by) {
+    for (size_t bCount = 0; bCount < ignored_bytes.size(); ++bCount) {
+        //printf("Read byte: 0x%x,  Byte Mask: 0x%x\r\n", *(BYTE*)(bData + bCount), (BYTE)bMask[bCount]);
+        if (ignored_bytes[bCount] == 'x' && buffer[bCount] != mask[bCount]) {
+            advance_by = bCount;
+            return false;
         }
-        return true;
     }
+    return true;
+}
 
-    static inline int sigscan(const char* buffer, int start, int size, const char* sig, const char* mask, int offset)
-    {
-        for (int i = 0; i < size; i++) {
-            int advance_count = 0;
-            if (detolly::memcmp(buffer + start + i, sig, mask, advance_count)) {
-                return start + i + offset;
-            }
-            i += advance_count;
+static inline int sigscan(const char* buffer, int start, int size, const std::string_view sig, const std::string_view mask, int offset)
+{
+    for (int i = 0; i < size; i++) {
+        int advance_count = 0;
+        if (compare(buffer + start + i, sig, mask, advance_count)) {
+            return start + i + offset;
         }
-        return -1;
+        i += advance_count;
     }
+    return -1;
 }
