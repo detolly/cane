@@ -140,13 +140,13 @@ struct szme_vertex_data<auto flags, auto unk_container_array_length> {
         float unk_floats[unk_indexes[0] + unk_indexes[1] + unk_indexes[2]];
     else
         float unk_vecs[positions_count * unk_index_count];
-    
-    if(unk_flags > 0) {
+   
+    /*if(unk_flags > 0) {
         std::print("unk_flags occurrence {:x}, {} {}", $, unk_flags, unk_index_count);
     }
     if(unk_index_count > 0) {
         std::print("unk_index_count occurrence {:x}, {} {}", $, unk_flags, unk_index_count);
-    }
+    }*/
     
     if (unk_container_array_length > 0) {
         u16 positions_count2;
@@ -161,9 +161,22 @@ struct szme_vertex_data<auto flags, auto unk_container_array_length> {
 //[[hex::visualize("3d", positions, get_indices(indices))]]
 ;
 
-using mesh;
+struct after_szme_data<auto flags> {
+    u8 count;
+    vec3 unk[count];
+    u8 unk_indices_count;
+    u32 unk_indices[unk_indices_count];
+    if (flags & 8 > 0) {
+        u8 unk_array_count;
+        u8 unk_array[unk_array_count];
+        float unk_vecs[count * unk_array_count];
+    } else {
+        u8 unk_count;
+        u32 unk_array[unk_count];
+    }
+};
 
-struct szme_t<auto flags, auto unk_container_array_length> {
+struct szme_t<auto flags, auto unk_container_length, auto after_szme_flags> {
     if ((flags & 2) != 0) {
         u32 unk_0x04;
     }
@@ -209,36 +222,19 @@ struct szme_t<auto flags, auto unk_container_array_length> {
     
     if ((flags & 1) == 0) {
         u16 mesh_count;
-        szme_vertex_data<flags, unk_container_array_length> szme_data[mesh_count];
-        u16 unk_flags;
+        szme_vertex_data<flags, unk_container_length> szme_data[mesh_count];
         
-        if (unk_flags & 1 != 0) {
-            u8 count;
-            vec3 unk[count];
-            u8 unk_indices_count;
-            u32 unk_indices[unk_indices_count];
-            u8 count3;
-            u32 unk3[count3];
+        u16 after_szme_data_length;
+        if (after_szme_data_length > 0) {
+            std::print("SZME UNK_FLAGS {:x} {} {}", $, after_szme_data_length, after_szme_flags);
         }
-        if (unk_flags & 2 != 0) {
-            u8 count;
-            vec3 unk[count];
-            u8 count2;
-            u32 unk2[count2];
-            u8 count3;
-            u32 unk3[count3];
-            u8 count4;
-            vec3 unk4[count4];
-            u8 count5;
-            u32 unk5[count5];
-            if (count5 > 0)
-                u8;
-        }
+        
+        after_szme_data<after_szme_flags> after_szme[after_szme_data_length];
     }
     
 };
 
-struct mesh<auto unk_container_array_length> {
+struct mesh<auto unk_container_length, auto after_szme_flags> {
 
     u16 flags;
     if ((flags & 1) == 0) {
@@ -270,12 +266,12 @@ struct mesh<auto unk_container_array_length> {
         mat4x3 instance_mat;
     }
     
-    szme_t<flags, unk_container_array_length> szme;
+    szme_t<flags, unk_container_length, after_szme_flags> szme;
 };
 
 fn find_unk_field(auto szme_start) {
     auto actual_start = szme_start - 4;
-    for(auto i = 0, i < 0x100, i += 1) {
+    for(auto i = 0, i < 0x10, i += 1) {
         if (std::mem::read_unsigned(actual_start - 4 * i - 1, 1) == i
          && std::mem::read_unsigned(actual_start - 4 * i - 6, 2) == 0xFFFF)
             return actual_start - 4 * i - 4;
@@ -285,13 +281,13 @@ fn find_unk_field(auto szme_start) {
 };
 
 struct mesh_container {
-    u8;
+    u8 after_szme_flags;
     u8;
     u8;
     u8 unk_container_array_length;
     u32 unk[unk_container_array_length];
     u16 num_meshes;
-    mesh<unk_container_array_length> meshes[std::math::max(num_meshes, 1)];
+    mesh<unk_container_array_length, after_szme_flags> meshes[std::math::max(num_meshes, 1)];
     
     auto current_offset = $;
     auto next_mesh_container = std::mem::find_string_in_range(0, current_offset, 0xFFFFFFFF, "SZMS");
